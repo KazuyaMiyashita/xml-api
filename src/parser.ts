@@ -183,20 +183,6 @@ export class Exclusion extends Expression {
     ctx.pos = startPos;
     const resultB = this.b.execute(ctx);
     
-    // Logic check: if B matches and its length covers A?
-    // Original logic: if (resultB !== null && (startPos + resultB.text.length >= endPosA))
-    // This implies if B matches "as much or more" than A matched? 
-    // Usually exclusion A - B means A matches, and B does NOT match at the same position.
-    // But the original code was:
-    /*
-    if (resultB !== null && (startPos + resultB.text.length >= endPosA)) {
-      ctx.pos = startPos;
-      return null;
-    }
-    */
-    // This seems to implement "A but not if B matches same text or longer".
-    // Let's keep the original logic.
-    
     if (resultB !== null && (startPos + resultB.text.length >= endPosA)) {
       ctx.pos = startPos;
       return null;
