@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>りんごの選び方</title>
+  </head>
+  <body>
+    <h1>りんごの選び方</h1>
+    
+    <section>
+      <h2>はじめに</h2>
+      <p>
+        この文書は、自分にぴったりのりんごを選ぶという重要な作業をサポートするためのガイドです。
+      </p>
+    </section>
+
+    <!-- コメント -->
+    <section>
+      <h2>選定基準</h2>
+      <p>
+        りんごを選ぶ際には、大きさ、色、硬さ、甘み、酸味など、
+        考慮すべき多くの基準があります。
+      </p>
+    </section>
+  </body>
+</html>
