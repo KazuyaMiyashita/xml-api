@@ -18,6 +18,10 @@ describe('XML Grammar Rules', () => {
       testRule('Char', 'a');
       testRule('Char', 'あ');
       testRule('Char', '\t');
+      testRule('Char', '\n');
+      testRule('Char', '\r');
+      // Surrogate pair (U+1F600 😀)
+      testRule('Char', '\uD83D\uDE00'); 
     });
     it('S', () => {
       testRule('S', ' ');
@@ -30,12 +34,17 @@ describe('XML Grammar Rules', () => {
       testRule('NameStartChar', 'A');
       testRule('NameStartChar', ':');
       testRule('NameStartChar', '_');
+      testRule('NameStartChar', 'あ'); // Japanese Hiragana/Katakana usually allowed
+      // testRule('NameStartChar', '-', false); // Start char cannot be -
+      // testRule('NameStartChar', '.', false); // Start char cannot be .
+      // testRule('NameStartChar', '0', false); // Start char cannot be digit
     });
     it('NameChar', () => {
       testRule('NameChar', 'A');
       testRule('NameChar', '0');
       testRule('NameChar', '-');
       testRule('NameChar', '.');
+      testRule('NameChar', '\u00B7'); // Middle dot
     });
     it('Name', () => {
       testRule('Name', 'foo');
@@ -59,6 +68,8 @@ describe('XML Grammar Rules', () => {
       testRule('EntityValue', '"hello"');
       testRule('EntityValue', "'hello'");
       testRule('EntityValue', '"&#x20;"');
+      testRule('EntityValue', '"%pe;"');
+      testRule('EntityValue', '"&ge;"');
     });
     it('AttValue', () => {
       testRule('AttValue', '"val"');
@@ -71,6 +82,7 @@ describe('XML Grammar Rules', () => {
     });
     it('PubidLiteral', () => {
         testRule('PubidLiteral', '"-//W3C//DTD XHTML 1.0//EN"');
+        testRule('PubidLiteral', "'ISO 8879:1986'");
     });
   });
 
@@ -78,19 +90,18 @@ describe('XML Grammar Rules', () => {
     it('CharData', () => {
       testRule('CharData', 'abc');
       testRule('CharData', 'a]b');
-      // " ]]>" is not allowed in CharData
+      // " ]] >" is not allowed in CharData
     });
     it('Comment', () => {
-      // NOTE: Our current Comment implementation in xml-grammar.ts is empty: g.lit("")
-      // This is incorrect. We need to fix the grammar first, but for now we test what is there or mark todo.
-      // Based on the file content I read earlier:
-      // // [15] Comment
-      // g.rule("Comment", g.seq(g.lit(""))); 
-      // This is clearly incomplete/wrong placeholder.
+      testRule('Comment', '<!-- comment -->');
+      testRule('Comment', '<!-- - - -->'); // allowed
+      testRule('Comment', '<!-- A-B -->');
+      // testRule('Comment', '<!-- -- -->', false); // -- not allowed
     });
     it('CDSect', () => {
        testRule('CDSect', '<![CDATA[some data]]>');
        testRule('CDSect', '<![CDATA[<tag> & data]]>');
+       testRule('CDSect', '<![CDATA[]]>');
     });
   });
 
@@ -106,6 +117,7 @@ describe('XML Grammar Rules', () => {
           testRule('XMLDecl', '<?xml version="1.0"?>');
           testRule('XMLDecl', '<?xml version="1.0" encoding="UTF-8"?>');
           testRule('XMLDecl', '<?xml version="1.0" standalone="yes"?>');
+          testRule('XMLDecl', "<?xml version='1.0'?>");
       });
       it('doctypedecl', () => {
           testRule('doctypedecl', '<!DOCTYPE root SYSTEM "dtd">');
@@ -121,6 +133,7 @@ describe('XML Grammar Rules', () => {
       it('STag', () => {
           testRule('STag', '<div>');
           testRule('STag', '<a href="link">');
+          testRule('STag', '<foo bar="baz" qux="quux">');
       });
       it('ETag', () => {
           testRule('ETag', '</div>');
@@ -130,6 +143,7 @@ describe('XML Grammar Rules', () => {
           testRule('element', '<br/>');
           testRule('element', '<p>Hello</p>');
           testRule('element', '<div><span>Nested</span></div>');
+          testRule('element', '<empty></empty>');
       });
   });
 
@@ -137,10 +151,13 @@ describe('XML Grammar Rules', () => {
       it('CharRef', () => {
           testRule('CharRef', '&#65;');
           testRule('CharRef', '&#x41;');
+          testRule('CharRef', '&#x4a;');
+          testRule('CharRef', '&#x4F;'); // Uppercase hex
       });
       it('EntityRef', () => {
           testRule('EntityRef', '&amp;');
           testRule('EntityRef', '&lt;');
+          testRule('EntityRef', '&myEntity;');
       });
   });
 
@@ -148,23 +165,42 @@ describe('XML Grammar Rules', () => {
       it('elementdecl', () => {
           testRule('elementdecl', '<!ELEMENT br EMPTY>');
           testRule('elementdecl', '<!ELEMENT p (#PCDATA|b)*>');
+          testRule('elementdecl', '<!ELEMENT container ANY>');
+          testRule('elementdecl', '<!ELEMENT div (p+)>');
       });
       it('AttlistDecl', () => {
           testRule('AttlistDecl', '<!ATTLIST p id ID #IMPLIED>');
+          testRule('AttlistDecl', '<!ATTLIST img src CDATA #REQUIRED>');
       });
       it('EntityDecl', () => {
           testRule('EntityDecl', '<!ENTITY foo "bar">');
           testRule('EntityDecl', '<!ENTITY % pe "val">');
+          testRule('EntityDecl', '<!ENTITY ext SYSTEM "http://example.com">');
       });
       it('NotationDecl', () => {
           testRule('NotationDecl', '<!NOTATION jpeg SYSTEM "image/jpeg">');
+          testRule('NotationDecl', '<!NOTATION png PUBLIC "PNG 1.0">');
       });
+  });
+
+  describe('Conditional Sections', () => {
+    it('includeSect', () => {
+        testRule('includeSect', '<![INCLUDE[ <!ELEMENT foo EMPTY> ]]>');
+    });
+    it('ignoreSect', () => {
+        testRule('ignoreSect', '<![IGNORE[ something ]]>');
+        testRule('ignoreSect', '<![IGNORE[ <![something]]> ]]>');
+    });
   });
 
   // Integration-like test for document
   describe('Document', () => {
       it('should parse a simple document', () => {
           const doc = '<?xml version="1.0"?><root>text</root>';
+          testRule('document', doc);
+      });
+      it('should parse document with DTD', () => {
+          const doc = '<?xml version="1.0"?><!DOCTYPE root SYSTEM "foo.dtd"><root/>';
           testRule('document', doc);
       });
   });
