@@ -7,6 +7,7 @@
       "run_shell_command(git add)",
       "run_shell_command(git status)",
       "run_shell_command(git diff)",
+      "run_shell_command(git log)",
       "run_shell_command(git commit)",
       "run_shell_command(pnpm typecheck)",
       "run_shell_command(pnpm test)",
