@@ -212,11 +212,12 @@ g.rule("SDDecl", g.seq(
 
 // [39] element ::= EmptyElemTag | STag content ETag
 // cf: https://www.w3.org/TR/xml/#NT-element 
+// Well-formedness constraint: Element Type Match - The Name in an element's end-tag MUST match the element type in the start-tag.
 g.rule("element", g.alt(g.ref("EmptyElemTag"), g.seq(g.ref("STag"), g.ref("content"), g.ref("ETag"))));
 
 // [40] STag ::= '<' Name (S Attribute)* S? '>'
 // cf: https://www.w3.org/TR/xml/#NT-STag 
-g.rule("STag", g.seq(g.lit("<"), g.ref("Name"), g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), g.opt(g.ref("S")), g.lit(">")));
+g.rule("STag", g.seq(g.lit("<"), g.action(g.ref("Name"), (node, ctx) => ctx.tags.push(node.getText(ctx.input))), g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), g.opt(g.ref("S")), g.lit(">")));
 
 // [41] Attribute ::= Name Eq AttValue
 // cf: https://www.w3.org/TR/xml/#NT-Attribute 
@@ -224,7 +225,10 @@ g.rule("Attribute", g.seq(g.ref("Name"), g.ref("Eq"), g.ref("AttValue")));
 
 // [42] ETag ::= '</' Name S? '>'
 // cf: https://www.w3.org/TR/xml/#NT-ETag 
-g.rule("ETag", g.seq(g.lit("</"), g.ref("Name"), g.opt(g.ref("S")), g.lit(">")));
+g.rule("ETag", g.seq(g.lit("</"), g.verify(g.ref("Name"), (node, ctx) => {
+    const last = ctx.tags.pop();
+    return last === node.getText(ctx.input);
+}), g.opt(g.ref("S")), g.lit(">")));
 
 // [43] content ::= CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
 // cf: https://www.w3.org/TR/xml/#NT-content 

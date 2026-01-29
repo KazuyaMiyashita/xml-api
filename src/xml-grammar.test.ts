@@ -145,6 +145,18 @@ describe('XML Grammar Rules', () => {
           testRule('element', '<div><span>Nested</span></div>');
           testRule('element', '<empty></empty>');
       });
+
+      it('should fail well-formedness on mismatched tags', () => {
+          const result = g.parse('element', '<p>Hello</div>');
+          expect(result).not.toBeNull();
+          expect(result?.wellFormed).toBe(false);
+      });
+
+      it('should fail well-formedness on improper nesting', () => {
+          const result = g.parse('element', '<div><p>Hello</div></p>');
+          expect(result).not.toBeNull();
+          expect(result?.wellFormed).toBe(false);
+      });
   });
 
   describe('References', () => {
