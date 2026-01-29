@@ -4,8 +4,9 @@
   "description": "",
   "main": "src/main.ts",
   "scripts": {
-    "start": "ts-node src/main.ts",
-    "test": "jest"
+    "typecheck": "tsc",
+    "test": "jest",
+    "start": "ts-node src/main.ts"
   },
   "keywords": [],
   "author": "",
