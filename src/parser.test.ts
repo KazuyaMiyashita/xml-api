@@ -6,7 +6,7 @@ describe('Parser Combinators', () => {
   describe('Literal', () => {
     it('should match exact string', () => {
       const parser = g.lit('hello');
-      const ctx = { input: 'hello world', pos: 0, rules: {} };
+      const ctx = { input: 'hello world', pos: 0, rules: {}, tags: [] };
       const result = parser.execute(ctx);
       expect(result).not.toBeNull();
       expect(result?.getText(ctx.input)).toBe('hello');
@@ -15,7 +15,7 @@ describe('Parser Combinators', () => {
 
     it('should fail if string does not match', () => {
       const parser = g.lit('hello');
-      const ctx = { input: 'world', pos: 0, rules: {} };
+      const ctx = { input: 'world', pos: 0, rules: {}, tags: [] };
       const result = parser.execute(ctx);
       expect(result).toBeNull();
       expect(ctx.pos).toBe(0);
@@ -25,7 +25,7 @@ describe('Parser Combinators', () => {
   describe('RegExpMatch', () => {
     it('should match regex pattern', () => {
       const parser = g.reg('[a-z]+');
-      const ctx = { input: 'abc123', pos: 0, rules: {} };
+      const ctx = { input: 'abc123', pos: 0, rules: {}, tags: [] };
       const result = parser.execute(ctx);
       expect(result).not.toBeNull();
       expect(result?.getText(ctx.input)).toBe('abc');
@@ -34,7 +34,7 @@ describe('Parser Combinators', () => {
 
     it('should fail if pattern does not match', () => {
       const parser = g.reg('[0-9]+');
-      const ctx = { input: 'abc', pos: 0, rules: {} };
+      const ctx = { input: 'abc', pos: 0, rules: {}, tags: [] };
       const result = parser.execute(ctx);
       expect(result).toBeNull();
       expect(ctx.pos).toBe(0);
@@ -44,7 +44,7 @@ describe('Parser Combinators', () => {
   describe('Sequence', () => {
     it('should match sequence of expressions', () => {
       const parser = g.seq(g.lit('A'), g.lit('B'));
-      const ctx = { input: 'AB', pos: 0, rules: {} };
+      const ctx = { input: 'AB', pos: 0, rules: {}, tags: [] };
       const result = parser.execute(ctx);
       expect(result).not.toBeNull();
       expect(result?.getText(ctx.input)).toBe('AB');
@@ -54,7 +54,7 @@ describe('Parser Combinators', () => {
 
     it('should fail if any part fails', () => {
       const parser = g.seq(g.lit('A'), g.lit('B'));
-      const ctx = { input: 'AC', pos: 0, rules: {} };
+      const ctx = { input: 'AC', pos: 0, rules: {}, tags: [] };
       const result = parser.execute(ctx);
       expect(result).toBeNull();
       expect(ctx.pos).toBe(0); // Should backtrack
@@ -64,14 +64,14 @@ describe('Parser Combinators', () => {
   describe('Choice (Alt)', () => {
     it('should match first option', () => {
       const parser = g.alt(g.lit('A'), g.lit('B'));
-      const ctx = { input: 'A', pos: 0, rules: {} };
+      const ctx = { input: 'A', pos: 0, rules: {}, tags: [] };
       const result = parser.execute(ctx);
       expect(result?.getText(ctx.input)).toBe('A');
     });
 
     it('should match second option if first fails', () => {
       const parser = g.alt(g.lit('A'), g.lit('B'));
-      const ctx = { input: 'B', pos: 0, rules: {} };
+      const ctx = { input: 'B', pos: 0, rules: {}, tags: [] };
       const result = parser.execute(ctx);
       expect(result?.getText(ctx.input)).toBe('B');
     });
@@ -81,12 +81,12 @@ describe('Parser Combinators', () => {
     it('rep should match zero or more', () => {
       const parser = g.rep(g.lit('A'));
       // Match 2
-      let ctx = { input: 'AA', pos: 0, rules: {} };
+      let ctx = { input: 'AA', pos: 0, rules: {}, tags: [] };
       let result = parser.execute(ctx);
       expect(result?.children.length).toBe(2);
       
       // Match 0
-      ctx = { input: 'B', pos: 0, rules: {} };
+      ctx = { input: 'B', pos: 0, rules: {}, tags: [] };
       result = parser.execute(ctx);
       expect(result?.children.length).toBe(0); // Success with empty match
       expect(ctx.pos).toBe(0);
@@ -95,12 +95,11 @@ describe('Parser Combinators', () => {
     it('plus should match one or more', () => {
       const parser = g.plus(g.lit('A'));
       // Match 1
-      let ctx = { input: 'A', pos: 0, rules: {} };
+      let ctx = { input: 'A', pos: 0, rules: {}, tags: [] };
       let result = parser.execute(ctx);
       expect(result?.children.length).toBe(1);
 
-      // Match 0 (Fail)
-      ctx = { input: 'B', pos: 0, rules: {} };
+      ctx = { input: 'B', pos: 0, rules: {}, tags: [] };
       result = parser.execute(ctx);
       expect(result).toBeNull();
     });
@@ -108,12 +107,12 @@ describe('Parser Combinators', () => {
     it('opt should match zero or one', () => {
         const parser = g.opt(g.lit('A'));
         // Match 1
-        let ctx = { input: 'A', pos: 0, rules: {} };
+        let ctx = { input: 'A', pos: 0, rules: {}, tags: [] };
         let result = parser.execute(ctx);
         expect(result?.children.length).toBe(1);
   
         // Match 0
-        ctx = { input: 'B', pos: 0, rules: {} };
+        ctx = { input: 'B', pos: 0, rules: {}, tags: [] };
         result = parser.execute(ctx);
         expect(result?.children.length).toBe(0);
     });
@@ -130,12 +129,12 @@ describe('Parser Combinators', () => {
           const parser = g.exc(g.reg('.'), g.lit('X'));
           
           // Input 'Y' -> A matches 'Y', B fails. Result 'Y'.
-          let ctx = { input: 'Y', pos: 0, rules: {} };
+          let ctx = { input: 'Y', pos: 0, rules: {}, tags: [] };
           let result = parser.execute(ctx);
           expect(result?.getText(ctx.input)).toBe('Y');
 
           // Input 'X' -> A matches 'X', B matches 'X'. Len A (1) <= Len B (1). Fail.
-          ctx = { input: 'X', pos: 0, rules: {} };
+          ctx = { input: 'X', pos: 0, rules: {}, tags: [] };
           result = parser.execute(ctx);
           expect(result).toBeNull();
       });

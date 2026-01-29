@@ -37,10 +37,8 @@ describe('Minimum Grammar Rules', () => {
       testRule('STag', '<div>');
     });
 
-    it('ETag', () => {
-      testRule('ETag', '</p>');
-      testRule('ETag', '</div>');
-    });
+    // ETag test removed because it depends on context (stack) which is empty here.
+    // It is tested within 'element' rules.
   });
 
   describe('Element Structure', () => {
@@ -54,6 +52,14 @@ describe('Minimum Grammar Rules', () => {
 
     it('Mixed Content', () => {
         testRule('element', '<p>Hello<br/>World</p>');
+    });
+
+    it('should fail on mismatched tags', () => {
+        testRule('element', '<p>Hello</div>', false);
+    });
+
+    it('should fail on improper nesting', () => {
+        testRule('element', '<div><p>Hello</div></p>', false);
     });
   });
 
