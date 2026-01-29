@@ -16,7 +16,7 @@ export interface Context {
   input: string;
   pos: number;
   rules: { [key: string]: Expression };
-  tags: string[];
+  tags: string[]; // Stack of tag names for Element Type Match (WFC) validation
 }
 
 export abstract class Expression {
@@ -86,12 +86,9 @@ export class Grammar {
     return new Reference(name);
   }
 
+  // Attaches an action to an expression, executed upon successful match
   action(expression: Expression, action: (node: Node, ctx: Context) => void): Action {
     return new Action(expression, action);
-  }
-
-  check(expression: Expression, predicate: (node: Node, ctx: Context) => boolean): Predicate {
-    return new Predicate(expression, predicate);
   }
 
   verify(expression: Expression, validator: (node: Node, ctx: Context) => boolean): Verify {
@@ -250,6 +247,7 @@ export class Reference extends Expression {
   }
 }
 
+// Executes an action when the wrapped expression matches
 export class Action extends Expression {
   constructor(public expression: Expression, public action: (node: Node, ctx: Context) => void) {
     super();
@@ -260,26 +258,6 @@ export class Action extends Expression {
       this.action(result, ctx);
     }
     return result;
-  }
-}
-
-export class Predicate extends Expression {
-  constructor(public expression: Expression, public predicate: (node: Node, ctx: Context) => boolean) {
-    super();
-  }
-  execute(ctx: Context): Node | null {
-    const startPos = ctx.pos;
-    const startTags = [...ctx.tags];
-    const result = this.expression.execute(ctx);
-    if (result) {
-      if (this.predicate(result, ctx)) {
-        return result;
-      }
-      ctx.pos = startPos;
-      ctx.tags = startTags;
-      return null;
-    }
-    return null;
   }
 }
 
