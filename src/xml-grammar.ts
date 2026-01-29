@@ -1,4 +1,4 @@
-import { Grammar } from './parser';
+import { Grammar, Node, Context } from './parser';
 
 const g = new Grammar();
 
@@ -214,9 +214,65 @@ g.rule("SDDecl", g.seq(
 // cf: https://www.w3.org/TR/xml/#NT-element 
 g.rule("element", g.alt(g.ref("EmptyElemTag"), g.seq(g.ref("STag"), g.ref("content"), g.ref("ETag"))));
 
+// Well-formedness constraint: Element Type Match
+function validateElementTypeMatch(node: Node, ctx: Context): boolean {
+    // node.type is 'element' because it's wrapped by the Reference.
+    
+    // Case 1: EmptyElemTag (always well-formed regarding tag match)
+    // Structure: [literal("<"), Name, repeat(attr), repeat(S), literal("/>")]
+    if (node.children.length > 0 && node.children[0].type === 'literal') {
+        return true;
+    }
+    
+    // Case 2: Sequence [STag, content, ETag]
+    // STag and ETag are References, so their types are 'STag' and 'ETag'
+    if (node.children.length === 3 && node.children[0].type === 'STag' && node.children[2].type === 'ETag') {
+        const stag = node.children[0];
+        const etag = node.children[2];
+        const input = ctx.input;
+        
+        // STag -> < Name ... > (Name is at children[1])
+        const startName = stag.children[1].getText(input);
+        
+        // ETag -> </ Name ... > (Name is at children[1])
+        const endName = etag.children[1].getText(input);
+
+        return startName === endName;
+    }
+    
+    throw new Error(`Validation error: unexpected node structure in validateElementTypeMatch for XML grammar. Children types: ${node.children.map(c => c.type).join(', ')}`);
+}
+g.verifyRule("element", validateElementTypeMatch);
+
+// Helper for Unique Att Spec check
+function validateUniqueAttributes(node: Node, ctx: Context): boolean {
+    const seen = new Set<string>();
+    // STag/EmptyElemTag structure:
+    // 0: "<"
+    // 1: Name
+    // 2: rep(seq(S, Attribute))
+    // ...
+    const repNode = node.children[2];
+    if (!repNode || repNode.type !== 'repeat') return true; 
+
+    for (const seqNode of repNode.children) {
+        // seqNode children: [S, Attribute]
+        const attrNode = seqNode.children[1];
+        if (attrNode && attrNode.type === 'Attribute') {
+            const nameNode = attrNode.children[0];
+            const name = nameNode.getText(ctx.input);
+            if (seen.has(name)) return false;
+            seen.add(name);
+        }
+    }
+    return true;
+}
+
 // [40] STag ::= '<' Name (S Attribute)* S? '>'
 // cf: https://www.w3.org/TR/xml/#NT-STag 
 g.rule("STag", g.seq(g.lit("<"), g.ref("Name"), g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), g.opt(g.ref("S")), g.lit(">")));
+// Well-formedness constraint: Unique Att Spec
+g.verifyRule("STag", validateUniqueAttributes);
 
 // [41] Attribute ::= Name Eq AttValue
 // cf: https://www.w3.org/TR/xml/#NT-Attribute 
@@ -233,6 +289,8 @@ g.rule("content", g.seq(g.opt(g.ref("CharData")), g.rep(g.seq(g.alt(g.ref("eleme
 // [44] EmptyElemTag ::= '<' Name (S Attribute)* S? '/>'
 // cf: https://www.w3.org/TR/xml/#NT-EmptyElemTag 
 g.rule("EmptyElemTag", g.seq(g.lit("<"), g.ref("Name"), g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), g.opt(g.ref("S")), g.lit("/>")));
+// Well-formedness constraint: Unique Att Spec
+g.verifyRule("EmptyElemTag", validateUniqueAttributes);
 
 // [45] elementdecl ::= '<!ELEMENT' S Name S contentspec S? '>'
 // cf: https://www.w3.org/TR/xml/#NT-elementdecl 
@@ -325,6 +383,28 @@ g.rule("Ignore", g.rep(g.exc(g.ref("Char"), g.reg("(<!\\[|]]\\x3E)"))));
 // cf: https://www.w3.org/TR/xml/#NT-CharRef 
 g.rule("CharRef", g.alt(g.seq(g.lit("&#"), g.plus(g.reg("[0-9]")), g.lit(";")),
  g.seq(g.lit("&#x"), g.plus(g.reg("[0-9a-fA-F]")), g.lit(";"))));
+
+// Well-formedness constraint: Legal Character
+// Characters referred to using character references MUST match the production for Char.
+g.verifyRule("CharRef", (node: Node, ctx: Context): boolean => {
+    const text = node.getText(ctx.input);
+    let code: number;
+    if (text.startsWith("&#x")) {
+        code = parseInt(text.slice(3, -1), 16);
+    } else {
+        code = parseInt(text.slice(2, -1), 10);
+    }
+
+    // Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+    return (
+        code === 0x9 ||
+        code === 0xA ||
+        code === 0xD ||
+        (code >= 0x20 && code <= 0xD7FF) ||
+        (code >= 0xE000 && code <= 0xFFFD) ||
+        (code >= 0x10000 && code <= 0x10FFFF)
+    );
+});
 
 // [67] Reference ::= EntityRef | CharRef
 // cf: https://www.w3.org/TR/xml/#NT-Reference 

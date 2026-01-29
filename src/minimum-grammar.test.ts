@@ -12,7 +12,6 @@ function testRule(ruleName: string, input: string, shouldMatch: boolean = true) 
 }
 
 describe('Minimum Grammar Rules', () => {
-
   describe('Basic Components', () => {
     it('Name', () => {
       testRule('Name', 'p');
@@ -55,6 +54,37 @@ describe('Minimum Grammar Rules', () => {
     it('Mixed Content', () => {
         testRule('element', '<p>Hello<br/>World</p>');
     });
+
+    it('should fail on mismatched tags', () => {
+        // <p>Hello</div>
+        const input = '<p>Hello</div>';
+        const result = g.parse('element', input);
+        expect(result).not.toBeNull();
+        expect(result?.wellFormed).toBe(false);
+    });
+
+    it('should fail on improper nesting', () => {
+        // <div><p>Hello</div></p>
+        const input = '<div><p>Hello</div></p>';
+        const result = g.parse('element', input);
+        expect(result).not.toBeNull();
+        expect(result?.wellFormed).toBe(false);
+    });
+
+    it('If the inner well-formed check fails, the outer one also fails.', () => {
+        const input = '<outer><inner>Hello</innermismatch></outer>';
+        const result = g.parse('element', input);
+        expect(result).not.toBeNull();
+        expect(result?.wellFormed).toBe(false);
+    });
+
+    it('should pass on correct tags', () => {
+        const input = '<p>Hello</p>';
+        const result = g.parse('element', input);
+        expect(result).not.toBeNull();
+        expect(result?.wellFormed).toBe(true);
+    });
+
   });
 
   describe('Document Integration', () => {
