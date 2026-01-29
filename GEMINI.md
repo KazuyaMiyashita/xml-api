@@ -12,6 +12,7 @@
 
 ## Committing
 
+* Commits are made in small units that make meaningful changes.
 * Language: Commit messages must be written in Japanese.
 * Branch management: Commit changes to the current branch. Merging into the `main` branch is prohibited.
 * WIP records: After successfully completing an experiment with `minimum-grammer.ts`, include `wip:` in the commit message and review the changes to ensure they meet user expectations.
