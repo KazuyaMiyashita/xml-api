@@ -1,6 +1,21 @@
-# Working principles for this repository
+# Working Principles for This Repository
 
-- coding: Work slowly and carefully, emphasizing design and maintainability.
-- test: All `pnpm tests` must pass before committing.
-- commit: Once work is complete and tests pass, commit the changes on the current branch with a commit message in 日本語. Merging to the main branch is prohibited.
-- others: Moving the current directory is prohibited.
+## Coding
+
+* Approach: Work slowly and carefully, emphasizing design quality and maintainability.
+* Large-scale changes: Use `minimum-grammer.ts` to conduct small experiments when making significant modifications to the parser or architecture.
+
+## Testing
+
+* Standard requirement: All `pnpm tests` must pass before committing any changes.
+* Experimental exception: When testing with `minimum-grammer.ts`, you only need to ensure that your specific changes and the tests in `minimum-grammer.test.ts` pass.
+
+## Committing
+
+* Language: Commit messages must be written in Japanese.
+* Branch management: Commit changes to the current branch. Merging into the `main` branch is prohibited.
+* WIP records: After successfully completing an experiment with `minimum-grammer.ts`, include `wip:` in the commit message and review the changes to ensure they meet user expectations.
+
+## Others
+
+* Directory management: Moving or changing the current directory is prohibited.
