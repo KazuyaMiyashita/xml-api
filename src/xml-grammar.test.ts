@@ -178,6 +178,23 @@ describe('XML Grammar Rules', () => {
           testRule('CharRef', '&#x4a;');
           testRule('CharRef', '&#x4F;'); // Uppercase hex
       });
+
+      it('should validate well-formedness of CharRef (Legal Character)', () => {
+          // Valid
+          expect(g.parse('CharRef', '&#x9;')?.wellFormed).toBe(true);
+          expect(g.parse('CharRef', '&#x20;')?.wellFormed).toBe(true);
+          expect(g.parse('CharRef', '&#x10FFFF;')?.wellFormed).toBe(true);
+
+          // Invalid
+          expect(g.parse('CharRef', '&#x0;')?.wellFormed).toBe(false);
+          expect(g.parse('CharRef', '&#x1;')?.wellFormed).toBe(false);
+          expect(g.parse('CharRef', '&#x8;')?.wellFormed).toBe(false);
+          expect(g.parse('CharRef', '&#xD800;')?.wellFormed).toBe(false); // High surrogate
+          expect(g.parse('CharRef', '&#xDFFF;')?.wellFormed).toBe(false); // Low surrogate
+          expect(g.parse('CharRef', '&#xFFFF;')?.wellFormed).toBe(false); // Non-character
+          expect(g.parse('CharRef', '&#x110000;')?.wellFormed).toBe(false); // Out of range
+      });
+
       it('EntityRef', () => {
           testRule('EntityRef', '&amp;');
           testRule('EntityRef', '&lt;');

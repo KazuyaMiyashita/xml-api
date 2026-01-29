@@ -284,10 +284,6 @@ export class Reference extends Expression {
  *   "The replacement text of any entity referred to directly or indirectly in an attribute value MUST NOT contain a <."
  *   https://www.w3.org/TR/xml/#CleanAttrVals
  * 
- * - [WFC: Legal Character]
- *   "Characters referred to using character references MUST match the production for Char."
- *   https://www.w3.org/TR/xml/#wf-Legalchar
- * 
  * - [WFC: Entity Declared]
  *   "In a document without any DTD, a document with only an internal DTD subset which contains no parameter entity references, or a document with standalone='yes', for an entity reference that does not occur within the external subset or a parameter entity, the Name given in the entity reference MUST match that in an entity declaration..."
  *   https://www.w3.org/TR/xml/#wf-entdeclared

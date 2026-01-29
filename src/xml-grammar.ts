@@ -384,6 +384,28 @@ g.rule("Ignore", g.rep(g.exc(g.ref("Char"), g.reg("(<!\\[|]]\\x3E)"))));
 g.rule("CharRef", g.alt(g.seq(g.lit("&#"), g.plus(g.reg("[0-9]")), g.lit(";")),
  g.seq(g.lit("&#x"), g.plus(g.reg("[0-9a-fA-F]")), g.lit(";"))));
 
+// Well-formedness constraint: Legal Character
+// Characters referred to using character references MUST match the production for Char.
+g.verifyRule("CharRef", (node: Node, ctx: Context): boolean => {
+    const text = node.getText(ctx.input);
+    let code: number;
+    if (text.startsWith("&#x")) {
+        code = parseInt(text.slice(3, -1), 16);
+    } else {
+        code = parseInt(text.slice(2, -1), 10);
+    }
+
+    // Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+    return (
+        code === 0x9 ||
+        code === 0xA ||
+        code === 0xD ||
+        (code >= 0x20 && code <= 0xD7FF) ||
+        (code >= 0xE000 && code <= 0xFFFD) ||
+        (code >= 0x10000 && code <= 0x10FFFF)
+    );
+});
+
 // [67] Reference ::= EntityRef | CharRef
 // cf: https://www.w3.org/TR/xml/#NT-Reference 
 g.rule("Reference", g.alt(g.ref("EntityRef"), g.ref("CharRef")));
