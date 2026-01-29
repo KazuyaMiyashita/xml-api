@@ -5,7 +5,7 @@ function testRule(ruleName: string, input: string, shouldMatch: boolean = true) 
   const result = g.parse(ruleName, input);
   if (shouldMatch) {
     expect(result).not.toBeNull();
-    expect(result?.text).toBe(input);
+    expect(result?.getText(input)).toBe(input);
   } else {
     expect(result).toBeNull();
   }

@@ -9,7 +9,7 @@ describe('Parser Combinators', () => {
       const ctx = { input: 'hello world', pos: 0, rules: {} };
       const result = parser.execute(ctx);
       expect(result).not.toBeNull();
-      expect(result?.text).toBe('hello');
+      expect(result?.getText(ctx.input)).toBe('hello');
       expect(ctx.pos).toBe(5);
     });
 
@@ -28,7 +28,7 @@ describe('Parser Combinators', () => {
       const ctx = { input: 'abc123', pos: 0, rules: {} };
       const result = parser.execute(ctx);
       expect(result).not.toBeNull();
-      expect(result?.text).toBe('abc');
+      expect(result?.getText(ctx.input)).toBe('abc');
       expect(ctx.pos).toBe(3);
     });
 
@@ -47,7 +47,7 @@ describe('Parser Combinators', () => {
       const ctx = { input: 'AB', pos: 0, rules: {} };
       const result = parser.execute(ctx);
       expect(result).not.toBeNull();
-      expect(result?.text).toBe('AB');
+      expect(result?.getText(ctx.input)).toBe('AB');
       expect(result?.children.length).toBe(2);
       expect(ctx.pos).toBe(2);
     });
@@ -66,14 +66,14 @@ describe('Parser Combinators', () => {
       const parser = g.alt(g.lit('A'), g.lit('B'));
       const ctx = { input: 'A', pos: 0, rules: {} };
       const result = parser.execute(ctx);
-      expect(result?.text).toBe('A');
+      expect(result?.getText(ctx.input)).toBe('A');
     });
 
     it('should match second option if first fails', () => {
       const parser = g.alt(g.lit('A'), g.lit('B'));
       const ctx = { input: 'B', pos: 0, rules: {} };
       const result = parser.execute(ctx);
-      expect(result?.text).toBe('B');
+      expect(result?.getText(ctx.input)).toBe('B');
     });
   });
 
@@ -132,7 +132,7 @@ describe('Parser Combinators', () => {
           // Input 'Y' -> A matches 'Y', B fails. Result 'Y'.
           let ctx = { input: 'Y', pos: 0, rules: {} };
           let result = parser.execute(ctx);
-          expect(result?.text).toBe('Y');
+          expect(result?.getText(ctx.input)).toBe('Y');
 
           // Input 'X' -> A matches 'X', B matches 'X'. Len A (1) <= Len B (1). Fail.
           ctx = { input: 'X', pos: 0, rules: {} };
