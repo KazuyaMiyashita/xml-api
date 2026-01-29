@@ -157,6 +157,18 @@ describe('XML Grammar Rules', () => {
           expect(result).not.toBeNull();
           expect(result?.wellFormed).toBe(false);
       });
+
+      it('should fail well-formedness on duplicate attributes in STag', () => {
+          const result = g.parse('element', '<div id="a" id="b"></div>');
+          expect(result).not.toBeNull();
+          expect(result?.wellFormed).toBe(false);
+      });
+
+      it('should fail well-formedness on duplicate attributes in EmptyElemTag', () => {
+          const result = g.parse('element', '<img src="a.jpg" src="b.jpg" />');
+          expect(result).not.toBeNull();
+          expect(result?.wellFormed).toBe(false);
+      });
   });
 
   describe('References', () => {

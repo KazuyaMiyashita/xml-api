@@ -1,4 +1,4 @@
-import { Grammar } from './parser';
+import { Grammar, Node, Context } from './parser';
 
 const g = new Grammar();
 
@@ -215,9 +215,43 @@ g.rule("SDDecl", g.seq(
 // Well-formedness constraint: Element Type Match - The Name in an element's end-tag MUST match the element type in the start-tag.
 g.rule("element", g.alt(g.ref("EmptyElemTag"), g.seq(g.ref("STag"), g.ref("content"), g.ref("ETag"))));
 
+// Helper for Unique Att Spec check
+function checkUniqueAttributes(node: Node, ctx: Context): boolean {
+    const seen = new Set<string>();
+    // STag/EmptyElemTag structure:
+    // 0: "<"
+    // 1: Name
+    // 2: rep(seq(S, Attribute))
+    // ...
+    const repNode = node.children[2];
+    if (!repNode || repNode.type !== 'repeat') return true; 
+
+    for (const seqNode of repNode.children) {
+        // seqNode children: [S, Attribute]
+        const attrNode = seqNode.children[1];
+        if (attrNode && attrNode.type === 'Attribute') {
+            const nameNode = attrNode.children[0];
+            const name = nameNode.getText(ctx.input);
+            if (seen.has(name)) return false;
+            seen.add(name);
+        }
+    }
+    return true;
+}
+
 // [40] STag ::= '<' Name (S Attribute)* S? '>'
 // cf: https://www.w3.org/TR/xml/#NT-STag 
-g.rule("STag", g.seq(g.lit("<"), g.action(g.ref("Name"), (node, ctx) => ctx.tags.push(node.getText(ctx.input))), g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), g.opt(g.ref("S")), g.lit(">")));
+// Well-formedness constraint: Unique Att Spec - An attribute name MUST NOT appear more than once in the same start-tag or empty-element tag.
+g.rule("STag", g.verify(
+    g.seq(
+        g.lit("<"), 
+        g.action(g.ref("Name"), (node, ctx) => ctx.tags.push(node.getText(ctx.input))), 
+        g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), 
+        g.opt(g.ref("S")), 
+        g.lit(">")
+    ),
+    checkUniqueAttributes
+));
 
 // [41] Attribute ::= Name Eq AttValue
 // cf: https://www.w3.org/TR/xml/#NT-Attribute 
@@ -236,7 +270,17 @@ g.rule("content", g.seq(g.opt(g.ref("CharData")), g.rep(g.seq(g.alt(g.ref("eleme
 
 // [44] EmptyElemTag ::= '<' Name (S Attribute)* S? '/>'
 // cf: https://www.w3.org/TR/xml/#NT-EmptyElemTag 
-g.rule("EmptyElemTag", g.seq(g.lit("<"), g.ref("Name"), g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), g.opt(g.ref("S")), g.lit("/>")));
+// Well-formedness constraint: Unique Att Spec - An attribute name MUST NOT appear more than once in the same start-tag or empty-element tag.
+g.rule("EmptyElemTag", g.verify(
+    g.seq(
+        g.lit("<"), 
+        g.ref("Name"), 
+        g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), 
+        g.opt(g.ref("S")), 
+        g.lit("/>")
+    ),
+    checkUniqueAttributes
+));
 
 // [45] elementdecl ::= '<!ELEMENT' S Name S contentspec S? '>'
 // cf: https://www.w3.org/TR/xml/#NT-elementdecl 
