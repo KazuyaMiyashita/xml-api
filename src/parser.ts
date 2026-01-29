@@ -3,8 +3,7 @@ export class Node {
     public type: string,
     public start: number,
     public end: number,
-    public children: Node[] = [],
-    public wellFormed: boolean = true
+    public children: Node[] = []
   ) {}
 
   getText(input: string): string {
@@ -16,7 +15,6 @@ export interface Context {
   input: string;
   pos: number;
   rules: { [key: string]: Expression };
-  tags: string[]; // Stack of tag names for Element Type Match (WFC) validation
 }
 
 export abstract class Expression {
@@ -38,7 +36,7 @@ export class Grammar {
   }
 
   parse(ruleName: string, input: string): Node | null {
-    const ctx: Context = { input, pos: 0, rules: this.rules, tags: [] };
+    const ctx: Context = { input, pos: 0, rules: this.rules };
     if (!this.rules[ruleName]) {
         throw new Error(`Rule ${ruleName} not found`);
     }
@@ -85,15 +83,6 @@ export class Grammar {
   ref(name: string): Reference {
     return new Reference(name);
   }
-
-  // Attaches an action to an expression, executed upon successful match
-  action(expression: Expression, action: (node: Node, ctx: Context) => void): Action {
-    return new Action(expression, action);
-  }
-
-  verify(expression: Expression, validator: (node: Node, ctx: Context) => boolean): Verify {
-    return new Verify(expression, validator);
-  }
 }
 
 export class Literal extends Expression {
@@ -134,22 +123,16 @@ export class Sequence extends Expression {
   }
   execute(ctx: Context): Node | null {
     const startPos = ctx.pos;
-    const startTags = [...ctx.tags];
     const children: Node[] = [];
-    let wellFormed = true;
     for (const expr of this.expressions) {
       const result = expr.execute(ctx);
       if (result === null) {
         ctx.pos = startPos;
-        ctx.tags = startTags;
         return null;
       }
       children.push(result);
-      if (!result.wellFormed) {
-        wellFormed = false;
-      }
     }
-    return new Node(this.label || "sequence", startPos, ctx.pos, children, wellFormed);
+    return new Node(this.label || "sequence", startPos, ctx.pos, children);
   }
 }
 
@@ -160,13 +143,11 @@ export class Choice extends Expression {
   execute(ctx: Context): Node | null {
     for (const expr of this.expressions) {
       const startPos = ctx.pos;
-      const startTags = [...ctx.tags];
       const result = expr.execute(ctx);
       if (result !== null) {
         return result;
       }
       ctx.pos = startPos;
-      ctx.tags = startTags;
     }
     return null;
   }
@@ -178,30 +159,20 @@ export class Repeat extends Expression {
   }
   execute(ctx: Context): Node | null {
     const startPos = ctx.pos;
-    const startTags = [...ctx.tags];
     const children: Node[] = [];
     let count = 0;
-    let wellFormed = true;
     while (count < this.max) {
       const checkpoint = ctx.pos;
-      const checkpointTags = [...ctx.tags];
       const result = this.expression.execute(ctx);
-      if (result === null || ctx.pos === checkpoint) {
-        ctx.tags = checkpointTags; // Restore tags if match failed or consumed nothing
-        break;
-      }
+      if (result === null || ctx.pos === checkpoint) break;
       children.push(result);
-      if (!result.wellFormed) {
-        wellFormed = false;
-      }
       count++;
     }
     if (count < this.min) {
       ctx.pos = startPos;
-      ctx.tags = startTags;
       return null;
     }
-    return new Node(this.label || "repeat", startPos, ctx.pos, children, wellFormed);
+    return new Node(this.label || "repeat", startPos, ctx.pos, children);
   }
 }
 
@@ -211,25 +182,20 @@ export class Exclusion extends Expression {
   }
   execute(ctx: Context): Node | null {
     const startPos = ctx.pos;
-    const startTags = [...ctx.tags];
     const resultA = this.a.execute(ctx);
     if (resultA === null) return null;
 
     const endPosA = ctx.pos;
-    const endTagsA = [...ctx.tags];
     ctx.pos = startPos;
-    ctx.tags = startTags;
     const resultB = this.b.execute(ctx);
     
     // Check if B matches and is at least as long as A
     if (resultB !== null && (startPos + (resultB.end - resultB.start) >= endPosA)) {
       ctx.pos = startPos;
-      ctx.tags = startTags;
       return null;
     }
     
     ctx.pos = endPosA;
-    ctx.tags = endTagsA;
     return resultA;
   }
 }
@@ -243,37 +209,7 @@ export class Reference extends Expression {
     if (!rule) return null;
     const result = rule.execute(ctx);
     if (result === null) return null;
-    return new Node(this.name, result.start, result.end, result.children, result.wellFormed);
-  }
-}
-
-// Executes an action when the wrapped expression matches
-export class Action extends Expression {
-  constructor(public expression: Expression, public action: (node: Node, ctx: Context) => void) {
-    super();
-  }
-  execute(ctx: Context): Node | null {
-    const result = this.expression.execute(ctx);
-    if (result) {
-      this.action(result, ctx);
-    }
-    return result;
-  }
-}
-
-export class Verify extends Expression {
-  constructor(public expression: Expression, public validator: (node: Node, ctx: Context) => boolean) {
-    super();
-  }
-  execute(ctx: Context): Node | null {
-    const result = this.expression.execute(ctx);
-    if (result) {
-      if (!this.validator(result, ctx)) {
-        result.wellFormed = false;
-      }
-      return result;
-    }
-    return null;
+    return new Node(this.name, result.start, result.end, result.children);
   }
 }
 

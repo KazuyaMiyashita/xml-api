@@ -11,22 +11,11 @@ g.rule("CharData", g.plus(g.reg("[^<]")));
 // EmptyElemTag: <Name /> or <Name/>. Simplified: no attributes.
 g.rule("EmptyElemTag", g.seq(g.lit("<"), g.ref("Name"), g.opt(g.lit(" ")), g.lit("/>")));
 
-// STag: <Name>. Push tag name to stack.
-g.rule("STag", g.seq(
-    g.lit("<"), 
-    g.action(g.ref("Name"), (node, ctx) => ctx.tags.push(node.getText(ctx.input))), 
-    g.lit(">")
-));
+// STag: <Name>.
+g.rule("STag", g.seq(g.lit("<"), g.ref("Name"), g.lit(">")));
 
-// ETag: </Name>. Verify tag name match and pop from stack.
-g.rule("ETag", g.seq(
-    g.lit("</"), 
-    g.verify(g.ref("Name"), (node, ctx) => {
-        const last = ctx.tags.pop();
-        return last === node.getText(ctx.input);
-    }), 
-    g.lit(">")
-));
+// ETag: </Name>.
+g.rule("ETag", g.seq(g.lit("</"), g.ref("Name"), g.lit(">")));
 
 // content: (element | CharData)*
 g.rule("content", g.rep(g.alt(g.ref("element"), g.ref("CharData"))));
