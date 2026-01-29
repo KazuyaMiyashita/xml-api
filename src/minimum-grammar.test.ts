@@ -42,6 +42,24 @@ describe('Minimum Grammar Rules', () => {
     });
   });
 
+  describe('Attribute Support', () => {
+      it('Attribute Rule', () => {
+          testRule('Attribute', 'id="123"');
+          testRule('Attribute', "class='main'");
+      });
+
+      it('STag with Attributes', () => {
+          testRule('STag', '<div id="container">');
+          testRule('STag', '<a href="https://example.com" target="_blank">');
+          testRule('STag', '<span class="foo" >'); // trailing space
+      });
+
+      it('EmptyElemTag with Attributes', () => {
+          testRule('EmptyElemTag', '<img src="cat.jpg"/>');
+          testRule('EmptyElemTag', '<input type="text" value="hello" />');
+      });
+  });
+
   describe('Element Structure', () => {
     it('Simple Element', () => {
         testRule('element', '<p>Hello</p>');

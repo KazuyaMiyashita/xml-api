@@ -8,14 +8,41 @@ g.rule("Name", g.plus(g.reg("[a-zA-Z0-9]")));
 // CharData: Anything except '<'
 g.rule("CharData", g.plus(g.reg("[^<]")));
 
-// EmptyElemTag: <Name /> or <Name/>. Simplified: no attributes.
-g.rule("EmptyElemTag", g.seq(g.lit("<"), g.ref("Name"), g.opt(g.lit(" ")), g.lit("/>")));
+// S: Whitespace
+g.rule("S", g.plus(g.reg("[ \t\r\n]")));
 
-// STag: <Name>.
-g.rule("STag", g.seq(g.lit("<"), g.ref("Name"), g.lit(">")));
+// Eq: Equal sign with optional whitespace
+g.rule("Eq", g.seq(g.opt(g.ref("S")), g.lit("="), g.opt(g.ref("S"))));
+
+// AttValue: "..." or '...'
+g.rule("AttValue", g.alt(
+    g.seq(g.lit('"'), g.rep(g.reg('[^"]')), g.lit('"')),
+    g.seq(g.lit("'"), g.rep(g.reg("[^']")), g.lit("'"))
+));
+
+// Attribute: Name Eq AttValue
+g.rule("Attribute", g.seq(g.ref("Name"), g.ref("Eq"), g.ref("AttValue")));
+
+// EmptyElemTag: <Name (S Attribute)* S? />
+g.rule("EmptyElemTag", g.seq(
+    g.lit("<"), 
+    g.ref("Name"), 
+    g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), 
+    g.opt(g.ref("S")), 
+    g.lit("/>")
+));
+
+// STag: <Name (S Attribute)* S? >
+g.rule("STag", g.seq(
+    g.lit("<"), 
+    g.ref("Name"), 
+    g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), 
+    g.opt(g.ref("S")), 
+    g.lit(">")
+));
 
 // ETag: </Name>.
-g.rule("ETag", g.seq(g.lit("</"), g.ref("Name"), g.lit(">")));
+g.rule("ETag", g.seq(g.lit("</"), g.ref("Name"), g.opt(g.ref("S")), g.lit(">")));
 
 // content: (element | CharData)*
 g.rule("content", g.rep(g.alt(g.ref("element"), g.ref("CharData"))));
@@ -25,7 +52,7 @@ function validateElementTypeMatch(node: Node, ctx: Context): boolean {
     // We need to inspect children to determine if it's EmptyElemTag or Sequence.
     
     // Case 1: EmptyElemTag
-    // Structure: ["<", Name, opt(" "), "/>"]
+    // Structure: ["<", Name, rep(attr), opt(S), "/>"]
     // children[0] is literal "<"
     if (node.children.length >= 2 && node.children[0].type === 'literal') {
         return true;
@@ -38,7 +65,12 @@ function validateElementTypeMatch(node: Node, ctx: Context): boolean {
         const etag = node.children[2];
         const input = ctx.input;
         
+        // STag structure: ["<", Name, rep(attr), opt(S), ">"]
+        // Name is at index 1
         const startName = stag.children[1].getText(input);
+        
+        // ETag structure: ["</", Name, opt(S), ">"]
+        // Name is at index 1
         const endName = etag.children[1].getText(input);
 
         return startName === endName;
