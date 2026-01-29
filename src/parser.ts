@@ -1,9 +1,14 @@
 export class Node {
   constructor(
     public type: string,
-    public text: string,
+    public start: number,
+    public end: number,
     public children: Node[] = []
   ) {}
+
+  getText(input: string): string {
+    return input.slice(this.start, this.end);
+  }
 }
 
 export interface Context {
@@ -86,9 +91,9 @@ export class Literal extends Expression {
   }
   execute(ctx: Context): Node | null {
     if (ctx.input.startsWith(this.value, ctx.pos)) {
-      // const start = ctx.pos; // unused
+      const start = ctx.pos;
       ctx.pos += this.value.length;
-      return new Node(this.label || "literal", this.value);
+      return new Node(this.label || "literal", start, ctx.pos);
     }
     return null;
   }
@@ -104,8 +109,9 @@ export class RegExpMatch extends Expression {
     this.regex.lastIndex = ctx.pos;
     const match = this.regex.exec(ctx.input);
     if (match) {
+      const start = ctx.pos;
       ctx.pos += match[0].length;
-      return new Node(this.label || "regex", match[0]);
+      return new Node(this.label || "regex", start, ctx.pos);
     }
     return null;
   }
@@ -126,7 +132,7 @@ export class Sequence extends Expression {
       }
       children.push(result);
     }
-    return new Node(this.label || "sequence", ctx.input.slice(startPos, ctx.pos), children);
+    return new Node(this.label || "sequence", startPos, ctx.pos, children);
   }
 }
 
@@ -166,7 +172,7 @@ export class Repeat extends Expression {
       ctx.pos = startPos;
       return null;
     }
-    return new Node(this.label || "repeat", ctx.input.slice(startPos, ctx.pos), children);
+    return new Node(this.label || "repeat", startPos, ctx.pos, children);
   }
 }
 
@@ -183,7 +189,8 @@ export class Exclusion extends Expression {
     ctx.pos = startPos;
     const resultB = this.b.execute(ctx);
     
-    if (resultB !== null && (startPos + resultB.text.length >= endPosA)) {
+    // Check if B matches and is at least as long as A
+    if (resultB !== null && (startPos + (resultB.end - resultB.start) >= endPosA)) {
       ctx.pos = startPos;
       return null;
     }
@@ -202,6 +209,6 @@ export class Reference extends Expression {
     if (!rule) return null;
     const result = rule.execute(ctx);
     if (result === null) return null;
-    return new Node(this.name, result.text, result.children);
+    return new Node(this.name, result.start, result.end, result.children);
   }
 }
