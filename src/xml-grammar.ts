@@ -212,11 +212,40 @@ g.rule("SDDecl", g.seq(
 
 // [39] element ::= EmptyElemTag | STag content ETag
 // cf: https://www.w3.org/TR/xml/#NT-element 
-// Well-formedness constraint: Element Type Match - The Name in an element's end-tag MUST match the element type in the start-tag.
 g.rule("element", g.alt(g.ref("EmptyElemTag"), g.seq(g.ref("STag"), g.ref("content"), g.ref("ETag"))));
 
+// Well-formedness constraint: Element Type Match
+function validateElementTypeMatch(node: Node, ctx: Context): boolean {
+    // node.type is 'element' because it's wrapped by the Reference.
+    
+    // Case 1: EmptyElemTag (always well-formed regarding tag match)
+    // Structure: [literal("<"), Name, repeat(attr), repeat(S), literal("/>")]
+    if (node.children.length > 0 && node.children[0].type === 'literal') {
+        return true;
+    }
+    
+    // Case 2: Sequence [STag, content, ETag]
+    // STag and ETag are References, so their types are 'STag' and 'ETag'
+    if (node.children.length === 3 && node.children[0].type === 'STag' && node.children[2].type === 'ETag') {
+        const stag = node.children[0];
+        const etag = node.children[2];
+        const input = ctx.input;
+        
+        // STag -> < Name ... > (Name is at children[1])
+        const startName = stag.children[1].getText(input);
+        
+        // ETag -> </ Name ... > (Name is at children[1])
+        const endName = etag.children[1].getText(input);
+
+        return startName === endName;
+    }
+    
+    throw new Error(`Validation error: unexpected node structure in validateElementTypeMatch for XML grammar. Children types: ${node.children.map(c => c.type).join(', ')}`);
+}
+g.verifyRule("element", validateElementTypeMatch);
+
 // Helper for Unique Att Spec check
-function checkUniqueAttributes(node: Node, ctx: Context): boolean {
+function validateUniqueAttributes(node: Node, ctx: Context): boolean {
     const seen = new Set<string>();
     // STag/EmptyElemTag structure:
     // 0: "<"
@@ -241,17 +270,9 @@ function checkUniqueAttributes(node: Node, ctx: Context): boolean {
 
 // [40] STag ::= '<' Name (S Attribute)* S? '>'
 // cf: https://www.w3.org/TR/xml/#NT-STag 
-// Well-formedness constraint: Unique Att Spec - An attribute name MUST NOT appear more than once in the same start-tag or empty-element tag.
-g.rule("STag", g.verify(
-    g.seq(
-        g.lit("<"), 
-        g.action(g.ref("Name"), (node, ctx) => ctx.tags.push(node.getText(ctx.input))), 
-        g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), 
-        g.opt(g.ref("S")), 
-        g.lit(">")
-    ),
-    checkUniqueAttributes
-));
+g.rule("STag", g.seq(g.lit("<"), g.ref("Name"), g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), g.opt(g.ref("S")), g.lit(">")));
+// Well-formedness constraint: Unique Att Spec
+g.verifyRule("STag", validateUniqueAttributes);
 
 // [41] Attribute ::= Name Eq AttValue
 // cf: https://www.w3.org/TR/xml/#NT-Attribute 
@@ -259,10 +280,7 @@ g.rule("Attribute", g.seq(g.ref("Name"), g.ref("Eq"), g.ref("AttValue")));
 
 // [42] ETag ::= '</' Name S? '>'
 // cf: https://www.w3.org/TR/xml/#NT-ETag 
-g.rule("ETag", g.seq(g.lit("</"), g.verify(g.ref("Name"), (node, ctx) => {
-    const last = ctx.tags.pop();
-    return last === node.getText(ctx.input);
-}), g.opt(g.ref("S")), g.lit(">")));
+g.rule("ETag", g.seq(g.lit("</"), g.ref("Name"), g.opt(g.ref("S")), g.lit(">")));
 
 // [43] content ::= CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
 // cf: https://www.w3.org/TR/xml/#NT-content 
@@ -270,17 +288,9 @@ g.rule("content", g.seq(g.opt(g.ref("CharData")), g.rep(g.seq(g.alt(g.ref("eleme
 
 // [44] EmptyElemTag ::= '<' Name (S Attribute)* S? '/>'
 // cf: https://www.w3.org/TR/xml/#NT-EmptyElemTag 
-// Well-formedness constraint: Unique Att Spec - An attribute name MUST NOT appear more than once in the same start-tag or empty-element tag.
-g.rule("EmptyElemTag", g.verify(
-    g.seq(
-        g.lit("<"), 
-        g.ref("Name"), 
-        g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), 
-        g.opt(g.ref("S")), 
-        g.lit("/>")
-    ),
-    checkUniqueAttributes
-));
+g.rule("EmptyElemTag", g.seq(g.lit("<"), g.ref("Name"), g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), g.opt(g.ref("S")), g.lit("/>")));
+// Well-formedness constraint: Unique Att Spec
+g.verifyRule("EmptyElemTag", validateUniqueAttributes);
 
 // [45] elementdecl ::= '<!ELEMENT' S Name S contentspec S? '>'
 // cf: https://www.w3.org/TR/xml/#NT-elementdecl 
