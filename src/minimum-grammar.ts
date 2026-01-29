@@ -21,12 +21,18 @@ g.rule("ETag", g.seq(g.lit("</"), g.ref("Name"), g.lit(">")));
 g.rule("content", g.rep(g.alt(g.ref("element"), g.ref("CharData"))));
 
 function validateElementTypeMatch(node: Node, ctx: Context): boolean {
-    // Check for EmptyElemTag (self-closing)
-    if (node.type === 'EmptyElemTag') {
+    // node.type is 'element' because it's wrapped by the Reference.
+    // We need to inspect children to determine if it's EmptyElemTag or Sequence.
+    
+    // Case 1: EmptyElemTag
+    // Structure: ["<", Name, opt(" "), "/>"]
+    // children[0] is literal "<"
+    if (node.children.length >= 2 && node.children[0].type === 'literal') {
         return true;
     }
     
-    // Check for Element Sequence [STag, content, ETag]
+    // Case 2: Sequence [STag, content, ETag]
+    // children[0] should be STag
     if (node.children.length === 3 && node.children[0].type === 'STag' && node.children[2].type === 'ETag') {
         const stag = node.children[0];
         const etag = node.children[2];
@@ -39,18 +45,17 @@ function validateElementTypeMatch(node: Node, ctx: Context): boolean {
     }
     
     // If this point is reached, the validator's structure assumption is wrong
-    throw new Error("Validation error: unexpected node structure in validateElementTypeMatch");
+    throw new Error(`Validation error: unexpected node structure in validateElementTypeMatch. Children types: ${node.children.map(c => c.type).join(', ')}`);
 }
 
 // element: EmptyElemTag | STag content ETag
-// Use wellFormedRule to attach validation
-g.wellFormedRule("element", 
-    g.alt(
-        g.ref("EmptyElemTag"), 
-        g.seq(g.ref("STag"), g.ref("content"), g.ref("ETag"))
-    ),
-    validateElementTypeMatch
-);
+g.rule("element", g.alt(
+    g.ref("EmptyElemTag"), 
+    g.seq(g.ref("STag"), g.ref("content"), g.ref("ETag"))
+));
+
+// Use verifyRule to attach validation
+g.verifyRule("element", validateElementTypeMatch);
 
 // document ::= element
 g.rule("document", g.ref("element"));

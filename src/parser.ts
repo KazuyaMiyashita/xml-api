@@ -16,6 +16,7 @@ export interface Context {
   input: string;
   pos: number;
   rules: { [key: string]: Expression };
+  validators: { [key: string]: (node: Node, ctx: Context) => boolean };
 }
 
 export abstract class Expression {
@@ -25,9 +26,11 @@ export abstract class Expression {
 
 export class Grammar {
   rules: { [key: string]: Expression };
+  validators: { [key: string]: (node: Node, ctx: Context) => boolean };
 
   constructor() {
     this.rules = {};
+    this.validators = {};
   }
 
   rule(name: string, expression: Expression): Expression {
@@ -37,25 +40,33 @@ export class Grammar {
   }
 
   /**
-   * Defines a rule with a well-formedness validator.
-   * The validator is called after a successful parse of the expression.
-   * Note: The structure of the node passed to the validator depends on the wrapped expression.
-   * For example, Choice returns the matched child directly, while Sequence returns a sequence node.
+   * Registers a well-formedness validator for a specific rule.
+   * The validator is called after a successful parse of the rule.
+   * 
+   * @param name The name of the rule to validate
+   * @param validator The validation function
    */
-  wellFormedRule(name: string, expression: Expression, validator: (node: Node, ctx: Context) => boolean): Expression {
-    const validatedExpression = new Validator(expression, validator);
-    this.rules[name] = validatedExpression;
-    validatedExpression.label = name;
-    return validatedExpression;
+  verifyRule(name: string, validator: (node: Node, ctx: Context) => boolean): void {
+    if (!this.rules[name]) {
+        throw new Error(`Rule ${name} not found`);
+    }
+    this.validators[name] = validator;
   }
 
   parse(ruleName: string, input: string): Node | null {
-    const ctx: Context = { input, pos: 0, rules: this.rules };
+    const ctx: Context = { input, pos: 0, rules: this.rules, validators: this.validators };
     if (!this.rules[ruleName]) {
         throw new Error(`Rule ${ruleName} not found`);
     }
     const result = this.rules[ruleName].execute(ctx);
     if (result && ctx.pos === input.length) {
+      // Validate the top-level rule result
+      const validator = this.validators[ruleName];
+      if (validator) {
+        if (!validator(result, ctx)) {
+           result.wellFormed = false;
+        }
+      }
       return result;
     }
     return null;
@@ -231,25 +242,19 @@ export class Reference extends Expression {
     if (!rule) return null;
     const result = rule.execute(ctx);
     if (result === null) return null;
-    return new Node(this.name, result.start, result.end, result.children, result.wellFormed);
-  }
-}
+    
+    // Create the node for this reference
+    const node = new Node(this.name, result.start, result.end, result.children, result.wellFormed);
 
-export class Validator extends Expression {
-  constructor(public expression: Expression, public validator: (node: Node, ctx: Context) => boolean) {
-    super();
-  }
-  execute(ctx: Context): Node | null {
-    const result = this.expression.execute(ctx);
-    if (result) {
-      // Mark as not well-formed if validation fails.
-      // Note: If child nodes are already marked false, the parent's wellFormed remains false.
-      if (!this.validator(result, ctx)) {
-        result.wellFormed = false;
+    // Apply validation if a validator exists for this rule name
+    const validator = ctx.validators[this.name];
+    if (validator) {
+      if (!validator(node, ctx)) {
+        node.wellFormed = false;
       }
-      return result;
     }
-    return null;
+
+    return node;
   }
 }
 
