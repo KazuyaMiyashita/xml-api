@@ -12,7 +12,7 @@
       "run_shell_command(pnpm typecheck)",
       "run_shell_command(pnpm test)",
       "run_shell_command(pnpm start)",
-      "run_shell_command(task)"
+      "run_shell_command(task info)"
     ]
   }
 }
