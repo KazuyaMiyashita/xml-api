@@ -18,10 +18,10 @@ g.rule("STag", g.seq(
     g.lit(">")
 ));
 
-// ETag: </Name>. Check tag name match and pop from stack.
+// ETag: </Name>. Verify tag name match and pop from stack.
 g.rule("ETag", g.seq(
     g.lit("</"), 
-    g.check(g.ref("Name"), (node, ctx) => {
+    g.verify(g.ref("Name"), (node, ctx) => {
         const last = ctx.tags.pop();
         return last === node.getText(ctx.input);
     }), 

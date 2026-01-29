@@ -3,7 +3,8 @@ export class Node {
     public type: string,
     public start: number,
     public end: number,
-    public children: Node[] = []
+    public children: Node[] = [],
+    public wellFormed: boolean = true
   ) {}
 
   getText(input: string): string {
@@ -92,6 +93,10 @@ export class Grammar {
   check(expression: Expression, predicate: (node: Node, ctx: Context) => boolean): Predicate {
     return new Predicate(expression, predicate);
   }
+
+  verify(expression: Expression, validator: (node: Node, ctx: Context) => boolean): Verify {
+    return new Verify(expression, validator);
+  }
 }
 
 export class Literal extends Expression {
@@ -134,6 +139,7 @@ export class Sequence extends Expression {
     const startPos = ctx.pos;
     const startTags = [...ctx.tags];
     const children: Node[] = [];
+    let wellFormed = true;
     for (const expr of this.expressions) {
       const result = expr.execute(ctx);
       if (result === null) {
@@ -142,8 +148,11 @@ export class Sequence extends Expression {
         return null;
       }
       children.push(result);
+      if (!result.wellFormed) {
+        wellFormed = false;
+      }
     }
-    return new Node(this.label || "sequence", startPos, ctx.pos, children);
+    return new Node(this.label || "sequence", startPos, ctx.pos, children, wellFormed);
   }
 }
 
@@ -175,6 +184,7 @@ export class Repeat extends Expression {
     const startTags = [...ctx.tags];
     const children: Node[] = [];
     let count = 0;
+    let wellFormed = true;
     while (count < this.max) {
       const checkpoint = ctx.pos;
       const checkpointTags = [...ctx.tags];
@@ -184,6 +194,9 @@ export class Repeat extends Expression {
         break;
       }
       children.push(result);
+      if (!result.wellFormed) {
+        wellFormed = false;
+      }
       count++;
     }
     if (count < this.min) {
@@ -191,7 +204,7 @@ export class Repeat extends Expression {
       ctx.tags = startTags;
       return null;
     }
-    return new Node(this.label || "repeat", startPos, ctx.pos, children);
+    return new Node(this.label || "repeat", startPos, ctx.pos, children, wellFormed);
   }
 }
 
@@ -233,7 +246,7 @@ export class Reference extends Expression {
     if (!rule) return null;
     const result = rule.execute(ctx);
     if (result === null) return null;
-    return new Node(this.name, result.start, result.end, result.children);
+    return new Node(this.name, result.start, result.end, result.children, result.wellFormed);
   }
 }
 
@@ -265,6 +278,22 @@ export class Predicate extends Expression {
       ctx.pos = startPos;
       ctx.tags = startTags;
       return null;
+    }
+    return null;
+  }
+}
+
+export class Verify extends Expression {
+  constructor(public expression: Expression, public validator: (node: Node, ctx: Context) => boolean) {
+    super();
+  }
+  execute(ctx: Context): Node | null {
+    const result = this.expression.execute(ctx);
+    if (result) {
+      if (!this.validator(result, ctx)) {
+        result.wellFormed = false;
+      }
+      return result;
     }
     return null;
   }

@@ -55,11 +55,19 @@ describe('Minimum Grammar Rules', () => {
     });
 
     it('should fail on mismatched tags', () => {
-        testRule('element', '<p>Hello</div>', false);
+        // <p>...</div> mismatch
+        const input = '<p>Hello</div>';
+        const result = g.parse('element', input);
+        expect(result).not.toBeNull();
+        expect(result?.wellFormed).toBe(false);
     });
 
     it('should fail on improper nesting', () => {
-        testRule('element', '<div><p>Hello</div></p>', false);
+        // <div><p>...</p></div> is correct, but <div><p>...</div></p> is improper
+        const input = '<div><p>Hello</div></p>';
+        const result = g.parse('element', input);
+        expect(result).not.toBeNull();
+        expect(result?.wellFormed).toBe(false);
     });
   });
 
