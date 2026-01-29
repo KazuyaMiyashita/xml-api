@@ -3,7 +3,8 @@ export class Node {
     public type: string,
     public start: number,
     public end: number,
-    public children: Node[] = []
+    public children: Node[] = [],
+    public wellFormed: boolean = true
   ) {}
 
   getText(input: string): string {
@@ -33,6 +34,19 @@ export class Grammar {
     this.rules[name] = expression;
     expression.label = name;
     return expression;
+  }
+
+  /**
+   * Defines a rule with a well-formedness validator.
+   * The validator is called after a successful parse of the expression.
+   * Note: The structure of the node passed to the validator depends on the wrapped expression.
+   * For example, Choice returns the matched child directly, while Sequence returns a sequence node.
+   */
+  wellFormedRule(name: string, expression: Expression, validator: (node: Node, ctx: Context) => boolean): Expression {
+    const validatedExpression = new Validator(expression, validator);
+    this.rules[name] = validatedExpression;
+    validatedExpression.label = name;
+    return validatedExpression;
   }
 
   parse(ruleName: string, input: string): Node | null {
@@ -124,6 +138,7 @@ export class Sequence extends Expression {
   execute(ctx: Context): Node | null {
     const startPos = ctx.pos;
     const children: Node[] = [];
+    let wellFormed = true;
     for (const expr of this.expressions) {
       const result = expr.execute(ctx);
       if (result === null) {
@@ -131,8 +146,11 @@ export class Sequence extends Expression {
         return null;
       }
       children.push(result);
+      if (!result.wellFormed) {
+        wellFormed = false; // Propagate non-well-formed status from child to parent
+      }
     }
-    return new Node(this.label || "sequence", startPos, ctx.pos, children);
+    return new Node(this.label || "sequence", startPos, ctx.pos, children, wellFormed);
   }
 }
 
@@ -161,18 +179,22 @@ export class Repeat extends Expression {
     const startPos = ctx.pos;
     const children: Node[] = [];
     let count = 0;
+    let wellFormed = true;
     while (count < this.max) {
       const checkpoint = ctx.pos;
       const result = this.expression.execute(ctx);
       if (result === null || ctx.pos === checkpoint) break;
       children.push(result);
+      if (!result.wellFormed) {
+        wellFormed = false; // Propagate non-well-formed status from child to parent
+      }
       count++;
     }
     if (count < this.min) {
       ctx.pos = startPos;
       return null;
     }
-    return new Node(this.label || "repeat", startPos, ctx.pos, children);
+    return new Node(this.label || "repeat", startPos, ctx.pos, children, wellFormed);
   }
 }
 
@@ -209,7 +231,25 @@ export class Reference extends Expression {
     if (!rule) return null;
     const result = rule.execute(ctx);
     if (result === null) return null;
-    return new Node(this.name, result.start, result.end, result.children);
+    return new Node(this.name, result.start, result.end, result.children, result.wellFormed);
+  }
+}
+
+export class Validator extends Expression {
+  constructor(public expression: Expression, public validator: (node: Node, ctx: Context) => boolean) {
+    super();
+  }
+  execute(ctx: Context): Node | null {
+    const result = this.expression.execute(ctx);
+    if (result) {
+      // Mark as not well-formed if validation fails.
+      // Note: If child nodes are already marked false, the parent's wellFormed remains false.
+      if (!this.validator(result, ctx)) {
+        result.wellFormed = false;
+      }
+      return result;
+    }
+    return null;
   }
 }
 
