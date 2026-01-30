@@ -4,6 +4,7 @@
 
 * Approach: Work slowly and carefully, emphasizing design quality and maintainability.
 * Large-scale changes: Use `minimum-grammer.ts` to conduct small experiments when making significant modifications to the parser or architecture.
+* If there are design tips or TODOs in the comments, don't remove them in your edits.
 
 ## Testing
 

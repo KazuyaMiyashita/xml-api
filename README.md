@@ -6,35 +6,6 @@ XML 仕様（Extensible Markup Language (XML) 1.0）に基づいた文法定義�
 パース結果の生の構文木 (CST: Concrete Syntax Tree) を、より扱いやすい高レベル AST (`AST`) に変換する機能も提供しており、DOM のような直感的な操作が可能です。
 これらの機能は統合された `XMLAPI` クラスを通じて利用できます。
 
-## 🚀 クイックスタート
-
-### 必須要件
-* Node.js
-* pnpm (推奨) または npm
-
-### セットアップ
-依存関係をインストールします。
-
-```bash
-pnpm install
-```
-
-### 実行
-サンプルの XML ファイル (`src/sample_01.xml`) をパースし、**高レベル AST に変換した結果** をコンソールに出力します。
-
-```bash
-pnpm start
-```
-
-### テスト
-ユニットテストおよびインテグレーションテストを実行します。
-
-```bash
-pnpm test
-```
-
----
-
 ## 🏗 アーキテクチャ
 
 このプロジェクトは、以下の層構造になっています。
@@ -81,51 +52,3 @@ CST, AST, 入力文字列、文法定義などをまとめて管理するクラ�
 #### 4. High-Level AST (`src/xml-ast.ts`)
 パース結果の CST は文法構造を厳密に反映しているため、深くネストしており、アプリケーションからの利用は煩雑です。
 `AST` クラスは、これをフラット化し、直感的に操作できるようにします。
-
----
-
-## 🛠 開発ガイド
-
-### 新しい文法の定義方法
-1.  `GrammarBuilder` インスタンスを作成します。
-2.  `rule(name, expression)` メソッドでルールを定義します。トップレベルのコンビネータ（`seq`, `alt`, `reg`, `lit` 等）を組み合わせて使用します。
-3.  必要に応じて `verifyRule(name, (node, input) => boolean)` で、パース後の追加検証（ウェルフォームドネスのチェック等）を登録します。
-4.  `builder.build()` で `Grammar` インスタンスを生成し、`Parser` に渡します。
-
-```typescript
-import { GrammarBuilder, seq, lit, ref, plus, reg } from './grammar';
-import { Parser } from './parser';
-
-const gb = new GrammarBuilder();
-gb.rule("Greeting", seq(lit("Hello, "), ref("Name"), lit("!")));
-gb.rule("Name", plus(reg("[a-zA-Z]")));
-
-const parser = new Parser(gb.build());
-const cst = parser.parse("Hello, World!");
-```
-
-### AST の構造比較
-
-**Raw CST (`CST`)**: 文法規則通りの深いネスト。自動的にルール名がノードの `type` に付与されます。
-```typescript
-{
-  type: "element",
-  children: [
-    { type: "STag", children: [...] },
-    { type: "content", children: [...] },
-    { type: "ETag", children: [...] }
-  ]
-}
-```
-
-**High-Level AST (`AST`)**: シンプルなツリー
-```typescript
-{
-  tagName: "div",
-  attributes: { "id": "main" },
-  children: [
-    "Hello",
-    { tagName: "span", ... }
-  ]
-}
-```
