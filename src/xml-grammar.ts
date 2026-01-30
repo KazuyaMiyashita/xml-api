@@ -217,49 +217,48 @@ g.rule("element", alt(ref("EmptyElemTag"), seq(ref("STag"), ref("content"), ref(
 
 // Well-formedness constraint: Element Type Match
 function validateElementTypeMatch(node: CST, input: string): boolean {
-    // node.type is 'element' because it's wrapped by the Reference.
+    const structuralNode = node.unwrap();
     
     // Case 1: EmptyElemTag (always well-formed regarding tag match)
-    // Structure: [literal("<\”), Name, repeat(attr), repeat(S), literal("/>")]
-    if (node.children.length > 0 && node.children[0].type === 'literal') {
+    if (structuralNode.children.length > 0 && structuralNode.children[0].type === 'literal') {
         return true;
     }
     
     // Case 2: Sequence [STag, content, ETag]
-    // STag and ETag are References, so their types are 'STag' and 'ETag'
-    if (node.children.length === 3 && node.children[0].type === 'STag' && node.children[2].type === 'ETag') {
-        const stag = node.children[0];
-        const etag = node.children[2];
+    if (structuralNode.children.length === 3 && 
+        structuralNode.children[0].name === 'STag' && 
+        structuralNode.children[2].name === 'ETag') {
+        const stag = structuralNode.children[0];
+        const etag = structuralNode.children[2];
         
-        // STag -> < Name ... > (Name is at children[1])
-        const startName = stag.children[1].getText(input);
-        
-        // ETag -> </ Name ... > (Name is at children[1])
-        const endName = etag.children[1].getText(input);
+        const startName = stag.unwrap().children[1].getText(input);
+        const endName = etag.unwrap().children[1].getText(input);
 
         return startName === endName;
     }
     
-    throw new Error(`Validation error: unexpected node structure in validateElementTypeMatch. Children types: ${node.children.map(c => c.type).join(', ')}`);
+    throw new Error(`Validation error: unexpected node structure in validateElementTypeMatch. Children types: ${structuralNode.children.map(c => c.type).join(', ')}`);
 }
 g.verifyRule("element", validateElementTypeMatch);
 
 // Helper for Unique Att Spec check
 function validateUniqueAttributes(node: CST, input: string): boolean {
     const seen = new Set<string>();
+    const structuralNode = node.unwrap();
     // STag/EmptyElemTag structure:
     // 0: "<"
     // 1: Name
     // 2: rep(seq(S, Attribute))
     // ...
-    const repNode = node.children[2];
+    const repNode = structuralNode.children[2];
     if (!repNode || repNode.type !== 'repeat') return true; 
 
     for (const seqNode of repNode.children) {
         // seqNode children: [S, Attribute]
         const attrNode = seqNode.children[1];
-        if (attrNode && attrNode.type === 'Attribute') {
-            const nameNode = attrNode.children[0];
+        if (attrNode && attrNode.name === 'Attribute') {
+            const attrStructural = attrNode.unwrap();
+            const nameNode = attrStructural.children[0];
             const name = nameNode.getText(input);
             if (seen.has(name)) return false;
             seen.add(name);

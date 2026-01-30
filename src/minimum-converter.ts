@@ -2,77 +2,89 @@ import { CST } from './xml-cst';
 import { AST } from './xml-ast';
 
 export function convert(node: CST, input: string): AST | string {
-    if (node.type === 'CharData') {
+    const structural = node.unwrap();
+
+    // 1. Handle known rule names
+    if (node.name === 'CharData') {
         return node.getText(input);
     }
     
-    if (node.type === 'element' || node.type === 'document') {
-        // node is a Reference node.
-        // It wraps the result of the rule execution.
-        // For 'element', it matches either EmptyElemTag or Sequence.
-        // In both cases, the 'children' of the element CST are the children of the matching production.
-        
+    if (node.name === 'element' || node.name === 'document') {
+        // Find the actual element structure (either EmptyElemTag or STag sequence)
+        let elementStructure = structural;
+        if (elementStructure.name === 'element' || elementStructure.name === 'document') {
+            elementStructure = elementStructure.unwrap();
+        }
+
         // Case 1: Sequence [STag, content, ETag]
-        if (node.children.length === 3 && node.children[0].type === 'STag') {
-            const stag = node.children[0];
-            const content = node.children[1];
+        if (elementStructure.children.length === 3 && 
+            elementStructure.children[0].name === 'STag') {
+            const stag = elementStructure.children[0];
+            const content = elementStructure.children[1];
             
             const elem = parseTag(stag, input);
             
             // Process content
-            // content rule: rep(alt(element, CharData))
-            // content node children are the results of each repetition.
-            for (const child of content.children) {
-                const converted = convert(child, input);
+            const contentNodes = convertContent(content, input);
+            for (const child of contentNodes) {
                 if (elem instanceof AST) {
-                    elem.children.push(converted);
+                    elem.children.push(child);
                 }
             }
             return elem;
         }
         
-        // Case 2: EmptyElemTag (or structure resembling it)
-        // Structure: ["<", Name, rep(attr), opt(S), "/>"]
-        // children[0] is literal "<"
-        if (node.children.length >= 2 && 
-            node.children[0].type === 'literal' && 
-            node.children[0].getText(input) === '<') {
-             return parseTag(node, input);
+        // Case 2: EmptyElemTag
+        if (elementStructure.name === 'EmptyElemTag' || 
+            (elementStructure.children.length >= 2 && 
+             elementStructure.children[0].type === 'literal' && 
+             elementStructure.children[0].getText(input) === '<')) {
+             return parseTag(elementStructure, input);
         }
     }
+
+    // 2. Handle structural nodes
+    if (node.type === 'regex' || node.type === 'literal') {
+        return node.getText(input);
+    }
+
+    // 3. Fallback for other named nodes or wrappers
+    if (node.children.length === 1) {
+        return convert(node.children[0], input);
+    }
     
-    throw new Error(`Unknown node type or structure: ${node.type}`);
+    throw new Error(`Unknown node type or structure: ${node.name || node.type} at ${node.start}`);
+}
+
+function convertContent(node: CST, input: string): (AST | string)[] {
+    const structural = node.unwrap();
+    if (structural.type === 'repeat') {
+        return structural.children.map(child => convert(child, input)) as (AST | string)[];
+    }
+    const result = convert(node, input);
+    return typeof result === 'string' || result instanceof AST ? [result] : [];
 }
 
 function parseTag(node: CST, input: string): AST {
-    // Expects STag or EmptyElemTag node
-    // Structure: ["<", Name, rep(seq(S, Attribute)), opt(S), ">" or "/>"]
+    const structural = node.unwrap();
     
-    const nameNode = node.children[1];
+    const nameNode = structural.children[1];
     const tagName = nameNode.getText(input);
     
     const attributes: { [key: string]: string } = {};
-    const attrRep = node.children[2]; // rep(seq(S, Attribute))
+    const attrRep = structural.children[2]; // rep(seq(S, Attribute))
     
     for (const seq of attrRep.children) {
-        // seq children: [S, Attribute]
         const attrNode = seq.children[1]; // Attribute
-        // Attribute children: [Name, Eq, AttValue]
-        const attrName = attrNode.children[0].getText(input);
-        const attValueNode = attrNode.children[2];
+        const attrStructural = attrNode.unwrap();
+        const attrName = attrStructural.children[0].getText(input);
+        const attValueNode = attrStructural.children[2];
+        const attValueStructural = attValueNode.unwrap();
         
-        // AttValue children: ['"', content, '"'] or ["'", content, "'"]
-        // We want the content.
-        // The content is a repeat of reg match.
-        // AttValue definition: seq(lit, rep(...), lit)
-        // children[1] is the rep node.
-        
-        // Wait, parser.ts Sequence puts all children.
-        // AttValue -> [lit, rep, lit]
-        const valRep = attValueNode.children[1];
+        const valRep = attValueStructural.children[1];
         let valText = "";
         for (const chunk of valRep.children) {
-            valText += chunk.getText(input);
+            valText += convert(chunk, input);
         }
         
         attributes[attrName] = valText;

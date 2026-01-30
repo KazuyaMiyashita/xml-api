@@ -39,14 +39,17 @@ g.rule("ETag", seq(lit("</"), ref("Name"), opt(ref("S")), lit(">")));
 g.rule("content", rep(alt(ref("element"), ref("CharData"))));
 
 function validateElementTypeMatch(node: CST, input: string): boolean {
-    if (node.children.length >= 2 && node.children[0].type === 'literal') {
+    const structuralNode = node.unwrap();
+    if (structuralNode.children.length >= 2 && structuralNode.children[0].type === 'literal') {
         return true;
     }
-    if (node.children.length === 3 && node.children[0].type === 'STag' && node.children[2].type === 'ETag') {
-        const stag = node.children[0];
-        const etag = node.children[2];
-        const startName = stag.children[1].getText(input);
-        const endName = etag.children[1].getText(input);
+    if (structuralNode.children.length === 3 && 
+        structuralNode.children[0].name === 'STag' && 
+        structuralNode.children[2].name === 'ETag') {
+        const stag = structuralNode.children[0];
+        const etag = structuralNode.children[2];
+        const startName = stag.unwrap().children[1].getText(input);
+        const endName = etag.unwrap().children[1].getText(input);
         return startName === endName;
     }
     return false;

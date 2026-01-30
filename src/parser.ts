@@ -29,6 +29,20 @@ export class Parser {
     return null;
   }
 
+  /**
+   * Parses the input starting from a specific position using a given rule.
+   * Useful for incremental parsing.
+   */
+  public parseAt(input: string, pos: number, ruleName: string): { node: CST, end: number } | null {
+    const ctx: Context = { input, pos, grammar: this.grammar };
+    const rootExpr: Expression = { type: 'Reference', name: ruleName };
+    const result = this.execute(rootExpr, ctx);
+    if (result) {
+      return { node: result, end: ctx.pos };
+    }
+    return null;
+  }
+
   private execute(expr: Expression, ctx: Context): CST | null {
     switch (expr.type) {
       case 'Literal': return this.execLiteral(expr, ctx);
@@ -45,7 +59,7 @@ export class Parser {
     if (ctx.input.startsWith(expr.value, ctx.pos)) {
       const start = ctx.pos;
       ctx.pos += expr.value.length;
-      return new CST("literal", start, ctx.pos);
+      return new CST("literal", undefined, start, ctx.pos);
     }
     return null;
   }
@@ -57,7 +71,7 @@ export class Parser {
     if (match) {
       const start = ctx.pos;
       ctx.pos += match[0].length;
-      return new CST("regex", start, ctx.pos);
+      return new CST("regex", undefined, start, ctx.pos);
     }
     return null;
   }
@@ -77,7 +91,7 @@ export class Parser {
         wellFormed = false;
       }
     }
-    return new CST("sequence", startPos, ctx.pos, children, wellFormed);
+    return new CST("sequence", undefined, startPos, ctx.pos, children, wellFormed);
   }
 
   private execChoice(expr: { type: 'Choice', expressions: Expression[] }, ctx: Context): CST | null {
@@ -113,7 +127,7 @@ export class Parser {
       ctx.pos = startPos;
       return null;
     }
-    return new CST("repeat", startPos, ctx.pos, children, wellFormed);
+    return new CST("repeat", undefined, startPos, ctx.pos, children, wellFormed);
   }
 
   private execExclusion(expr: { type: 'Exclusion', a: Expression, b: Expression }, ctx: Context): CST | null {
@@ -142,8 +156,8 @@ export class Parser {
     const result = this.execute(rule, ctx);
     if (result === null) return null;
     
-    // Wrap or rename the result to have the rule name
-    const node = new CST(expr.name, result.start, result.end, result.children, result.wellFormed);
+    // Always wrap the result to preserve the rule name in the hierarchy.
+    const node = new CST(result.type, expr.name, result.start, result.end, [result], result.wellFormed);
 
     // Apply validation
     const validator = ctx.grammar.validators[expr.name];
