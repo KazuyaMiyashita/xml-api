@@ -1,90 +1,60 @@
-import { 
-    Expression, CST, Context, 
-    Literal, RegExpMatch, Sequence, Choice, Repeat, Exclusion, Reference 
-} from './parser';
+import { CST } from './xml-cst';
+
+export type Validator = (node: CST, input: string) => boolean;
+
+export type Expression =
+  | { type: 'Literal', value: string }
+  | { type: 'RegExpMatch', pattern: string }
+  | { type: 'Sequence', expressions: Expression[] }
+  | { type: 'Choice', expressions: Expression[] }
+  | { type: 'Repeat', expression: Expression, min: number, max: number }
+  | { type: 'Exclusion', a: Expression, b: Expression }
+  | { type: 'Reference', name: string };
+
+// Combinators
+export const lit = (value: string): Expression => ({ type: 'Literal', value });
+export const reg = (pattern: string): Expression => ({ type: 'RegExpMatch', pattern });
+export const seq = (...expressions: Expression[]): Expression => ({ type: 'Sequence', expressions });
+export const alt = (...expressions: Expression[]): Expression => ({ type: 'Choice', expressions });
+export const rep = (expression: Expression): Expression => ({ type: 'Repeat', expression, min: 0, max: Infinity });
+export const plus = (expression: Expression): Expression => ({ type: 'Repeat', expression, min: 1, max: Infinity });
+export const opt = (expression: Expression): Expression => ({ type: 'Repeat', expression, min: 0, max: 1 });
+export const exc = (a: Expression, b: Expression): Expression => ({ type: 'Exclusion', a, b });
+export const ref = (name: string): Expression => ({ type: 'Reference', name });
 
 export class Grammar {
-  rules: { [key: string]: Expression };
-  validators: { [key: string]: (node: CST, ctx: Context) => boolean };
+  constructor(
+    public readonly rules: { [key: string]: Expression },
+    public readonly validators: { [key: string]: Validator },
+    public readonly rootRule: string
+  ) {}
+}
 
-  constructor() {
-    this.rules = {};
-    this.validators = {};
-  }
+export class GrammarBuilder {
+  private rules: { [key: string]: Expression } = {};
+  private validators: { [key: string]: Validator } = {};
+  private rootRule: string | null = null;
 
-  rule(name: string, expression: Expression): Expression {
+  rule(name: string, expression: Expression): void {
+    if (this.rootRule === null) {
+      this.rootRule = name;
+    }
     this.rules[name] = expression;
-    expression.label = name;
-    return expression;
   }
 
-  /**
-   * Registers a well-formedness validator for a specific rule.
-   * The validator is called after a successful parse of the rule.
-   * 
-   * @param name The name of the rule to validate
-   * @param validator The validation function
-   */
-  verifyRule(name: string, validator: (node: CST, ctx: Context) => boolean): void {
+  verifyRule(name: string, validator: Validator): void {
     if (!this.rules[name]) {
-        throw new Error(`Rule ${name} not found`);
+      throw new Error(`Rule ${name} not found`);
     }
     this.validators[name] = validator;
   }
 
-  parse(ruleName: string, input: string): CST | null {
-    const ctx: Context = { input, pos: 0, rules: this.rules, validators: this.validators };
-    if (!this.rules[ruleName]) {
-        throw new Error(`Rule ${ruleName} not found`);
+  build(rootRule?: string): Grammar {
+    const root = rootRule || this.rootRule;
+    if (!root) {
+      throw new Error("No root rule defined");
     }
-    const result = this.rules[ruleName].execute(ctx);
-    if (result && ctx.pos === input.length) {
-      // Validate the top-level rule result
-      const validator = this.validators[ruleName];
-      if (validator) {
-        if (!validator(result, ctx)) {
-           result.wellFormed = false;
-        }
-      }
-      return result;
-    }
-    return null;
-  }
-
-  // Combinators
-  lit(value: string): Literal {
-    return new Literal(value);
-  }
-
-  reg(pattern: string): RegExpMatch {
-    return new RegExpMatch(pattern);
-  }
-
-  seq(...expressions: Expression[]): Sequence {
-    return new Sequence(expressions);
-  }
-
-  alt(...expressions: Expression[]): Choice {
-    return new Choice(expressions);
-  }
-
-  rep(expression: Expression): Repeat {
-    return new Repeat(expression, 0, Infinity);
-  }
-
-  plus(expression: Expression): Repeat {
-    return new Repeat(expression, 1, Infinity);
-  }
-
-  opt(expression: Expression): Repeat {
-    return new Repeat(expression, 0, 1);
-  }
-
-  exc(a: Expression, b: Expression): Exclusion {
-    return new Exclusion(a, b);
-  }
-
-  ref(name: string): Reference {
-    return new Reference(name);
+    // Return an immutable Grammar instance with a shallow copy of the definitions
+    return new Grammar({ ...this.rules }, { ...this.validators }, root);
   }
 }

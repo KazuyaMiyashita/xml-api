@@ -1,134 +1,127 @@
-import { Grammar } from './grammar';
+import { GrammarBuilder, lit, reg, seq, alt, rep, plus, opt, exc } from './grammar';
+import { Parser } from './parser';
 
 describe('Parser Combinators', () => {
-  const g = new Grammar();
-
   describe('Literal', () => {
     it('should match exact string', () => {
-      const parser = g.lit('hello');
-      const ctx = { input: 'hello world', pos: 0, rules: {}, validators: {} };
-      const result = parser.execute(ctx);
+      const gb = new GrammarBuilder();
+      gb.rule('root', lit('hello'));
+      const parser = new Parser(gb.build());
+      
+      const result = parser.parse('hello');
       expect(result).not.toBeNull();
-      expect(result?.getText(ctx.input)).toBe('hello');
-      expect(ctx.pos).toBe(5);
+      expect(result?.getText('hello')).toBe('hello');
     });
 
     it('should fail if string does not match', () => {
-      const parser = g.lit('hello');
-      const ctx = { input: 'world', pos: 0, rules: {}, validators: {} };
-      const result = parser.execute(ctx);
+      const gb = new GrammarBuilder();
+      gb.rule('root', lit('hello'));
+      const parser = new Parser(gb.build());
+      
+      const result = parser.parse('world');
       expect(result).toBeNull();
-      expect(ctx.pos).toBe(0);
     });
   });
 
   describe('RegExpMatch', () => {
     it('should match regex pattern', () => {
-      const parser = g.reg('[a-z]+');
-      const ctx = { input: 'abc123', pos: 0, rules: {}, validators: {} };
-      const result = parser.execute(ctx);
+      const gb = new GrammarBuilder();
+      gb.rule('root', reg('[a-z]+'));
+      const parser = new Parser(gb.build());
+      
+      const result = parser.parse('abc');
       expect(result).not.toBeNull();
-      expect(result?.getText(ctx.input)).toBe('abc');
-      expect(ctx.pos).toBe(3);
+      expect(result?.getText('abc')).toBe('abc');
     });
 
     it('should fail if pattern does not match', () => {
-      const parser = g.reg('[0-9]+');
-      const ctx = { input: 'abc', pos: 0, rules: {}, validators: {} };
-      const result = parser.execute(ctx);
+      const gb = new GrammarBuilder();
+      gb.rule('root', reg('[0-9]+'));
+      const parser = new Parser(gb.build());
+      
+      const result = parser.parse('abc');
       expect(result).toBeNull();
-      expect(ctx.pos).toBe(0);
     });
   });
 
   describe('Sequence', () => {
     it('should match sequence of expressions', () => {
-      const parser = g.seq(g.lit('A'), g.lit('B'));
-      const ctx = { input: 'AB', pos: 0, rules: {}, validators: {} };
-      const result = parser.execute(ctx);
+      const gb = new GrammarBuilder();
+      gb.rule('root', seq(lit('A'), lit('B')));
+      const parser = new Parser(gb.build());
+      
+      const result = parser.parse('AB');
       expect(result).not.toBeNull();
-      expect(result?.getText(ctx.input)).toBe('AB');
       expect(result?.children.length).toBe(2);
-      expect(ctx.pos).toBe(2);
     });
 
     it('should fail if any part fails', () => {
-      const parser = g.seq(g.lit('A'), g.lit('B'));
-      const ctx = { input: 'AC', pos: 0, rules: {}, validators: {} };
-      const result = parser.execute(ctx);
+      const gb = new GrammarBuilder();
+      gb.rule('root', seq(lit('A'), lit('B')));
+      const parser = new Parser(gb.build());
+      
+      const result = parser.parse('AC');
       expect(result).toBeNull();
-      expect(ctx.pos).toBe(0); // Should backtrack
     });
   });
 
   describe('Choice (Alt)', () => {
     it('should match first option', () => {
-      const parser = g.alt(g.lit('A'), g.lit('B'));
-      const ctx = { input: 'A', pos: 0, rules: {}, validators: {} };
-      const result = parser.execute(ctx);
-      expect(result?.getText(ctx.input)).toBe('A');
+      const gb = new GrammarBuilder();
+      gb.rule('root', alt(lit('A'), lit('B')));
+      const parser = new Parser(gb.build());
+      
+      const result = parser.parse('A');
+      expect(result?.getText('A')).toBe('A');
     });
 
     it('should match second option if first fails', () => {
-      const parser = g.alt(g.lit('A'), g.lit('B'));
-      const ctx = { input: 'B', pos: 0, rules: {}, validators: {} };
-      const result = parser.execute(ctx);
-      expect(result?.getText(ctx.input)).toBe('B');
+      const gb = new GrammarBuilder();
+      gb.rule('root', alt(lit('A'), lit('B')));
+      const parser = new Parser(gb.build());
+      
+      const result = parser.parse('B');
+      expect(result?.getText('B')).toBe('B');
     });
   });
 
   describe('Repeat (Rep, Plus, Opt)', () => {
     it('rep should match zero or more', () => {
-      const parser = g.rep(g.lit('A'));
-      // Match 2
-      let ctx = { input: 'AA', pos: 0, rules: {}, validators: {} };
-      let result = parser.execute(ctx);
-      expect(result?.children.length).toBe(2);
+      const gb = new GrammarBuilder();
+      gb.rule('root', rep(lit('A')));
+      const parser = new Parser(gb.build());
       
-      // Match 0
-      ctx = { input: 'B', pos: 0, rules: {}, validators: {} };
-      result = parser.execute(ctx);
-      expect(result?.children.length).toBe(0); // Success with empty match
-      expect(ctx.pos).toBe(0);
+      expect(parser.parse('AA')?.children.length).toBe(2);
+      expect(parser.parse('')?.children.length).toBe(0);
     });
 
     it('plus should match one or more', () => {
-      const parser = g.plus(g.lit('A'));
-      // Match 1
-      let ctx = { input: 'A', pos: 0, rules: {}, validators: {} };
-      let result = parser.execute(ctx);
-      expect(result?.children.length).toBe(1);
-
-      ctx = { input: 'B', pos: 0, rules: {}, validators: {} };
-      result = parser.execute(ctx);
-      expect(result).toBeNull();
+      const gb = new GrammarBuilder();
+      gb.rule('root', plus(lit('A')));
+      const parser = new Parser(gb.build());
+      
+      expect(parser.parse('A')?.children.length).toBe(1);
+      expect(parser.parse('')).toBeNull();
     });
 
     it('opt should match zero or one', () => {
-        const parser = g.opt(g.lit('A'));
-        // Match 1
-        let ctx = { input: 'A', pos: 0, rules: {}, validators: {} };
-        let result = parser.execute(ctx);
-        expect(result?.children.length).toBe(1);
-  
-        // Match 0
-        ctx = { input: 'B', pos: 0, rules: {}, validators: {} };
-        result = parser.execute(ctx);
-        expect(result?.children.length).toBe(0);
+      const gb = new GrammarBuilder();
+      gb.rule('root', opt(lit('A')));
+      const parser = new Parser(gb.build());
+      
+      expect(parser.parse('A')?.children.length).toBe(1);
+      expect(parser.parse('')?.children.length).toBe(0);
     });
   });
 
   describe('Exclusion', () => {
-      it('should match A but not if B matches', () => {
-          const parser = g.exc(g.reg('.'), g.lit('X'));
-          
-          let ctx = { input: 'Y', pos: 0, rules: {}, validators: {} };
-          let result = parser.execute(ctx);
-          expect(result?.getText(ctx.input)).toBe('Y');
-
-          ctx = { input: 'X', pos: 0, rules: {}, validators: {} };
-          result = parser.execute(ctx);
-          expect(result).toBeNull();
-      });
+    it('should match A but not if B matches', () => {
+      const gb = new GrammarBuilder();
+      gb.rule('root', exc(reg('.'), lit('X')));
+      const parser = new Parser(gb.build());
+      
+      expect(parser.parse('Y')?.getText('Y')).toBe('Y');
+      expect(parser.parse('X')).toBeNull();
+    });
   });
 });

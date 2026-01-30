@@ -1,96 +1,63 @@
-import { Grammar } from './grammar';
-import { CST, Context } from './parser';
+import { GrammarBuilder, lit, reg, seq, alt, rep, plus, opt, ref } from './grammar';
+import { CST } from './xml-cst';
 
-const g = new Grammar();
+const g = new GrammarBuilder();
 
-// Name: Simple alphanumeric string for simplicity
-g.rule("Name", g.plus(g.reg("[a-zA-Z0-9]")));
+const SQ = "\x27";
+const DQ = "\x22";
 
-// CharData: Anything except '<'
-g.rule("CharData", g.plus(g.reg("[^<]")));
+g.rule("Name", plus(reg("[a-zA-Z0-9]")));
+g.rule("CharData", plus(reg("[^<]")));
+g.rule("S", plus(reg("[ \t\r\n]")));
+g.rule("Eq", seq(opt(ref("S")), lit("="), opt(ref("S"))));
 
-// S: Whitespace
-g.rule("S", g.plus(g.reg("[ \t\r\n]")));
-
-// Eq: Equal sign with optional whitespace
-g.rule("Eq", g.seq(g.opt(g.ref("S")), g.lit("="), g.opt(g.ref("S"))));
-
-// AttValue: "..." or '...'
-g.rule("AttValue", g.alt(
-    g.seq(g.lit('"'), g.rep(g.reg('[^"]')), g.lit('"')),
-    g.seq(g.lit("'"), g.rep(g.reg("[^']")), g.lit("'"))
+g.rule("AttValue", alt(
+    seq(lit(DQ), rep(reg("[^\x22]")), lit(DQ)),
+    seq(lit(SQ), rep(reg("[^\x27]")), lit(SQ))
 ));
 
-// Attribute: Name Eq AttValue
-g.rule("Attribute", g.seq(g.ref("Name"), g.ref("Eq"), g.ref("AttValue")));
+g.rule("Attribute", seq(ref("Name"), ref("Eq"), ref("AttValue")));
 
-// EmptyElemTag: <Name (S Attribute)* S? />
-g.rule("EmptyElemTag", g.seq(
-    g.lit("<"), 
-    g.ref("Name"), 
-    g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), 
-    g.opt(g.ref("S")), 
-    g.lit("/>")
+g.rule("EmptyElemTag", seq(
+    lit("<"), 
+    ref("Name"), 
+    rep(seq(ref("S"), ref("Attribute"))),
+    opt(ref("S")),
+    lit("/>")
 ));
 
-// STag: <Name (S Attribute)* S? >
-g.rule("STag", g.seq(
-    g.lit("<"), 
-    g.ref("Name"), 
-    g.rep(g.seq(g.ref("S"), g.ref("Attribute"))), 
-    g.opt(g.ref("S")), 
-    g.lit(">")
+g.rule("STag", seq(
+    lit("<"), 
+    ref("Name"), 
+    rep(seq(ref("S"), ref("Attribute"))),
+    opt(ref("S")),
+    lit(">")
 ));
 
-// ETag: </Name>.
-g.rule("ETag", g.seq(g.lit("</"), g.ref("Name"), g.opt(g.ref("S")), g.lit(">")));
+g.rule("ETag", seq(lit("</"), ref("Name"), opt(ref("S")), lit(">")));
 
-// content: (element | CharData)*
-g.rule("content", g.rep(g.alt(g.ref("element"), g.ref("CharData"))));
+g.rule("content", rep(alt(ref("element"), ref("CharData"))));
 
-function validateElementTypeMatch(node: CST, ctx: Context): boolean {
-    // node.type is 'element' because it's wrapped by the Reference.
-    // We need to inspect children to determine if it's EmptyElemTag or Sequence.
-    
-    // Case 1: EmptyElemTag
-    // Structure: ["<", Name, rep(attr), opt(S), "/>"]
-    // children[0] is literal "<"
+function validateElementTypeMatch(node: CST, input: string): boolean {
     if (node.children.length >= 2 && node.children[0].type === 'literal') {
         return true;
     }
-    
-    // Case 2: Sequence [STag, content, ETag]
-    // children[0] should be STag
     if (node.children.length === 3 && node.children[0].type === 'STag' && node.children[2].type === 'ETag') {
         const stag = node.children[0];
         const etag = node.children[2];
-        const input = ctx.input;
-        
-        // STag structure: ["<", Name, rep(attr), opt(S), ">"]
-        // Name is at index 1
         const startName = stag.children[1].getText(input);
-        
-        // ETag structure: ["</", Name, opt(S), ">"]
-        // Name is at index 1
         const endName = etag.children[1].getText(input);
-
         return startName === endName;
     }
-    
-    // If this point is reached, the validator's structure assumption is wrong
-    throw new Error(`Validation error: unexpected node structure in validateElementTypeMatch. Children types: ${node.children.map(c => c.type).join(', ')}`);
+    return false;
 }
 
-// element: EmptyElemTag | STag content ETag
-g.rule("element", g.alt(
-    g.ref("EmptyElemTag"), 
-    g.seq(g.ref("STag"), g.ref("content"), g.ref("ETag"))
+g.rule("element", alt(
+    ref("EmptyElemTag"), 
+    seq(ref("STag"), ref("content"), ref("ETag"))
 ));
 
-// Use verifyRule to attach validation
 g.verifyRule("element", validateElementTypeMatch);
+g.rule("document", ref("element"));
 
-// document ::= element
-g.rule("document", g.ref("element"));
-
-export { g };
+export const grammar = g.build("document");

@@ -25,24 +25,6 @@ pnpm install
 ```bash
 pnpm start
 ```
-出力例:
-```text
-Reading XML file: .../src/sample_01.xml
-Parsing XML...
-Parsing successful. Converting to High-Level AST...
-Conversion successful.
---------------------------------------------------
-Root Element: <html>
-Attribute 'xml:lang': ja
-
-Searching for <title> elements...
-Found title: りんごの選び方
-
-Searching for <h2> elements (Section Headers)...
-- はじめに
-- 選定基準
---------------------------------------------------
-```
 
 ### テスト
 ユニットテストおよびインテグレーションテストを実行します。
@@ -57,10 +39,11 @@ pnpm test
 
 このプロジェクトは、以下の層構造になっています。
 
-1.  **Parser Core**: 汎用的な構文解析エンジン (`parser.ts`, `grammar.ts`)
+1.  **Parser Core**: 構文解析エンジン (`parser.ts`) と文法管理 (`grammar.ts`)
 2.  **Grammar Definitions**: XML 文法の定義 (`xml-grammar.ts`)
-3.  **API Layer**: 統合されたインターフェース (`xml-api.ts`)
-4.  **High-Level AST**: アプリケーション向けの使いやすいデータ構造 (`xml-ast.ts`)
+3.  **CST Definitions**: 生の構文木定義 (`xml-cst.ts`)
+4.  **API Layer**: 統合されたインターフェース (`xml-api.ts`)
+5.  **High-Level AST**: アプリケーション向けの使いやすいデータ構造 (`xml-ast.ts`)
 
 ### ディレクトリ構成
 
@@ -69,8 +52,9 @@ pnpm test
 ├── src/
 │   ├── main.ts                  # エントリーポイント。API使用デモ
 │   ├── xml-api.ts               # 統合API (XMLAPI class)
-│   ├── parser.ts                # パーサーコンビネータ・CST定義
-│   ├── grammar.ts               # 文法管理 (Grammar class)
+│   ├── parser.ts                # パース実行エンジン (Parser class)
+│   ├── grammar.ts               # 文法データ構造・構築 (Grammar/GrammarBuilder)
+│   ├── xml-cst.ts               # 生の構文木 (CST class) の定義
 │   ├── xml-grammar.ts           # XML 完全仕様に近い文法定義
 │   ├── minimum-grammar.ts       # 簡易版の XML 文法定義 (実験用)
 │   ├── xml-ast.ts               # 高レベル AST (class AST) の定義
@@ -83,42 +67,46 @@ pnpm test
 ### コンポーネント詳細
 
 #### 1. Parser Core (`src/parser.ts`, `src/grammar.ts`)
-*   **Grammar**: ルール管理とパース実行のエントリーポイント。
-*   **CST**: 生の構文木 (Concrete Syntax Tree) のノード。
-*   **Combinators**: `seq` (順序), `alt` (選択), `rep` (繰り返し) などの基本機能を提供。
+*   **Parser**: `Grammar` オブジェクトを受け取り、入力を解析して `CST` を生成します。実行エンジンに徹しており、文法の詳細を知りません。
+*   **Grammar / GrammarBuilder**: 文法のルール（Expression）とバリデータを管理します。`GrammarBuilder` で構築した後に `build()` を呼び出すことで、イミュータブルな `Grammar` インスタンスを取得できます。
+*   **Combinators**: `seq` (順序), `alt` (選択), `rep` (繰り返し) などのコンビネータを、トップレベルの関数として提供します。
 
 #### 2. Grammar Definitions
 *   **`src/xml-grammar.ts`**: XML 1.0 仕様に基づいた詳細な定義。
 *   **`src/minimum-grammar.ts`**: 基本的なタグ構造のみをサポートする軽量な定義。
 
 #### 3. XML API (`src/xml-api.ts`)
-CST, AST, 入力文字列、文法定義などをまとめて管理するクラス `XMLAPI` を提供します。
-ユーザーはこのクラスを通じてパースや変換を行います。
+CST, AST, 入力文字列、文法定義などをまとめて管理するクラス `XMLAPI` を提供します。内部で `Parser` をインスタンス化して使用します。
 
 #### 4. High-Level AST (`src/xml-ast.ts`)
 パース結果の CST は文法構造を厳密に反映しているため、深くネストしており、アプリケーションからの利用は煩雑です。
 `AST` クラスは、これをフラット化し、直感的に操作できるようにします。
 
-*   **`tagName`**: タグ名
-*   **`attributes`**: 属性の Key-Value オブジェクト
-*   **`children`**: 子要素 (`AST`) またはテキスト (`string`) の配列
-*   **メソッド**:
-    *   `attr(name)`: 属性値の取得
-    *   `text()`: 子孫のテキストノードを結合して取得
-    *   `find(tagName)`: 指定したタグ名の要素を深さ優先探索で全て取得
-
 ---
 
 ## 🛠 開発ガイド
 
-### 新しい文法への対応
-1.  **Grammar**: `src/my-grammar.ts` を作成し、`grammar.ts` の `Grammar` クラスを使ってルールを定義します。
-2.  **Converter**: `src/my-converter.ts` を作成し、CST から `AST` への変換ロジックを実装します。
-3.  **Test**: テストで変換結果を検証します。
+### 新しい文法の定義方法
+1.  `GrammarBuilder` インスタンスを作成します。
+2.  `rule(name, expression)` メソッドでルールを定義します。トップレベルのコンビネータ（`seq`, `alt`, `reg`, `lit` 等）を組み合わせて使用します。
+3.  必要に応じて `verifyRule(name, (node, input) => boolean)` で、パース後の追加検証（ウェルフォームドネスのチェック等）を登録します。
+4.  `builder.build()` で `Grammar` インスタンスを生成し、`Parser` に渡します。
+
+```typescript
+import { GrammarBuilder, seq, lit, ref, plus, reg } from './grammar';
+import { Parser } from './parser';
+
+const gb = new GrammarBuilder();
+gb.rule("Greeting", seq(lit("Hello, "), ref("Name"), lit("!")));
+gb.rule("Name", plus(reg("[a-zA-Z]")));
+
+const parser = new Parser(gb.build());
+const cst = parser.parse("Hello, World!");
+```
 
 ### AST の構造比較
 
-**Raw CST (`CST`)**: 文法規則通りの深いネスト
+**Raw CST (`CST`)**: 文法規則通りの深いネスト。自動的にルール名がノードの `type` に付与されます。
 ```typescript
 {
   type: "element",

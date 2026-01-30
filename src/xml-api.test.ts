@@ -1,6 +1,6 @@
 import { XMLAPI } from './xml-api';
 import { AST } from './xml-ast';
-import { g as minGrammar } from './minimum-grammar';
+import { grammar as minGrammar } from './minimum-grammar';
 import { convert as minConvert } from './minimum-converter';
 
 describe('XMLAPI', () => {
@@ -23,6 +23,10 @@ describe('XMLAPI', () => {
             const api = new XMLAPI(xml);
 
             expect(api.cst).not.toBeNull();
+            // In the new parser implementation, mismatched tags in a choice (like element) might 
+            // result in a failed parse for that branch, or if forced, a non-well-formed node.
+            // With the current grammar, element -> STag content ETag requires names to match via validator.
+            // The validator sets wellFormed = false.
             expect(api.cst?.wellFormed).toBe(false);
             expect(api.ast).toBeNull();
         });
