@@ -1,7 +1,8 @@
-import { CST } from './parser';
+import { CST } from './xml-cst';
 import { AST } from './xml-ast';
 import { Grammar } from './grammar';
-import { g as defaultGrammar } from './xml-grammar';
+import { Parser } from './parser';
+import { grammar as defaultGrammar } from './xml-grammar';
 import { convert as defaultConverter } from './xml-converter';
 
 export type Converter = (node: CST, input: string) => AST | string | null;
@@ -9,6 +10,7 @@ export type Converter = (node: CST, input: string) => AST | string | null;
 export class XMLAPI {
   public input: string;
   public grammar: Grammar;
+  public parser: Parser;
   public converter: Converter;
 
   /** CST is null if parsing fails. */
@@ -23,6 +25,7 @@ export class XMLAPI {
   ) {
     this.input = input;
     this.grammar = grammar;
+    this.parser = new Parser(grammar);
     this.converter = converter;
 
     this.cst = this.parse();
@@ -34,10 +37,11 @@ export class XMLAPI {
   /**
    * Parses the input string using the configured grammar.
    */
-  private parse(ruleName: string = "document"): CST | null {
+  private parse(ruleName?: string): CST | null {
     try {
-      return this.grammar.parse(ruleName, this.input);
+      return this.parser.parse(this.input, ruleName);
     } catch (e) {
+      console.error("Parse error:", e);
       return null;
     }
   }

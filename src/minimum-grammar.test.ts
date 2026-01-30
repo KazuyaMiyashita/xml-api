@@ -1,16 +1,19 @@
-import { g } from './minimum-grammar';
+import { grammar } from './minimum-grammar';
+import { Parser } from './parser';
 
 describe('Minimum Grammar', () => {
+    const parser = new Parser(grammar);
+
     it('should parse simple attributes', () => {
         const xml = '<root id="1" />';
-        const result = g.parse("document", xml);
+        const result = parser.parse(xml);
         expect(result).not.toBeNull();
         expect(result?.wellFormed).toBe(true);
     });
 
     it('should parse simple elements', () => {
         const xml = '<root>content</root>';
-        const result = g.parse("document", xml);
+        const result = parser.parse(xml);
         expect(result).not.toBeNull();
         expect(result?.wellFormed).toBe(true);
     });

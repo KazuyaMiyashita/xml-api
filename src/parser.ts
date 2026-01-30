@@ -1,93 +1,89 @@
+import { CST } from './xml-cst';
+import { Grammar, Expression, Validator } from './grammar';
 
-export class CST {
-  constructor(
-    public type: string,
-    public start: number,
-    public end: number,
-    public children: CST[] = [],
-    public wellFormed: boolean = true
-  ) {}
-
-  getText(input: string): string {
-    return input.slice(this.start, this.end);
-  }
-}
-
-export interface Context {
+interface Context {
   input: string;
   pos: number;
-  rules: { [key: string]: Expression };
-  validators: { [key: string]: (node: CST, ctx: Context) => boolean };
+  grammar: Grammar;
 }
 
-export abstract class Expression {
-  label?: string;
-  abstract execute(ctx: Context): CST | null;
-}
+export class Parser {
+  constructor(private grammar: Grammar) {}
 
-export class Literal extends Expression {
-  constructor(public value: string) {
-    super();
-  }
-  execute(ctx: Context): CST | null {
-    if (ctx.input.startsWith(this.value, ctx.pos)) {
-      const start = ctx.pos;
-      ctx.pos += this.value.length;
-      return new CST(this.label || "literal", start, ctx.pos);
+  parse(input: string, rootRule?: string): CST | null {
+    const startRule = rootRule || this.grammar.rootRule;
+    const ctx: Context = { input, pos: 0, grammar: this.grammar };
+    
+    // Treat the entry point as a Reference to the root rule.
+    // This ensures consistent behavior (validation, node type naming) with internal references.
+    const rootExpr: Expression = { type: 'Reference', name: startRule };
+    
+    const result = this.execute(rootExpr, ctx);
+    
+    // Ensure the entire input is consumed and the result is well-formed
+    if (result && ctx.pos === input.length) {
+       // Note: Top-level validation is already handled by executeReference if rootExpr is a Reference.
+       // If result.wellFormed is false, we still return it, but the caller can check the flag.
+       return result;
     }
     return null;
   }
-}
 
-export class RegExpMatch extends Expression {
-  regex: RegExp;
-  constructor(pattern: string) {
-    super();
-    this.regex = new RegExp(pattern, "y");
+  private execute(expr: Expression, ctx: Context): CST | null {
+    switch (expr.type) {
+      case 'Literal': return this.execLiteral(expr, ctx);
+      case 'RegExpMatch': return this.execRegExp(expr, ctx);
+      case 'Sequence': return this.execSequence(expr, ctx);
+      case 'Choice': return this.execChoice(expr, ctx);
+      case 'Repeat': return this.execRepeat(expr, ctx);
+      case 'Exclusion': return this.execExclusion(expr, ctx);
+      case 'Reference': return this.execReference(expr, ctx);
+    }
   }
-  execute(ctx: Context): CST | null {
-    this.regex.lastIndex = ctx.pos;
-    const match = this.regex.exec(ctx.input);
+
+  private execLiteral(expr: { type: 'Literal', value: string }, ctx: Context): CST | null {
+    if (ctx.input.startsWith(expr.value, ctx.pos)) {
+      const start = ctx.pos;
+      ctx.pos += expr.value.length;
+      return new CST("literal", start, ctx.pos);
+    }
+    return null;
+  }
+
+  private execRegExp(expr: { type: 'RegExpMatch', pattern: string }, ctx: Context): CST | null {
+    const regex = new RegExp(expr.pattern, "y");
+    regex.lastIndex = ctx.pos;
+    const match = regex.exec(ctx.input);
     if (match) {
       const start = ctx.pos;
       ctx.pos += match[0].length;
-      return new CST(this.label || "regex", start, ctx.pos);
+      return new CST("regex", start, ctx.pos);
     }
     return null;
   }
-}
 
-export class Sequence extends Expression {
-  constructor(public expressions: Expression[]) {
-    super();
-  }
-  execute(ctx: Context): CST | null {
+  private execSequence(expr: { type: 'Sequence', expressions: Expression[] }, ctx: Context): CST | null {
     const startPos = ctx.pos;
     const children: CST[] = [];
     let wellFormed = true;
-    for (const expr of this.expressions) {
-      const result = expr.execute(ctx);
+    for (const childExpr of expr.expressions) {
+      const result = this.execute(childExpr, ctx);
       if (result === null) {
         ctx.pos = startPos;
         return null;
       }
       children.push(result);
       if (!result.wellFormed) {
-        wellFormed = false; // Propagate non-well-formed status from child to parent
+        wellFormed = false;
       }
     }
-    return new CST(this.label || "sequence", startPos, ctx.pos, children, wellFormed);
+    return new CST("sequence", startPos, ctx.pos, children, wellFormed);
   }
-}
 
-export class Choice extends Expression {
-  constructor(public expressions: Expression[]) {
-    super();
-  }
-  execute(ctx: Context): CST | null {
-    for (const expr of this.expressions) {
+  private execChoice(expr: { type: 'Choice', expressions: Expression[] }, ctx: Context): CST | null {
+    for (const childExpr of expr.expressions) {
       const startPos = ctx.pos;
-      const result = expr.execute(ctx);
+      const result = this.execute(childExpr, ctx);
       if (result !== null) {
         return result;
       }
@@ -95,47 +91,39 @@ export class Choice extends Expression {
     }
     return null;
   }
-}
 
-export class Repeat extends Expression {
-  constructor(public expression: Expression, public min: number, public max: number) {
-    super();
-  }
-  execute(ctx: Context): CST | null {
+  private execRepeat(expr: { type: 'Repeat', expression: Expression, min: number, max: number }, ctx: Context): CST | null {
     const startPos = ctx.pos;
     const children: CST[] = [];
     let count = 0;
     let wellFormed = true;
-    while (count < this.max) {
+    
+    while (count < expr.max) {
       const checkpoint = ctx.pos;
-      const result = this.expression.execute(ctx);
+      const result = this.execute(expr.expression, ctx);
       if (result === null || ctx.pos === checkpoint) break;
       children.push(result);
       if (!result.wellFormed) {
-        wellFormed = false; // Propagate non-well-formed status from child to parent
+        wellFormed = false;
       }
       count++;
     }
-    if (count < this.min) {
+    
+    if (count < expr.min) {
       ctx.pos = startPos;
       return null;
     }
-    return new CST(this.label || "repeat", startPos, ctx.pos, children, wellFormed);
+    return new CST("repeat", startPos, ctx.pos, children, wellFormed);
   }
-}
 
-export class Exclusion extends Expression {
-  constructor(public a: Expression, public b: Expression) {
-    super();
-  }
-  execute(ctx: Context): CST | null {
+  private execExclusion(expr: { type: 'Exclusion', a: Expression, b: Expression }, ctx: Context): CST | null {
     const startPos = ctx.pos;
-    const resultA = this.a.execute(ctx);
+    const resultA = this.execute(expr.a, ctx);
     if (resultA === null) return null;
 
     const endPosA = ctx.pos;
     ctx.pos = startPos;
-    const resultB = this.b.execute(ctx);
+    const resultB = this.execute(expr.b, ctx);
     
     // Check if B matches and is at least as long as A
     if (resultB !== null && (startPos + (resultB.end - resultB.start) >= endPosA)) {
@@ -146,25 +134,22 @@ export class Exclusion extends Expression {
     ctx.pos = endPosA;
     return resultA;
   }
-}
 
-export class Reference extends Expression {
-  constructor(public name: string) {
-    super();
-  }
-  execute(ctx: Context): CST | null {
-    const rule = ctx.rules[this.name];
-    if (!rule) return null;
-    const result = rule.execute(ctx);
+  private execReference(expr: { type: 'Reference', name: string }, ctx: Context): CST | null {
+    const rule = ctx.grammar.rules[expr.name];
+    if (!rule) return null; // Should not happen if grammar is well-defined, or could throw error
+    
+    const result = this.execute(rule, ctx);
     if (result === null) return null;
     
-    // Create the node for this reference
-    const node = new CST(this.name, result.start, result.end, result.children, result.wellFormed);
+    // Wrap or rename the result to have the rule name
+    const node = new CST(expr.name, result.start, result.end, result.children, result.wellFormed);
 
-    // Apply validation if a validator exists for this rule name
-    const validator = ctx.validators[this.name];
+    // Apply validation
+    const validator = ctx.grammar.validators[expr.name];
     if (validator) {
-      if (!validator(node, ctx)) {
+      // Pass only necessary context (input string) to the validator
+      if (!validator(node, ctx.input)) {
         node.wellFormed = false;
       }
     }

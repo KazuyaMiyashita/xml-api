@@ -1,4 +1,5 @@
-import { g } from './xml-grammar';
+import { grammar } from './xml-grammar';
+import { Parser } from './parser';
 import { convert } from './xml-converter';
 import { AST } from './xml-ast';
 import * as fs from 'fs';
@@ -9,7 +10,9 @@ describe('Integration Test', () => {
         const xmlPath = path.join(__dirname, 'sample_01.xml');
         const xmlContent = fs.readFileSync(xmlPath, 'utf8');
 
-        const cst = g.parse("document", xmlContent);
+        const parser = new Parser(grammar);
+        const cst = parser.parse(xmlContent);
+        
         expect(cst).not.toBeNull();
         expect(cst?.wellFormed).toBe(true);
 

@@ -1,4 +1,4 @@
-import { CST } from './parser';
+import { CST } from './xml-cst';
 import { AST } from './xml-ast';
 
 export function convert(node: CST, input: string): AST | string | null {

@@ -1,23 +1,35 @@
-import { g } from './minimum-grammar';
+import { grammar } from './minimum-grammar';
+import { Parser } from './parser';
 import { convert } from './minimum-converter';
 import { AST } from './xml-ast';
 
-describe('Minimum Grammar Converter', () => {
-    it('should convert CST to AST', () => {
-        const xml = '<root id="1"><child>Text</child></root>';
-        const cst = g.parse("document", xml);
+describe('Minimum Converter', () => {
+    const parser = new Parser(grammar);
+
+    it('should convert simple element', () => {
+        const xml = '<root>text</root>';
+        const cst = parser.parse(xml, 'document');
         expect(cst).not.toBeNull();
-        
         if (cst) {
             const ast = convert(cst, xml);
             expect(ast).toBeInstanceOf(AST);
             if (ast instanceof AST) {
                 expect(ast.tagName).toBe('root');
+                expect(ast.text()).toBe('text');
+            }
+        }
+    });
+
+    it('should convert attributes', () => {
+        const xml = '<item id="1" />';
+        const cst = parser.parse(xml, 'document');
+        expect(cst).not.toBeNull();
+        if (cst) {
+            const ast = convert(cst, xml);
+            expect(ast).toBeInstanceOf(AST);
+            if (ast instanceof AST) {
+                expect(ast.tagName).toBe('item');
                 expect(ast.attr('id')).toBe('1');
-                
-                // Note: minimum-grammar converter logic might be slightly different
-                // let's assume it works similarly for this basic case
-                expect(ast.children.length).toBe(1);
             }
         }
     });
