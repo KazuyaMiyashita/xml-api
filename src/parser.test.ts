@@ -52,7 +52,7 @@ describe('Parser Combinators', () => {
       
       const result = parser.parse('AB');
       expect(result).not.toBeNull();
-      expect(result?.children.length).toBe(2);
+      expect(result?.children[0].children.length).toBe(2);
     });
 
     it('should fail if any part fails', () => {
@@ -91,8 +91,8 @@ describe('Parser Combinators', () => {
       gb.rule('root', rep(lit('A')));
       const parser = new Parser(gb.build());
       
-      expect(parser.parse('AA')?.children.length).toBe(2);
-      expect(parser.parse('')?.children.length).toBe(0);
+      expect(parser.parse('AA')?.children[0].children.length).toBe(2);
+      expect(parser.parse('')?.children[0].children.length).toBe(0);
     });
 
     it('plus should match one or more', () => {
@@ -109,8 +109,8 @@ describe('Parser Combinators', () => {
       gb.rule('root', opt(lit('A')));
       const parser = new Parser(gb.build());
       
-      expect(parser.parse('A')?.children.length).toBe(1);
-      expect(parser.parse('')?.children.length).toBe(0);
+      expect(parser.parse('A')?.children[0].children.length).toBe(1);
+      expect(parser.parse('')?.children[0].children.length).toBe(0);
     });
   });
 
