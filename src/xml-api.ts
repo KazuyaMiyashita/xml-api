@@ -2,17 +2,25 @@ import { CST } from './parser';
 import { AST } from './xml-ast';
 import { Grammar } from './grammar';
 import { g as defaultGrammar } from './xml-grammar';
-import { convert } from './xml-converter';
+import { convert as defaultConverter } from './xml-converter';
+
+export type Converter = (node: CST, input: string) => AST | string | null;
 
 export class XMLAPI {
   public input: string;
   public grammar: Grammar;
+  public converter: Converter;
   public cst: CST | null = null;
   public ast: AST | null = null;
 
-  constructor(input: string, grammar: Grammar = defaultGrammar) {
+  constructor(
+    input: string, 
+    grammar: Grammar = defaultGrammar, 
+    converter: Converter = defaultConverter
+  ) {
     this.input = input;
     this.grammar = grammar;
+    this.converter = converter;
   }
 
   /**
@@ -42,7 +50,7 @@ export class XMLAPI {
     }
     
     // this.cst is guaranteed to be not null here
-    const result = convert(this.cst!, this.input);
+    const result = this.converter(this.cst!, this.input);
     
     if (result instanceof AST) {
         this.ast = result;
