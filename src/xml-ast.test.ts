@@ -1,37 +1,30 @@
-import { XMLElement } from './xml-ast';
+import { AST } from './xml-ast';
 
-describe('XMLElement', () => {
-  it('should store tagName and attributes', () => {
-    const el = new XMLElement('div', { id: 'main', class: 'container' });
-    expect(el.tagName).toBe('div');
-    expect(el.attr('id')).toBe('main');
-    expect(el.attr('class')).toBe('container');
-    expect(el.attr('missing')).toBeUndefined();
-  });
+describe('AST', () => {
+    it('should create an element with attributes and children', () => {
+        const child = new AST('child', {}, ['text']);
+        const el = new AST('root', { id: '1' }, [child]);
 
-  it('should concatenate text content', () => {
-    // <div>Hello <span>World</span>!</div>
-    const span = new XMLElement('span', {}, ['World']);
-    const div = new XMLElement('div', {}, ['Hello ', span, '!']);
+        expect(el.tagName).toBe('root');
+        expect(el.attr('id')).toBe('1');
+        expect(el.children.length).toBe(1);
+        expect(el.children[0]).toBeInstanceOf(AST);
+    });
 
-    expect(div.text()).toBe('Hello World!');
-  });
+    it('text() should return concatenated text content', () => {
+        const el = new AST('p', {}, ['Hello, ', new AST('b', {}, ['World']), '!']);
+        expect(el.text()).toBe('Hello, World!');
+    });
 
-  it('should find descendants by tag name', () => {
-    // <root>
-    //   <item id="1">A</item>
-    //   <group>
-    //     <item id="2">B</item>
-    //   </group>
-    // </root>
-    const item1 = new XMLElement('item', { id: '1' }, ['A']);
-    const item2 = new XMLElement('item', { id: '2' }, ['B']);
-    const group = new XMLElement('group', {}, [item2]);
-    const root = new XMLElement('root', {}, [item1, group]);
+    it('find() should find descendant elements', () => {
+        const target = new AST('target', {}, []);
+        const root = new AST('root', {}, [
+            new AST('wrapper', {}, [target]),
+            new AST('other', {}, [])
+        ]);
 
-    const items = root.find('item');
-    expect(items.length).toBe(2);
-    expect(items).toContain(item1);
-    expect(items).toContain(item2);
-  });
+        const results = root.find('target');
+        expect(results.length).toBe(1);
+        expect(results[0]).toBe(target);
+    });
 });

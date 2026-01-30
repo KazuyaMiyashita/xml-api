@@ -1,7 +1,7 @@
-import { Node } from './parser';
-import { XMLElement } from './xml-ast';
+import { CST } from './parser';
+import { AST } from './xml-ast';
 
-export function convert(node: Node, input: string): XMLElement | string | null {
+export function convert(node: CST, input: string): AST | string | null {
     if (node.type === 'CharData') {
         return node.getText(input);
     }
@@ -59,7 +59,7 @@ export function convert(node: Node, input: string): XMLElement | string | null {
         // Children are either from EmptyElemTag or Sequence.
         
         // Case 1: Sequence [STag, content, ETag]
-        // STag is a Reference, so it produces a Node("STag").
+        // STag is a Reference, so it produces a CST("STag").
         if (target.children.length === 3 && target.children[0].type === 'STag') {
             const stag = target.children[0];
             const content = target.children[1];
@@ -73,7 +73,7 @@ export function convert(node: Node, input: string): XMLElement | string | null {
             const initialCharDataRep = content.children[0];
             if (initialCharDataRep && initialCharDataRep.children.length > 0) {
                  const text = initialCharDataRep.children[0].getText(input);
-                 if (elem instanceof XMLElement) {
+                 if (elem instanceof AST) {
                      elem.children.push(text);
                  }
             }
@@ -87,7 +87,7 @@ export function convert(node: Node, input: string): XMLElement | string | null {
                     const choiceNode = seqNode.children[0];
                     const converted = convert(choiceNode, input);
                     if (converted !== null) {
-                        if (elem instanceof XMLElement) {
+                        if (elem instanceof AST) {
                             elem.children.push(converted);
                         }
                     }
@@ -95,7 +95,7 @@ export function convert(node: Node, input: string): XMLElement | string | null {
                     const trailingCharDataRep = seqNode.children[1];
                     if (trailingCharDataRep && trailingCharDataRep.children.length > 0) {
                          const text = trailingCharDataRep.children[0].getText(input);
-                         if (elem instanceof XMLElement) {
+                         if (elem instanceof AST) {
                              elem.children.push(text);
                          }
                     }
@@ -117,7 +117,7 @@ export function convert(node: Node, input: string): XMLElement | string | null {
     return null;
 }
 
-function parseTag(node: Node, input: string): XMLElement {
+function parseTag(node: CST, input: string): AST {
     // Expects STag or EmptyElemTag node
     // STag: '<' Name (S Attribute)* S? '>'
     // EmptyElemTag: '<' Name (S Attribute)* S? '/>'
@@ -167,10 +167,10 @@ function parseTag(node: Node, input: string): XMLElement {
         attributes[attrName] = valText;
     }
     
-    return new XMLElement(tagName, attributes);
+    return new AST(tagName, attributes);
 }
 
-function decodeCharRef(node: Node, input: string): string {
+function decodeCharRef(node: CST, input: string): string {
     const text = node.getText(input); // e.g., "&#65;" or "&#x41;"
     let code: number;
     if (text.startsWith("&#x")) {
