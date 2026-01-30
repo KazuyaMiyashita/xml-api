@@ -1,9 +1,9 @@
-# XML Parser Project
+# XML API
 
-TypeScript で実装された、パーサーコンビネータを用いた XML パーサーです。
+TypeScript で実装された、パーサーコンビネータを用いた XMLパーサー・操作用のAPIです。
 XML 仕様（Extensible Markup Language (XML) 1.0）に基づいた文法定義を持ち、サンプルの XML ファイルをパースして抽象構文木（AST）を出力します。
 
-また、パース結果の生の構文木 (CST) を、より扱いやすい高レベル AST (`XMLElement`) に変換する機能も提供しており、DOM のような直感的な操作が可能です。
+パース結果の生の構文木 (CST) を、より扱いやすい高レベル AST (`XMLElement`) に変換する機能も提供しており、DOM のような直感的な操作が可能です。
 
 ## 🚀 クイックスタート
 
