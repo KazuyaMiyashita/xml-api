@@ -71,9 +71,11 @@ export class XMLAPI {
       this.cst.shift(from, delta);
       
       // 2. Try incremental re-parse
+      // We try to update the tree in-place. 
+      // If we fail to update even the root, cst becomes null.
       const success = this.tryIncrementalUpdate(from, newEnd);
       if (!success) {
-        this.cst = this.parse();
+        this.cst = null;
       }
     } else {
       this.cst = this.parse();
@@ -89,49 +91,56 @@ export class XMLAPI {
   private tryIncrementalUpdate(from: number, to: number): boolean {
     if (!this.cst) return false;
 
-    // Find the smallest node that covers the changed range
+    // Start search from the smallest node touching the change
     let target: CST | null = this.findNodeAt(from, to);
     
-    // We need a node with a name to re-parse it specifically
-    while (target && !target.name) {
-      target = target.parent;
-    }
-
-    if (!target || !target.name) {
-      return false;
-    }
-
-    // Try to re-parse this node
-    // We start from target.start and expect it to consume up to target.end
-    const result = this.parser.parseAt(this.input, target.start, target.name);
-    
-    if (result && result.end === target.end) {
-      // Replace the node in the parent
-      if (target.parent) {
-        const index = target.parent.children.indexOf(target);
-        if (index !== -1) {
-          target.parent.children[index] = result.node;
-          result.node.parent = target.parent;
-          
-          // Re-validate ancestors
-          return this.validateAncestors(result.node);
+    // Iterate up the tree until we find a node that can successfully re-parse 
+    // and accommodate the change (size matches).
+    while (target) {
+        // We can only re-parse named nodes (rules)
+        if (target.name) {
+             const result = this.parser.parseAt(this.input, target.start, target.name);
+             
+             // Check if parse was successful AND the new node's length matches the 
+             // expected length of the target node (which has been shifted).
+             // If length matches, it means the change is contained within this node's boundaries.
+             if (result && result.end === target.end) {
+                 // Success! Replace target with result.node
+                 if (target.parent) {
+                     const index = target.parent.children.indexOf(target);
+                     if (index !== -1) {
+                         target.parent.children[index] = result.node;
+                         result.node.parent = target.parent;
+                         this.updateAncestorsWellFormed(result.node);
+                         return true;
+                     }
+                 } else {
+                     // We replaced the root node
+                     this.cst = result.node;
+                     // Root has no ancestors to update
+                     return true;
+                 }
+             }
         }
-      } else {
-        // It was the root node
-        this.cst = result.node;
-        return true;
-      }
+        
+        // If we couldn't parse or boundaries didn't match, try the parent.
+        // This effectively expands the scope of re-parsing.
+        target = target.parent;
     }
-
+    
+    // If we reached here, even re-parsing the root failed (or matched wrong length).
     return false;
   }
 
   private findNodeAt(from: number, to: number): CST | null {
     if (!this.cst) return null;
     let current = this.cst;
+    // Simple descent to find the deepest node covering the range
     while (true) {
       let foundChild = false;
       for (const child of current.children) {
+        // If we are inserting (from==to), strict inequality on one side might fail if at boundary.
+        // But for covering, start <= from && end >= to works generally.
         if (child.start <= from && child.end >= to) {
           current = child;
           foundChild = true;
@@ -143,10 +152,10 @@ export class XMLAPI {
     return current;
   }
 
-  private validateAncestors(node: CST): boolean {
+  private updateAncestorsWellFormed(node: CST): void {
     let current: CST | null = node.parent;
     while (current) {
-      // Check if all children are well-formed
+      // 1. Check if all children are well-formed
       let childrenWellFormed = true;
       for (const child of current.children) {
         if (!child.wellFormed) {
@@ -155,8 +164,10 @@ export class XMLAPI {
         }
       }
 
+      // 2. Check local validator if children are OK (or check anyway?)
+      // Standard: if children are broken, parent is broken.
       let selfWellFormed = childrenWellFormed;
-      if (current.name) {
+      if (current.name && selfWellFormed) {
         const validator = this.grammar.validators[current.name];
         if (validator && !validator(current, this.input)) {
           selfWellFormed = false;
@@ -164,24 +175,7 @@ export class XMLAPI {
       }
 
       current.wellFormed = selfWellFormed;
-      // We continue going up even if this node is not well-formed,
-      // because we want to update the well-formed status of all ancestors.
-      // But we return false to indicate that incremental update failed to restore well-formedness.
-      if (!current.wellFormed) {
-          // Keep going up to update others, but remember we are invalid
-          this.invalidateRemainingAncestors(current.parent);
-          return false;
-      }
       current = current.parent;
     }
-    return true;
-  }
-
-  private invalidateRemainingAncestors(node: CST | null): void {
-      let current = node;
-      while (current) {
-          current.wellFormed = false;
-          current = current.parent;
-      }
   }
 }
