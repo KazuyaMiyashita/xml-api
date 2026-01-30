@@ -1,8 +1,8 @@
-export class XMLElement {
+export class AST {
     constructor(
         public tagName: string,
         public attributes: { [key: string]: string } = {},
-        public children: (XMLElement | string)[] = []
+        public children: (AST | string)[] = []
     ) {}
 
     // Get attribute value by name
@@ -19,10 +19,10 @@ export class XMLElement {
     }
 
     // Find all descendant elements with the given tag name (simple XPath-like)
-    find(tagName: string): XMLElement[] {
-        let results: XMLElement[] = [];
+    find(tagName: string): AST[] {
+        let results: AST[] = [];
         for (const child of this.children) {
-            if (child instanceof XMLElement) {
+            if (child instanceof AST) {
                 if (child.tagName === tagName) {
                     results.push(child);
                 }

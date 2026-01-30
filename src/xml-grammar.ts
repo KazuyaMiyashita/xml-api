@@ -1,4 +1,5 @@
-import { Grammar, Node, Context } from './parser';
+import { Grammar } from './grammar';
+import { CST, Context } from './parser';
 
 const g = new Grammar();
 
@@ -215,7 +216,7 @@ g.rule("SDDecl", g.seq(
 g.rule("element", g.alt(g.ref("EmptyElemTag"), g.seq(g.ref("STag"), g.ref("content"), g.ref("ETag"))));
 
 // Well-formedness constraint: Element Type Match
-function validateElementTypeMatch(node: Node, ctx: Context): boolean {
+function validateElementTypeMatch(node: CST, ctx: Context): boolean {
     // node.type is 'element' because it's wrapped by the Reference.
     
     // Case 1: EmptyElemTag (always well-formed regarding tag match)
@@ -245,7 +246,7 @@ function validateElementTypeMatch(node: Node, ctx: Context): boolean {
 g.verifyRule("element", validateElementTypeMatch);
 
 // Helper for Unique Att Spec check
-function validateUniqueAttributes(node: Node, ctx: Context): boolean {
+function validateUniqueAttributes(node: CST, ctx: Context): boolean {
     const seen = new Set<string>();
     // STag/EmptyElemTag structure:
     // 0: "<"
@@ -386,7 +387,7 @@ g.rule("CharRef", g.alt(g.seq(g.lit("&#"), g.plus(g.reg("[0-9]")), g.lit(";")),
 
 // Well-formedness constraint: Legal Character
 // Characters referred to using character references MUST match the production for Char.
-g.verifyRule("CharRef", (node: Node, ctx: Context): boolean => {
+g.verifyRule("CharRef", (node: CST, ctx: Context): boolean => {
     const text = node.getText(ctx.input);
     let code: number;
     if (text.startsWith("&#x")) {

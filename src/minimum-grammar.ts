@@ -1,4 +1,5 @@
-import { Grammar, Node, Context } from './parser';
+import { Grammar } from './grammar';
+import { CST, Context } from './parser';
 
 const g = new Grammar();
 
@@ -47,7 +48,7 @@ g.rule("ETag", g.seq(g.lit("</"), g.ref("Name"), g.opt(g.ref("S")), g.lit(">")))
 // content: (element | CharData)*
 g.rule("content", g.rep(g.alt(g.ref("element"), g.ref("CharData"))));
 
-function validateElementTypeMatch(node: Node, ctx: Context): boolean {
+function validateElementTypeMatch(node: CST, ctx: Context): boolean {
     // node.type is 'element' because it's wrapped by the Reference.
     // We need to inspect children to determine if it's EmptyElemTag or Sequence.
     

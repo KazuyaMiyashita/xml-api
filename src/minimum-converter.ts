@@ -1,7 +1,7 @@
-import { Node } from './parser';
-import { XMLElement } from './xml-ast';
+import { CST } from './parser';
+import { AST } from './xml-ast';
 
-export function convert(node: Node, input: string): XMLElement | string {
+export function convert(node: CST, input: string): AST | string {
     if (node.type === 'CharData') {
         return node.getText(input);
     }
@@ -10,7 +10,7 @@ export function convert(node: Node, input: string): XMLElement | string {
         // node is a Reference node.
         // It wraps the result of the rule execution.
         // For 'element', it matches either EmptyElemTag or Sequence.
-        // In both cases, the 'children' of the element Node are the children of the matching production.
+        // In both cases, the 'children' of the element CST are the children of the matching production.
         
         // Case 1: Sequence [STag, content, ETag]
         if (node.children.length === 3 && node.children[0].type === 'STag') {
@@ -24,7 +24,7 @@ export function convert(node: Node, input: string): XMLElement | string {
             // content node children are the results of each repetition.
             for (const child of content.children) {
                 const converted = convert(child, input);
-                if (elem instanceof XMLElement) {
+                if (elem instanceof AST) {
                     elem.children.push(converted);
                 }
             }
@@ -44,7 +44,7 @@ export function convert(node: Node, input: string): XMLElement | string {
     throw new Error(`Unknown node type or structure: ${node.type}`);
 }
 
-function parseTag(node: Node, input: string): XMLElement {
+function parseTag(node: CST, input: string): AST {
     // Expects STag or EmptyElemTag node
     // Structure: ["<", Name, rep(seq(S, Attribute)), opt(S), ">" or "/>"]
     
@@ -78,5 +78,5 @@ function parseTag(node: Node, input: string): XMLElement {
         attributes[attrName] = valText;
     }
     
-    return new XMLElement(tagName, attributes);
+    return new AST(tagName, attributes);
 }

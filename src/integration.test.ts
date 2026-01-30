@@ -1,18 +1,30 @@
+import { g } from './xml-grammar';
+import { convert } from './xml-converter';
+import { AST } from './xml-ast';
 import * as fs from 'fs';
 import * as path from 'path';
-import { g } from './xml-grammar';
 
 describe('Integration Test', () => {
-  it('should parse sample_01.xml successfully', () => {
-    const xmlPath = path.join(__dirname, 'sample_01.xml');
-    const xmlContent = fs.readFileSync(xmlPath, 'utf8');
-    
-    // Test the document rule
-    const result = g.parse("document", xmlContent);
-    
-    expect(result).not.toBeNull();
-    if (result) {
-        expect(result.type).toBe("document");
-    }
-  });
+    it('should parse and convert sample_01.xml correctly', () => {
+        const xmlPath = path.join(__dirname, 'sample_01.xml');
+        const xmlContent = fs.readFileSync(xmlPath, 'utf8');
+
+        const cst = g.parse("document", xmlContent);
+        expect(cst).not.toBeNull();
+        expect(cst?.wellFormed).toBe(true);
+
+        if (cst) {
+            const ast = convert(cst, xmlContent);
+            expect(ast).toBeInstanceOf(AST);
+            
+            if (ast instanceof AST) {
+                expect(ast.tagName).toBe('html');
+                expect(ast.attr('xml:lang')).toBe('ja');
+                
+                const titles = ast.find('title');
+                expect(titles.length).toBeGreaterThan(0);
+                expect(titles[0].text()).toBe('りんごの選び方');
+            }
+        }
+    });
 });
