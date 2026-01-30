@@ -20,3 +20,4 @@
 ## Others
 
 * Directory management: Moving or changing the current directory is prohibited.
+* Updating waskwarrior tasks is the user's responsibility, not yours.
