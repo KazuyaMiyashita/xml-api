@@ -124,8 +124,8 @@ try {
     console.log("\n[Formatter Demo]");
     const formatter = new Formatter({ indent: "  " });
     const formatted = formatter.format(api.ast);
-    console.log("Formatted Output (first 200 chars):");
-    console.log(formatted.slice(0, 200) + "...");
+    console.log("Formatted Output:");
+    console.log(formatted);
     
     console.log("--------------------------------------------------");
   } else {
