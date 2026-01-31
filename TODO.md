@@ -35,7 +35,7 @@ Goal: Update only the affected parts of the AST/Intermediate layer.
 ## ✨ Formatter
 Goal: Provide a way to format XML programmatically, potentially leveraging the CST/Intermediate structure.
 
-- [ ] **Implement Formatter**:
+- [x] **Implement Formatter**:
     - Create a formatter that can output standard-compliant, pretty-printed XML.
     - Should likely support configuration (indent size, etc.).
 
