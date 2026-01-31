@@ -307,7 +307,7 @@ export class XMLBinder {
             return {
               start: attValueNode.start,
               end: attValueNode.end,
-              text: `${newQuote}${value}${newQuote}`,
+              text: `${newQuote}${escapeAttributeValue(value)}${newQuote}`,
             };
           }
         }
@@ -335,7 +335,7 @@ export class XMLBinder {
     return {
       start: closing.start,
       end: closing.start,
-      text: ` ${key}="${value}"`,
+      text: ` ${key}="${escapeAttributeValue(value)}"`,
     };
   }
 
@@ -356,7 +356,7 @@ export class XMLBinder {
       return {
         start: contentNode.start,
         end: contentNode.end,
-        text: text, // Should we escape? Yes, ideally. For now raw.
+        text: escapeText(text),
       };
     }
 
@@ -371,7 +371,7 @@ export class XMLBinder {
             return {
                 start: closing.start,
                 end: closing.end,
-                text: `>${text}</${model.tagName}>`
+                text: `>${escapeText(text)}</${model.tagName}>`
             };
         }
     }
@@ -458,4 +458,15 @@ export function convert(node: CST, input: string): AST | string | ASTComment | n
     const model = binder.hydrate(node);
     if (!model) return null;
     return binder.project(model);
+}
+
+function escapeText(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function escapeAttributeValue(str: string): string {
+  return escapeText(str).replace(/"/g, "&quot;");
 }

@@ -95,15 +95,6 @@ Ensure the Formatter can perfectly reconstruct the source and support customizat
     - [x] Implement support for changing indentation (tab vs space, width).
     - [x] Implement support for newline style.
 
-## Phase 8: Robustness & Security (Patch Generation)
-Fix critical issues in text patch generation to ensure valid XML output.
-
-- [ ] Escape logic for Text Updates:
-    - Update `XMLBinder.calcUpdateTextPatch` to properly escape special characters (`<`, `>`, `&`).
-- [ ] Escape logic for Attribute Updates:
-    - Update `XMLBinder.calcSetAttributePatch` to escape attribute values (`"`, `&`, `<`).
-    - Handle quote conflict (e.g. value containing `"` when using `"` as delimiter).
-
 ## Phase 9: Advanced Reconciliation
 Improve the reconciliation algorithm to handle list mutations more gracefully.
 
@@ -127,6 +118,7 @@ Add support for editing less common XML constructs.
     - Add explicit API methods for creating/updating CDATA sections and Comments via `XMLAPI`.
 
 ## Completed Tasks
+- [x] Escape logic for Text Updates and Attribute Updates.
 - [x] Performance Optimization: Delayed coordinate update and atomic transactions.
 - [x] Architecture Evolution: Prototype of the Enhanced AST.
 - [x] Parser Core: Functional parser and XML grammar.
