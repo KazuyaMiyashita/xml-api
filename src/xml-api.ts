@@ -170,17 +170,35 @@ export class XMLAPI {
 
     // Simple descent to find the deepest node covering the range
     while (true) {
-      let foundChild = false;
-      for (const child of current.children) {
-        // If we are inserting (from==to), strict inequality on one side might fail if at boundary.
-        // But for covering, start <= from && end >= to works generally.
-        if (child.start <= from && child.end >= to) {
-          current = child;
-          foundChild = true;
-          break;
+      let foundChild: CST | null = null;
+      const children = current.children;
+      let left = 0;
+      let right = children.length - 1;
+      let candidateIndex = -1;
+
+      // Binary search to find the rightmost child that starts at or before 'from'
+      while (left <= right) {
+        const mid = (left + right) >>> 1;
+        if (children[mid].start <= from) {
+          candidateIndex = mid;
+          left = mid + 1;
+        } else {
+          right = mid - 1;
         }
       }
-      if (!foundChild) break;
+
+      if (candidateIndex !== -1) {
+        const candidate = children[candidateIndex];
+        if (candidate.end >= to) {
+          foundChild = candidate;
+        }
+      }
+
+      if (foundChild) {
+        current = foundChild;
+      } else {
+        break;
+      }
     }
     return current;
   }
