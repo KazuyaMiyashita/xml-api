@@ -180,6 +180,101 @@ export class XMLBinder {
     return ast;
   }
 
+  public calcSetAttributePatch(
+    model: ModelElement,
+    key: string,
+    value: string,
+  ): { start: number; end: number; text: string } | null {
+    if (!model.cst) return null;
+
+    const structural = model.cst.unwrap();
+    let tagNode: CST | null = null;
+
+    // Identify tag node (STag or EmptyElemTag)
+    // Case 1: element ::= STag content ETag
+    if (structural.children.length === 3 && structural.children[0].name === "STag") {
+      tagNode = structural.children[0];
+    }
+    // Case 2: element ::= EmptyElemTag
+    else if (structural.name === "EmptyElemTag") {
+      tagNode = structural;
+    }
+    // Case 3: Wrapper or other structure (try to find tag in children)
+    else {
+        for (const child of structural.children) {
+            if (child.name === "STag" || child.name === "EmptyElemTag") {
+                tagNode = child;
+                break;
+            }
+        }
+        // If structural is strictly EmptyElemTag but unwrap failed to show name? (Unlikely)
+        if (!tagNode && structural.children.length >= 2 && structural.children[0].getText(this.input) === "<") {
+             // Fallback: assume it matches EmptyElemTag structure directly
+             tagNode = structural;
+        }
+    }
+
+    if (!tagNode) return null;
+
+    const tagStructural = tagNode.unwrap();
+    // Expected structure: < Name (S Attribute)* S? >  (Length 5)
+    
+    // Robust access to attributes
+    // Index 2 is rep(seq(S, Attribute))
+    const attrRep = tagStructural.children[2];
+
+    if (attrRep && attrRep.type === "repeat") {
+      for (const seqNode of attrRep.children) {
+        // seq(S, Attribute)
+        const attrNode = seqNode.children[1];
+        if (attrNode && attrNode.name === "Attribute") {
+          const attrStructural = attrNode.unwrap();
+          const nameNode = attrStructural.children[0];
+          const attrName = nameNode.getText(this.input);
+
+          if (attrName === key) {
+            // Found existing attribute
+            const attValueNode = attrStructural.children[2];
+            const oldText = attValueNode.getText(this.input);
+            const quote = oldText[0];
+            // Preserve quote style if possible
+            const newQuote = (quote === "'" || quote === '"') ? quote : '"';
+            
+            return {
+              start: attValueNode.start,
+              end: attValueNode.end,
+              text: `${newQuote}${value}${newQuote}`,
+            };
+          }
+        }
+      }
+    }
+
+    // Attribute not found, insert new one.
+    // Insert before the closing sequence (S? > or S? />)
+    // The closing sequence starts after the attributes.
+    // We can insert at the end of attrRep?
+    // Or just look at the end of the tag and back up.
+    
+    const len = tagStructural.children.length;
+    const closing = tagStructural.children[len - 1]; // > or />
+    const optS = tagStructural.children[len - 2]; // S?
+
+    // Insert before closing bracket.
+    // If optS is present (has children or length > 0), we can insert before or after it?
+    // If we insert ` id="val"`, we provide the space.
+    // So inserting at `closing.start` is safe.
+    
+    // Special case: If EmptyElemTag ends with `/>` (start is 2 chars before end).
+    // closing.start points to `/`.
+    
+    return {
+      start: closing.start,
+      end: closing.start,
+      text: ` ${key}="${value}"`,
+    };
+  }
+
   private parseTag(node: CST): ModelElement {
     const structural = node.unwrap();
     const nameNode = structural.children[1];

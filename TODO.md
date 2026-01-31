@@ -48,7 +48,9 @@ Implement the XMLAPIModel and its controlling components, XMLBinder and XMLSchem
 Implement functionality to convert operations from the application into minimal source code patches.
 
 - [ ] Patch Generation Logic:
-    - Implement logic in XMLBinder to calculate text replacements that respect existing formatting.
+    - [x] Implement logic in XMLBinder for setAttribute (attribute update/insertion).
+    - [ ] Implement logic for text updates.
+    - [ ] Implement logic for node replacement.
 - [ ] Operation API:
     - Implement methods such as setAttribute, updateText, and replaceNode in XMLAPI.
     - Invoke the Binder to generate patches and apply them to the input source.
