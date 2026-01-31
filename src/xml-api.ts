@@ -168,7 +168,7 @@ export class XMLAPI {
     // Boundary check removed to allow root re-parse for out-of-bounds changes (prepend/append)
     // if (from < current.start || to > current.end) return null;
 
-    // Simple descent to find the deepest node covering the range
+    // Efficiently descend the tree to find the deepest node covering the range
     while (true) {
       let foundChild: CST | null = null;
       const children = current.children;
