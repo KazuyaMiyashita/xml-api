@@ -6,6 +6,7 @@ import { grammar as defaultGrammar } from "./cst/xml-grammar";
 import { convert as defaultConverter } from "./model/xml-binder";
 import { XMLBinder } from "./model/xml-binder";
 import { ModelElement, ModelNode } from "./model/xml-api-model";
+import { EventEmitter, EventHandler, ChangeEvent } from "./xml-api-events";
 
 export type Converter = (node: CST, input: string) => AST | string | null;
 
@@ -23,6 +24,7 @@ export class XMLAPI {
   public model: ModelElement | null = null;
   
   private binder: XMLBinder | null = null;
+  private events: EventEmitter = new EventEmitter();
 
   constructor(
     input: string,
@@ -50,6 +52,10 @@ export class XMLAPI {
         this.ast = this.generateAST(this.cst);
       }
     }
+  }
+
+  public on(handler: EventHandler): () => void {
+    return this.events.on(handler);
   }
 
   /**
@@ -114,12 +120,15 @@ export class XMLAPI {
            this.updateModelAndASTIncremental(incrementalResult.oldNode, incrementalResult.newNode);
         } else {
            this.updateASTIncremental(incrementalResult.oldNode, incrementalResult.newNode);
+           // Dispatch generic change if not using model
+           this.events.emit({ type: "full" });
         }
         
         // If the update resulted in a non-well-formed tree, null out AST to be consistent with full parse.
         if (this.cst && !this.cst.wellFormed) {
           this.ast = null;
           this.model = null;
+          this.events.emit({ type: "full" });
         }
       } else {
         // Fallback: Full re-parse
@@ -140,6 +149,7 @@ export class XMLAPI {
           this.ast = null;
           this.model = null;
         }
+        this.events.emit({ type: "full" });
       }
     } else {
       this.cst = this.parse();
@@ -158,6 +168,7 @@ export class XMLAPI {
         this.ast = null;
         this.model = null;
       }
+      this.events.emit({ type: "full" });
     }
   }
 
@@ -335,8 +346,10 @@ export class XMLAPI {
                    this.ast.attributes = newAST.attributes;
                    this.ast.children = newAST.children;
                    this.ast.cst = newAST.cst;
+                   this.events.emit({ type: "full", target: this.model });
                } else {
                    this.ast = newAST instanceof AST ? newAST : null;
+                   this.events.emit({ type: "full" });
                }
                return;
            }
@@ -372,9 +385,11 @@ export class XMLAPI {
                               oldChild.attributes = newAST.attributes;
                               oldChild.children = newAST.children;
                               oldChild.cst = newAST.cst;
+                              this.events.emit({ type: "structure", target: reconciledModel });
                           } else {
                               // Replace (e.g. text node or type change)
                               astParent.children[modelPath.index] = newAST;
+                              this.events.emit({ type: "text", target: reconciledModel });
                           }
                       } else {
                           console.warn("AST children length mismatch", astParent.children.length, modelPath.index);
@@ -399,9 +414,11 @@ export class XMLAPI {
             const proj = this.binder.project(this.model);
             this.ast = proj instanceof AST ? proj : null;
           }
+          this.events.emit({ type: "full" });
       } else {
           this.ast = null;
           this.model = null;
+          this.events.emit({ type: "full" });
       }
   }
   
