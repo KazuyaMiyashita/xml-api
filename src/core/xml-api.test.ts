@@ -147,10 +147,10 @@ describe("XMLAPI", () => {
 
         if (api.ast) {
           const aNode = api.ast.children[0];
-          if (typeof aNode !== "string") {
+          if (aNode instanceof AST) {
             expect(aNode.attributes["foo"]).toBe("bar");
           } else {
-            fail("Expected AST node");
+            throw new Error("Expected AST node");
           }
         }
       });
