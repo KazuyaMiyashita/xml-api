@@ -41,7 +41,8 @@ describe("XMLAPI Operations", () => {
     const api = new XMLAPI(xml);
     const oldNode = api.ast!.find("old")[0];
 
-    api.replaceNode(oldNode, "<new>replaced</new>");
+    const newNode = new AST("new", {}, ["replaced"]);
+    api.replaceNode(oldNode, newNode);
 
     expect(api.input).toBe("<root><new>replaced</new></root>");
     expect(api.ast!.find("new")[0].text()).toBe("replaced");

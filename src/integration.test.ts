@@ -89,11 +89,7 @@ describe("Integration Test", () => {
       new AST("p", {}, ["これら多くの基準を考慮して、自分好みのものを選びましょう。"]),
     ]);
 
-    // Use Formatter to generate XML string from AST
-    const formatter = new Formatter({ indent: "  " });
-    const newXml = formatter.format(newSectionAst);
-
-    api.replaceNode(targetSection, newXml);
+    api.replaceNode(targetSection, newSectionAst);
     
     // Verify Update
     const newSections = api.ast!.find("section");

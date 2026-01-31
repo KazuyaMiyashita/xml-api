@@ -1,5 +1,5 @@
 import { CST } from "./cst/xml-cst";
-import { AST } from "./ast/xml-ast";
+import { AST, ASTComment } from "./ast/xml-ast";
 import { Grammar } from "./cst/grammar";
 import { Parser } from "./cst/parser";
 import { grammar as defaultGrammar } from "./cst/xml-grammar";
@@ -10,7 +10,7 @@ import { EventEmitter, EventHandler, ChangeEvent } from "./xml-api-events";
 import { HistoryManager, Transaction } from "./history-manager";
 import { Formatter } from "./model/formatter";
 
-export type Converter = (node: CST, input: string) => AST | string | null;
+export type Converter = (node: CST, input: string) => AST | string | ASTComment | null;
 
 export class XMLAPI {
   public input: string;
@@ -247,9 +247,9 @@ export class XMLAPI {
   /**
    * Replaces an AST node with new content.
    * @param astNode The AST node to replace.
-   * @param content New content as an XML string or an AST object.
+   * @param content New content as an AST object.
    */
-  public replaceNode(astNode: AST, content: string | AST): void {
+  public replaceNode(astNode: AST, content: AST): void {
     if (!this.binder || !this.model) {
       throw new Error("Operational API requires standard binder and model.");
     }
@@ -262,14 +262,9 @@ export class XMLAPI {
       throw new Error("Corresponding model node not found.");
     }
 
-    let newXml: string;
-    if (typeof content === "string") {
-        newXml = content;
-    } else {
-        // Convert AST to string using formatter
-        // TODO: Detect indentation from context if possible, for now use default or configured formatter
-        newXml = this.formatter.format(content);
-    }
+    // Convert AST to string using formatter
+    // TODO: Detect indentation from context if possible, for now use default or configured formatter
+    const newXml = this.formatter.format(content);
 
     const patch = this.binder.calcReplaceNodePatch(modelNode, newXml);
     if (patch) {

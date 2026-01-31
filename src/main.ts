@@ -85,13 +85,8 @@ try {
           new AST("p", {}, ["これら多くの基準を考慮して、自分好みのものを選びましょう。"]),
         ]);
 
-        // Use Formatter to generate XML string from AST
-        // Note: In a real application, we might want to detect indentation level from the context.
-        const formatter = new Formatter({ indent: "  " });
-        const newXml = formatter.format(newSectionAst);
-    
         console.log("Replacing node using AST construction...");
-        api.replaceNode(targetSection, newXml);
+        api.replaceNode(targetSection, newSectionAst);
         
         // Due to in-place update, targetSection should reflect the new state
         if (targetSection.cst) {
