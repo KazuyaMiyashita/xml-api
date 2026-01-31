@@ -141,13 +141,13 @@ describe("Parser Combinators", () => {
       gb.rule("start", lit("START"));
       gb.rule("end", lit("END"));
       // root not strictly needed for parseAt if we pass rule name, but good practice
-      gb.rule("root", seq(opt(lit("junk")), lit("START"))); 
+      gb.rule("root", seq(opt(lit("junk")), lit("START")));
       const parser = new Parser(gb.build("root"));
 
       const input = "prefixSTARTsuffix";
       // Parse 'start' rule at index 6
       const result = parser.parseAt(input, 6, "start");
-      
+
       expect(result).not.toBeNull();
       expect(result?.node.getText(input)).toBe("START");
       expect(result?.end).toBe(11);
@@ -169,10 +169,10 @@ describe("Parser Combinators", () => {
     it("should mark node as not well-formed if validator fails", () => {
       const gb = new GrammarBuilder();
       gb.rule("root", lit("test"));
-      
+
       // Add a validator that always fails
       gb.verifyRule("root", (node, input) => false);
-      
+
       const parser = new Parser(gb.build());
       const result = parser.parse("test");
 
@@ -183,7 +183,7 @@ describe("Parser Combinators", () => {
     it("should pass validator context correctly", () => {
       const gb = new GrammarBuilder();
       gb.rule("root", lit("test"));
-      
+
       let receivedNode: any = null;
       let receivedInput: string = "";
 
@@ -192,7 +192,7 @@ describe("Parser Combinators", () => {
         receivedInput = input;
         return true;
       });
-      
+
       const parser = new Parser(gb.build());
       const input = "test";
       const result = parser.parse(input);
@@ -205,4 +205,3 @@ describe("Parser Combinators", () => {
     });
   });
 });
-

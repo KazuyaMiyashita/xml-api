@@ -76,12 +76,17 @@ describe("XMLAPI", () => {
 
         // Check parent reference consistency
         expect(actualChild.parent).toBe(actual);
-        
+
         assertCSTEquals(actualChild, expectedChild);
       }
     }
 
-    function verifyUpdate(api: XMLAPI, from: number, to: number, value: string) {
+    function verifyUpdate(
+      api: XMLAPI,
+      from: number,
+      to: number,
+      value: string,
+    ) {
       const originalInput = api.input;
       const expectedInput =
         originalInput.slice(0, from) + value + originalInput.slice(to);
@@ -291,6 +296,30 @@ describe("XMLAPI", () => {
       expect(api.input).toBe(newXml);
       expect(api.ast?.tagName).toBe("new");
       expect(api.ast?.text()).toBe("New");
+    });
+
+    it("should handle sibling to parent-child transformation (swallowing)", () => {
+      const initialXml = "<root><a/><b/></root>";
+      const api = new XMLAPI(initialXml, minGrammar, minConvert);
+
+      // Replace "<a/><b/>" (index 6 to 14) with "<a><b/></a>" (length 11)
+      verifyUpdate(api, 6, 14, "<a><b/></a>");
+
+      expect(api.input).toBe("<root><a><b/></a></root>");
+      if (api.ast && api.ast.children[0] instanceof AST) {
+        const a = api.ast.children[0];
+        expect(a.tagName).toBe("a");
+        expect(a.children[0]).toMatchObject({ tagName: "b" });
+      } else {
+        throw new Error("Expected AST node");
+      }
+    });
+
+    it("should throw error for out-of-bounds indices", () => {
+      const api = new XMLAPI("<root/>");
+      expect(() => api.update_input(-1, 0, "")).toThrow();
+      expect(() => api.update_input(0, 10, "")).toThrow();
+      expect(() => api.update_input(5, 2, "")).toThrow();
     });
   });
 });

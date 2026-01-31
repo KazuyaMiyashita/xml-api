@@ -110,11 +110,10 @@ describe("XML Converter", () => {
       const invalidRef = "&#999999999;"; // Way out of unicode range
       // Manually construct a CST node that looks like a Reference
       const node = new CST("sequence", "Reference", 0, invalidRef.length, [
-          new CST("literal", undefined, 0, invalidRef.length)
+        new CST("literal", undefined, 0, invalidRef.length),
       ]);
-      
+
       expect(() => convert(node, invalidRef)).toThrow(RangeError);
     });
   });
 });
-

@@ -65,13 +65,15 @@ export class XMLAPI {
    * If the re-parsed node's length doesn't match the expected structural boundaries (implying the change affected surrounding nodes),
    * it expands the search to parent nodes. If even the root re-parse fails to match boundaries, it falls back to a full re-parse.
    *
-   * TODO: Validate that `from` and `to` are within bounds and `from <= to`.
-   *
    * @param from Start offset of the change.
    * @param to End offset of the change.
    * @param value New text to insert.
    */
   public update_input(from: number, to: number, value: string): void {
+    if (from < 0 || to > this.input.length || from > to) {
+      throw new Error("Invalid range for update_input");
+    }
+
     const delta = value.length - (to - from);
     const oldInput = this.input;
     const newEnd = from + value.length;
@@ -83,10 +85,10 @@ export class XMLAPI {
 
       // 2. Try incremental re-parse
       // We try to update the tree in-place.
-      // If we fail to update even the root, cst becomes null.
+      // If we fail to update even the root, we fall back to a full re-parse.
       const success = this.tryIncrementalUpdate(from, newEnd);
       if (!success) {
-        this.cst = null;
+        this.cst = this.parse();
       }
     } else {
       this.cst = this.parse();
@@ -126,11 +128,7 @@ export class XMLAPI {
         // Otherwise, use the target's (potentially shifted) start position.
         const parseStart = target.parent ? target.start : 0;
 
-        const result = this.parser.parseAt(
-          this.input,
-          parseStart,
-          target.name,
-        );
+        const result = this.parser.parseAt(this.input, parseStart, target.name);
 
         // Check if parse was successful AND the new node's length matches the
         // expected length of the target node (which has been shifted).
@@ -166,6 +164,10 @@ export class XMLAPI {
   private findNodeAt(from: number, to: number): CST | null {
     if (!this.cst) return null;
     let current = this.cst;
+
+    // Boundary check
+    if (from < current.start || to > current.end) return null;
+
     // Simple descent to find the deepest node covering the range
     while (true) {
       let foundChild = false;

@@ -36,9 +36,9 @@ describe("CST", () => {
     });
 
     it("should NOT unwrap if child range differs", () => {
-        const child = new CST("child", undefined, 1, 4);
-        const node = new CST("wrapper", undefined, 0, 5, [child]);
-        expect(node.unwrap()).toBe(node);
+      const child = new CST("child", undefined, 1, 4);
+      const node = new CST("wrapper", undefined, 0, 5, [child]);
+      expect(node.unwrap()).toBe(node);
     });
   });
 
