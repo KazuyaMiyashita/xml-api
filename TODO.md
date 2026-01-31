@@ -1,49 +1,45 @@
-# TODO List
+# TODO List: WYSIWYG & Bidirectional Sync Support
 
-## 🚀 Performance Optimization: Delayed Coordinate Update
-Current Issue: `update_input` performs `CST.shift` (O(N)) immediately, which is heavy for large files.
-Goal: Delay shifting until the incremental update is confirmed successful.
+現在の `Source -> AST` の増分更新に加え、`App -> Source` の編集操作と、それを支えるイベントシステムを実装します。
 
-- [x] **Implement Coordinate Projection**:
-    - Create a mechanism to calculate "projected" coordinates for nodes without modifying the actual CST.
-    - Allow the parser/traverser to work with these projected coordinates during the trial phase of incremental parsing.
-- [x] **Atomic `update_input` Transaction**:
-    - Refactor `update_input` to use a "Transaction" concept.
-    - The transaction should hold the pending change (from, to, text).
-    - Only commit changes (apply shift and node replacement) to the main CST if the incremental parse succeeds.
+## 🔄 Phase 1: Reverse Sync (App -> Source Operations)
+アプリケーション（AST）側からの操作を、ソースコードへの「最小限のテキスト置換（Patch）」に変換する機能を実装します。
+**重要**: AST を直接書き換えるのではなく、操作を `update_input` への呼び出しに変換することで、Single Source of Truth（テキスト）を守ります。
 
-## 🏗️ Architecture Evolution: Intermediate AST & Fidelity
-Goal: Bridge the gap between the raw CST (formatting/whitespace rich) and the high-level AST (application logic).
+- [ ] **Operation API (Command Pattern)**:
+    - 以下の操作を行う API を `XMLAPI` に実装する。内部で `cst` の位置情報を計算し、`update_input` を呼び出す。
+    - `api.setAttribute(astNode, key, value)`:
+        - 既存属性ならその値の範囲 (`value` range) だけを置換。
+        - 新規属性なら、適切な位置（他の属性の後ろなど）に ` key="value"` を挿入。
+    - `api.updateText(astNode, text)`:
+        - テキストノードの内容範囲を置換。
+    - `api.replaceNode(astNode, newAstOrString)`:
+        - ノード全体を新しい XML 文字列（Formatterで生成）に置換。
+- [ ] **Precision Patching Logic**:
+    - 属性値の変更時、引用符（`"` や `'`）の種類を維持するロジック。
+    - 要素削除時、前後の空白の扱い（空行が残らないようにするなど）の検討。
 
-- [x] **Design 3-Layer Structure (Potential)**:
-    - **Application AST**: Pure data for the user (existing `AST` might evolve into this or stay as is).
-    - **Intermediate/Mapped AST**: A structure managed by `XMLAPI` that holds both semantic data and links to `CST` (positions, formatting).
-    - **CST**: Raw parse tree.
-- [x] **Enhanced AST / Identity Mapping**:
-    - Modify the AST (or implement the Intermediate layer) to hold position information or direct references to CST nodes.
-    - **Constraint**: Must allow preserving original CST details (whitespace, indentation) when converting back or modifying.
+## 📡 Phase 2: Reactivity & Events
+ソースコードが変更された際、アプリケーションが「どのノードがどう変わったか」を知るための仕組み。
 
-## ⚡ AST Incremental Update
-Current Issue: `update_input` regenerates the entire AST (`generateAST`) even for small changes.
-Goal: Update only the affected parts of the AST/Intermediate layer.
+- [ ] **Event System (`EventEmitter`)**:
+    - `api.on('update', (event) => ...)` の実装。
+    - イベントペイロードの設計:
+        - `type`: 'text' | 'structure' | 'attribute'
+        - `node`: 影響を受けた AST ノード
+        - `path`: ルートからのパス（オプション）
+- [ ] **Change Detection**:
+    - `updateASTIncremental` 内で、変更前後の AST を比較し、具体的な変更イベントを発火させる。
 
-- [x] **Differential Update Logic**:
-    - Identify corresponding AST/Intermediate nodes from changed CST nodes.
-    - Re-run conversion *only* on the affected subtree.
-    - Update the existing AST structure in-place (splice).
+## 🛡 Phase 3: Robustness & DX
+- [ ] **Transaction Management**:
+    - 複数の操作（例：属性変更 + テキスト変更）を1つの Undo/Redo 単位として扱う仕組み。
+- [ ] **Error Recovery for App Editing**:
+    - アプリ側からの編集が（バリデーション等で）不正な XML を生成しそうな場合のガード処理。
 
-## ✨ Formatter
-Goal: Provide a way to format XML programmatically, potentially leveraging the CST/Intermediate structure.
-
-- [x] **Implement Formatter**:
-    - Create a formatter that can output standard-compliant, pretty-printed XML.
-    - Should likely support configuration (indent size, etc.).
-
-## 🛠️ Infrastructure & Testing
-- [ ] **Performance Benchmarks**: Add benchmarks for `update_input` with large files.
-- [x] **Transaction Tests**: Verify atomic updates.
-- [x] **Mapping & Fidelity Tests**: Ensure AST->CST modifications (if any) or updates don't lose unrelated whitespace.
-
-## 🔮 Future: WYSIWYG & Bidirectional Sync
-- [ ] **Atomic Operations**: Ensure reliable undo/redo.
-- [ ] **Event System**: Notify listeners of changes.
+## ✅ Completed Tasks
+- [x] **Performance Optimization**: Delayed Coordinate Update & Atomic Transaction.
+- [x] **Architecture Evolution**: Enhanced AST (CST Mapping).
+- [x] **AST Incremental Update**: Differential Update (In-Place AST mutation).
+- [x] **Formatter**: Smart indentation XML output.
+- [x] **Testing**: Comprehensive tests for AST-CST mapping and incremental updates.
