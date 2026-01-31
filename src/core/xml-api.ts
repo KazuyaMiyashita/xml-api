@@ -346,16 +346,19 @@ export class XMLAPI {
       const modelPath = this.findModelNodePath(this.model, oldNode);
       
       if (modelPath) {
-          // 2. Hydrate new CST -> New ModelNode
-          const newModelNode = this.binder.hydrate(newNode);
+          // 2. Reconcile new CST with existing ModelNode
+          // The goal is to update modelPath.node in-place if possible.
+          const reconciledModel = this.binder.reconcile(modelPath.node, newNode);
           
-          if (newModelNode) {
-              // 3. Replace in Model
-              modelPath.parent.children[modelPath.index] = newModelNode;
-              newModelNode.parent = modelPath.parent;
+          if (reconciledModel) {
+              // 3. Update Parent Reference if replaced
+              if (reconciledModel !== modelPath.node) {
+                  modelPath.parent.children[modelPath.index] = reconciledModel;
+                  reconciledModel.parent = modelPath.parent;
+              }
               
               // 4. Project new ModelNode -> New AST
-              const newAST = this.binder.project(newModelNode);
+              const newAST = this.binder.project(reconciledModel);
               
               // 5. Replace in AST using parent mapping
               if (modelPath.parent.cst) {

@@ -119,41 +119,93 @@ export class XMLBinder {
     }
 
     if (result) {
-      // If we are unwrapping (recursive hydrate call), the inner call might have already set CST.
-      // But usually we want the "highest" CST node to point to this Model node?
-      // Or the "inner" one?
-      // If 'document' wraps 'element', 'hydrate(document)' calls 'hydrate(element)'.
-      // 'hydrate(element)' returns a ModelElement with cst=element.
-      // 'hydrate(document)' returns that same ModelElement.
-      // Should we update its cst to 'document'?
-      // Probably not, because 'document' is just a wrapper.
-      // BUT, incremental update might target 'document'.
-      // If we update 'document' CST, we want to find the ModelElement.
-      // If ModelElement.cst is 'element', we won't match 'document'.
-      
-      // However, usually we traverse UP to find a named rule.
-      // 'element' is a named rule.
-      
-      // Let's set CST only if not set? Or overwrite?
-      // For 'element', we want 'element' CST.
-      // For 'CharData', we want 'CharData' CST.
-      
-      // In the case of recursion (unwrap), we reuse the result.
-      // If we overwrite `cst`, we might point to the wrapper.
-      // If `node` is `document`, and result is `element`, 
-      // result.cst is `element` CST.
-      // If we change it to `document` CST, then `element` CST is lost.
-      // `findModelNodePath` checks equality.
-      
-      // Maybe we shouldn't overwrite if it's a wrapper return.
       if (!result.cst) {
         result.cst = node;
       }
-      // Actually, specifically for new nodes created HERE, we set CST.
-      // The recursive calls return nodes that presumably have CST set.
     }
     
     return result;
+  }
+
+  public reconcile(currentModel: ModelNode, newCst: CST): ModelNode {
+    // 1. Try to hydrate the new CST to see what it *should* look like.
+    // This is inefficient (double parsing) but robust for a first implementation.
+    // A better way would be to traverse CST and update Model in one pass.
+    // But since `hydrate` logic is complex (handling grammar rules), duplicating it for reconcile is risky.
+    //
+    // Optimization: hydrate returns a NEW model tree.
+    // We then compare this new tree with currentModel.
+    // If they match in structure/identity-keys, we update currentModel and return it.
+    // If not, we return the new model.
+    
+    const newModel = this.hydrate(newCst);
+    if (!newModel) {
+        // If hydration failed (e.g. comment), but we had a model, return null?
+        // Or if the node disappeared.
+        // For now, assume strict mapping.
+        // But hydrate returns null for Comments/PIs.
+        // If currentModel was something else, it's a replacement.
+        return newModel as any; // Should handle null better in caller?
+    }
+
+    if (this.canReconcile(currentModel, newModel)) {
+        this.applyReconciliation(currentModel, newModel);
+        return currentModel;
+    }
+
+    return newModel;
+  }
+
+  private canReconcile(a: ModelNode, b: ModelNode): boolean {
+      if (a.getType() !== b.getType()) return false;
+      if (a.getType() === ModelNodeType.Element) {
+          return (a as ModelElement).tagName === (b as ModelElement).tagName;
+      }
+      // Text nodes can always be reconciled (updated)
+      return true;
+  }
+
+  private applyReconciliation(target: ModelNode, source: ModelNode): void {
+      target.cst = source.cst; // Update CST reference
+
+      if (target.getType() === ModelNodeType.Text) {
+          (target as ModelText).text = (source as ModelText).text;
+      } else {
+          const t = target as ModelElement;
+          const s = source as ModelElement;
+
+          // Update Attributes
+          t.attributes = s.attributes; // Direct map replacement is fine for now
+
+          // Reconcile Children
+          // Simple strategy: reconcile by index.
+          // If length differs, we might have insertions/deletions.
+          // For now, strict index matching. Improving this requires diff algorithm (e.g. Myers).
+          // Given we are doing "Incremental Update" usually targeted at a specific node,
+          // broad structural changes might just regenerate children.
+          
+          const maxLength = Math.max(t.children.length, s.children.length);
+          const newChildren: ModelNode[] = [];
+
+          for (let i = 0; i < maxLength; i++) {
+              if (i < t.children.length && i < s.children.length) {
+                  const tChild = t.children[i];
+                  const sChild = s.children[i];
+                  const reconciled = this.reconcile(tChild, sChild.cst!); // Recurse
+                  reconciled.parent = t;
+                  newChildren.push(reconciled);
+              } else if (i < s.children.length) {
+                  // Insertion
+                  const sChild = s.children[i];
+                  sChild.parent = t;
+                  newChildren.push(sChild);
+              } else {
+                  // Deletion (t has more children)
+                  // Ignored
+              }
+          }
+          t.children = newChildren;
+      }
   }
 
   public project(model: ModelNode): AST | string {
