@@ -184,6 +184,28 @@ export class XMLAPI {
     }
   }
 
+  /**
+   * Updates the text content of the specified AST element.
+   */
+  public updateText(astNode: AST, text: string): void {
+    if (!this.binder || !this.model) {
+      throw new Error("Operational API requires standard binder and model.");
+    }
+    if (!astNode.cst) {
+      throw new Error("AST node is not linked to CST.");
+    }
+
+    const modelNode = this.findModelNodeByCST(this.model, astNode.cst);
+    if (!modelNode || !(modelNode instanceof ModelElement)) {
+      throw new Error("Corresponding model node not found.");
+    }
+
+    const patch = this.binder.calcUpdateTextPatch(modelNode, text);
+    if (patch) {
+      this.update_input(patch.start, patch.end, patch.text);
+    }
+  }
+
   private findModelNodeByCST(root: ModelNode, cst: CST): ModelNode | null {
     if (root.cst === cst) return root;
     if (root instanceof ModelElement) {

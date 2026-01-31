@@ -24,4 +24,15 @@ describe("XMLAPI Operations", () => {
     expect(api.input).toContain('new="value"');
     expect(item.attr("new")).toBe("value");
   });
+
+  it("should update text content of element", () => {
+    const xml = "<root><title>Old</title></root>";
+    const api = new XMLAPI(xml);
+    const title = api.ast!.find("title")[0];
+
+    api.updateText(title, "New Title");
+
+    expect(api.input).toBe("<root><title>New Title</title></root>");
+    expect(title.text()).toBe("New Title");
+  });
 });

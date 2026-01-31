@@ -53,7 +53,7 @@ Implement functionality to convert operations from the application into minimal 
     - [ ] Implement logic for node replacement.
 - [ ] Operation API:
     - [x] Implement setAttribute in XMLAPI.
-    - [ ] Implement updateText in XMLAPI.
+    - [x] Implement updateText in XMLAPI.
     - [ ] Implement replaceNode in XMLAPI.
     - Implement methods such as setAttribute, updateText, and replaceNode in XMLAPI.
     - Invoke the Binder to generate patches and apply them to the input source.
