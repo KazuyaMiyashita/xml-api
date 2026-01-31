@@ -2,16 +2,30 @@
 
 This document outlines the implementation plan for the three-layer architecture and bidirectional synchronization.
 
-## Phase 1: Project Restructuring
-Reorganize the existing codebase into the target directory structure and establish the foundation for the new architecture.
+## Phase 1: Project Restructuring & Sandbox Isolation
+Establish a structure that separates the stable core from experimental changes to enable safe large-scale refactoring.
 
-- [ ] Directory Organization:
-    - Create src/cst/, src/model/, and src/ast/.
-    - Move existing files to their respective layers.
-    - Update import paths and ensure tests pass.
-- [ ] XMLAPI Refactoring:
-    - Move XMLAPI class to src/xml-api.ts.
-    - Isolate internal logic to prepare for the Mediator pattern.
+- [ ] Step 1: Create Core Structure
+    - Create `src/core/` and its subdirectories: `cst/`, `model/`, `ast/`.
+    - Move stable code into `src/core/`:
+        - `src/cst/`: `xml-cst.ts`, `parser.ts`, `grammar.ts`, `xml-grammar.ts`
+        - `src/model/`: `xml-converter.ts` (rename to `xml-binder.ts`), `formatter.ts`
+        - `src/ast/`: `xml-ast.ts`
+        - `src/core/`: `xml-api.ts` (update imports)
+    - Update `src/main.ts` to import from `src/core/`.
+- [ ] Step 2: Isolate Experiments
+    - Create `src/experiments/`.
+    - Move `minimum-*.ts` files to `src/experiments/`.
+    - Crucial Ensure experimental files import *relative* paths or copied modules, so they don't break when core changes.
+- [ ] Step 3: Configure Testing Strategy
+    - Update `jest.config.ts` (or create separate configs) to support split execution.
+    - Add scripts to `package.json`:
+        - `"test"`: Runs tests in `src/core/` (Must always pass).
+        - `"test:wip"`: Runs tests in `src/experiments/`.
+        - `"test:all"`: Runs all tests.
+- [ ] Step 4: Verification
+    - Ensure `pnpm test` passes for the relocated core files.
+    - Ensure `pnpm test:wip` passes for the experimental files.
 
 ## Phase 2: Logical Layer Foundation
 Implement the XMLAPIModel and its controlling components, XMLBinder and XMLSchema.

@@ -131,3 +131,20 @@ When a node is moved within the application, the Binder calculates a patch that 
 │   └── ast/
 │       └── xml-ast.ts
 ```
+
+## Development Guide
+
+### Directory Structure Strategy
+
+To balance stability and experimental refactoring, we use a separated directory structure.
+
+*   `src/core/`: Contains the stable, production-ready code organized by the 3-layer architecture (CST, Model, AST).
+    *   Rule: Changes here must always pass `pnpm test`.
+*   `src/experiments/`: Contains experimental code (`minimum-*.ts`) and prototypes for large-scale changes.
+    *   Rule: Use this space for "wip" features. It is isolated from the core test suite. To test safe refactoring, copy core files here, modify them, and verify, before merging back to core.
+
+### Testing Commands
+
+*   `pnpm test`: Runs tests for the stable `src/core/` directory. Use this for standard development and CI.
+*   `pnpm test:wip`: Runs tests for `src/experiments/`. Use this when iterating on experimental features.
+*   `pnpm test:all`: Runs all tests.
