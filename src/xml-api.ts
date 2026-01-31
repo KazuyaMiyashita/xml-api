@@ -88,6 +88,11 @@ export class XMLAPI {
         // CST is already shifted and patched in tryIncrementalUpdate.
         // Now try to update AST incrementally.
         this.updateASTIncremental(incrementalResult.oldNode, incrementalResult.newNode);
+        
+        // If the update resulted in a non-well-formed tree, null out AST to be consistent with full parse.
+        if (this.cst && !this.cst.wellFormed) {
+          this.ast = null;
+        }
       } else {
         // Fallback: Full re-parse
         // (Old CST is discarded, so we don't need to shift it)
