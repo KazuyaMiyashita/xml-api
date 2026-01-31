@@ -1,6 +1,7 @@
 # TODO List: WYSIWYG & Bidirectional Sync Support
 
 現在の `Source -> AST` の増分更新に加え、`App -> Source` の編集操作と、それを支えるイベントシステムを実装します。
+また、長期的には `README.md` に記載した **3層構造 (Level 1-3)** への移行を目指します。
 
 ## 🔄 Phase 1: Reverse Sync (App -> Source Operations)
 アプリケーション（AST）側からの操作を、ソースコードへの「最小限のテキスト置換（Patch）」に変換する機能を実装します。
@@ -31,7 +32,15 @@
 - [ ] **Change Detection**:
     - `updateASTIncremental` 内で、変更前後の AST を比較し、具体的な変更イベントを発火させる。
 
-## 🛡 Phase 3: Robustness & DX
+## 🏗 Phase 3: Architectural Evolution (Toward 3-Layer)
+現在の Enhanced AST を、明示的な中間層（IR）を持つ構造へと進化させる準備。
+
+- [ ] **Separate ID Management**:
+    - AST ノードに依存せず、CST ノードに対して永続的な一意 ID (UUID等) を割り振るメカニズムの検討。
+- [ ] **Mapping Layer Abstraction**:
+    - `xml-converter` を拡張し、`CST <-> IR <-> AST` の相互変換を行う `Mapper` クラスとしての再設計。
+
+## 🛡 Phase 4: Robustness & DX
 - [ ] **Transaction Management**:
     - 複数の操作（例：属性変更 + テキスト変更）を1つの Undo/Redo 単位として扱う仕組み。
 - [ ] **Error Recovery for App Editing**:

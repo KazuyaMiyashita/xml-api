@@ -14,31 +14,58 @@ TypeScript で実装された、**WYSIWYG エディタや IDE のための基盤
     *   **Source -> App**: テキストエディタでのソース編集を、瞬時に AST に反映しアプリに通知する（増分パース）。
     *   **App -> Source**: アプリ上での操作（ノード移動、属性変更）を、ソースコードへの**最小限のテキストパッチ**に変換し、フォーマットを崩さずに適用する。
 
-## 🏗 アーキテクチャと現状
+## 🏗 アーキテクチャ (Target Architecture)
 
-現在、**Source -> App (AST)** の一方向の高速同期基盤が完成しています。
+本プロジェクトは、最終的に以下の **3層構造 (Three-Layer Architecture)** への到達を目指しています。
+これにより、「保存されたテキストの正確さ」と「編集のしやすさ」という相反する要件を完全に分離・解決します。
 
-1.  **Parser Core**: 構文解析エンジン (`parser.ts`) と文法管理 (`grammar.ts`)
-2.  **CST (Concrete Syntax Tree)**: 生の構文木。空白やコメントを含むすべてのテキスト情報を保持。
-3.  **Enhanced AST**: CST への参照 (`.cst`) を持つ高レベルデータ構造。アプリケーションはこの層を扱います。
-4.  **Incremental Engine**: テキスト変更に対し、影響範囲を特定して CST/AST を部分的に更新するアトミックなトランザクション機構。
-5.  **Formatter**: AST から標準的な XML を生成する機能（新規ノード生成用）。
+### Level 1: CST (Concrete Syntax Tree) - *The Source of Truth*
+*   **役割**: ソースコードの完全な構造化表現。
+*   **責務**: 空白、改行、コメント、属性の引用符の種類など、**テキスト上のすべての情報を保持**します。
+*   **不変性**: ユーザーが明示的に変更しない限り、この層の情報は一切失われません。フォーマッターはこの層を尊重します。
+
+### Level 2: Intermediate Representation (IR) - *The Semantic Bridge*
+*   **役割**: 構文（Level 1）とアプリケーションモデル（Level 3）の間の「意味的マッピング」と「状態管理」。
+*   **責務**:
+    *   **Identity & Tracking**: ノードに永続的な ID を割り当て、移動や変更を追跡します。
+    *   **Bi-directional Mapping**: CST の「どの範囲」が、AST の「どのノード」に対応するかを厳密に管理します。
+    *   **Abstraction**: `<br />` と `<br></br>` のような構文上の差異を吸収し、同一の意味として扱えるようにします。
+
+### Level 3: Application AST - *The View Model*
+*   **役割**: アプリケーション（エディタUIなど）が扱う純粋なデータモデル。
+*   **責務**: DOM に近い、シンプルで直感的な API を提供します。
+*   **隠蔽**: CST の複雑さ（位置情報、空白ノード）や IR の管理ロジックはこの層からは隠蔽され、開発者はビジネスロジックに集中できます。
+
+---
+
+### 💻 現在の実装状況 (Current Implementation)
+
+現在は過渡期として、**Level 2 (IR) と Level 3 (Application AST) を統合した "Enhanced AST"** パターンを採用しています。
+
+1.  **Parser Core**: `parser.ts`, `grammar.ts`
+2.  **CST (Level 1)**: `xml-cst.ts` - 完全な情報を保持。
+3.  **Enhanced AST (Level 2+3)**: `xml-ast.ts`
+    *   `AST` クラスが直接 `.cst` プロパティを持ち、Level 1 への参照を保持することでマッピングを実現しています。
+4.  **Incremental Engine**: アトミックな部分更新トランザクション。
+5.  **Formatter**: AST からの出力生成。
+
+今後の開発で複雑度が増すにつれ、Enhanced AST から IR 層（Level 2）を分離・独立させていくロードマップを描いています。
 
 ### ディレクトリ構成
 
 ```
 .
 ├── src/
-│   ├── main.ts                  # エントリーポイント。API使用デモ
-│   ├── xml-api.ts               # 統合API (XMLAPI class)
-│   ├── parser.ts                # パース実行エンジン
+│   ├── main.ts                  # デモ・エントリーポイント
+│   ├── xml-api.ts               # API ファサード
+│   ├── parser.ts                # パースエンジン
 │   ├── grammar.ts               # 文法構築
-│   ├── xml-cst.ts               # CST 定義 (Source of Truth for formatting)
-│   ├── xml-ast.ts               # AST 定義 (Application Interface)
+│   ├── xml-cst.ts               # [Level 1] CST 定義
+│   ├── xml-ast.ts               # [Level 2+3] AST 定義 (Enhanced)
 │   ├── xml-converter.ts         # CST -> AST 変換・マッピング
-│   ├── formatter.ts             # AST -> XML 整形
-│   ├── xml-grammar.ts           # XML 1.0 文法定義
-│   └── *.test.ts                # テストスイート
+│   ├── formatter.ts             # XML 出力
+│   ├── xml-grammar.ts           # 文法定義
+│   └── *.test.ts                # テスト
 ```
 
 ## 🔄 同期メカニズム（実装済み）
