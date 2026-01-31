@@ -1,17 +1,18 @@
 import { Formatter } from "./formatter";
-import { AST } from "./xml-ast";
+import { AST, ASTComment } from "../ast/xml-ast";
+import { XMLAPI } from "../xml-api";
 
 describe("Formatter", () => {
   const formatter = new Formatter({ indent: "  ", newline: "\n" });
 
   it("should format self-closing element", () => {
     const ast = new AST("root");
-    expect(formatter.format(ast)).toBe("<root/>");
+    expect(formatter.format(ast)).toBe("<root />");
   });
 
   it("should format element with attributes", () => {
     const ast = new AST("root", { id: "1", class: "test" });
-    expect(formatter.format(ast)).toBe('<root id="1" class="test"/>');
+    expect(formatter.format(ast)).toBe('<root id="1" class="test" />');
   });
 
   it("should format nested elements (block)", () => {
@@ -21,7 +22,7 @@ describe("Formatter", () => {
     const expected = 
 `<root>
   <child>
-    <grandchild/>
+    <grandchild />
   </child>
 </root>`;
     expect(formatter.format(ast)).toBe(expected);
@@ -43,6 +44,34 @@ describe("Formatter", () => {
       // Content: <content> & more -> &lt;content&gt; &amp; more
       const expected = `<note title="quoted &quot;text&quot;">&lt;content&gt; &amp; more</note>`;
       expect(formatter.format(ast)).toBe(expected);
+  });
+
+  it("should support comments", () => {
+      const ast = new AST("root", {}, [
+          new ASTComment(" This is a comment "),
+          new AST("child")
+      ]);
+      const expected = `<root>\n  <!-- This is a comment -->\n  <child />\n</root>`;
+      expect(formatter.format(ast)).toBe(expected);
+  });
+
+  it("should re-format existing indentation when force is true", () => {
+    const original = `<root>\n  <child>\n    <content />\n  </child>\n</root>`;
+    const api = new XMLAPI(original);
+    
+    const formatter4 = new Formatter({ indent: "    ", force: true });
+    const output = formatter4.format(api.ast!);
+    
+    expect(output).toContain("\n    <child>");
+    expect(output).toContain("\n        <content />");
+  });
+
+  it("should change newline style when force is true", () => {
+    const original = `<root>\n  <child />\n</root>`;
+    const api = new XMLAPI(original);
+    const formatterCRLF = new Formatter({ newline: "\r\n", force: true });
+    const output = formatterCRLF.format(api.ast!);
+    expect(output).toContain("\r\n");
   });
 });
 

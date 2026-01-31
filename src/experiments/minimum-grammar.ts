@@ -8,8 +8,8 @@ import {
   plus,
   opt,
   ref,
-} from "./grammar";
-import { CST } from "./xml-cst";
+} from "../core/cst/grammar";
+import { CST } from "../core/cst/xml-cst";
 
 const g = new GrammarBuilder();
 

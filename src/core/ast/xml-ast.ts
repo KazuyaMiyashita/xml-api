@@ -1,4 +1,14 @@
-import { CST } from "./xml-cst";
+import { CST } from "../cst/xml-cst";
+
+export class ASTComment {
+  public cst: CST | null = null;
+
+  constructor(public content: string) {}
+
+  text(): string {
+    return "";
+  }
+}
 
 export class AST {
   /** Reference to the CST node that generated this AST node. */
@@ -7,8 +17,8 @@ export class AST {
   constructor(
     public tagName: string,
     public attributes: { [key: string]: string } = {},
-    /** Child nodes can be either nested AST elements or raw text strings. */
-    public children: (AST | string)[] = [],
+    /** Child nodes can be either nested AST elements, raw text strings, or comments. */
+    public children: (AST | string | ASTComment)[] = [],
   ) {}
 
   // Get attribute value by name

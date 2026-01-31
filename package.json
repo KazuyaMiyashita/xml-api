@@ -5,7 +5,9 @@
   "main": "src/main.ts",
   "scripts": {
     "typecheck": "tsc",
-    "test": "jest",
+    "test": "jest src/core",
+    "test:wip": "jest src/experiments",
+    "test:all": "jest",
     "format": "biome format --write .",
     "start": "ts-node src/main.ts"
   },

@@ -1,5 +1,5 @@
-import { CST } from "./xml-cst";
-import { AST } from "./xml-ast";
+import { CST } from "../core/cst/xml-cst";
+import { AST } from "../core/ast/xml-ast";
 
 export function convert(node: CST, input: string): AST | string {
   const structural = node.unwrap();

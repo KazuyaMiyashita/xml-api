@@ -34,7 +34,7 @@ The Concrete Syntax Tree maintains all textual information including whitespace,
 The XMLAPIModel serves as the authoritative model for the system. It resolves the discrepancy between the CST and the AST. It assigns persistent identifiers to nodes to track movement and modification. It preserves formatting information to ensure that edits respect the original style of the code.
 
 #### AST Layer: AST
-The Application Abstract Syntax Tree is the data model used by the application. It provides a simplified interface with properties such as tag names, attributes, and children. It hides the complexity of the CST and the internal management logic of the XMLAPIModel.
+The Application Abstract Syntax Tree is the data model used by the application. It provides a simplified interface with properties such as tag names, attributes, and children. It supports standard elements, text nodes, and comments, hiding the complexity of the CST and the internal management logic of the XMLAPIModel.
 
 ## System Components
 
@@ -58,6 +58,7 @@ graph TD
             Binder["XMLBinder"]
             Model["XMLAPIModel"]
             Schema["XMLSchema"]
+            Formatter["Formatter"]
         end
         
         subgraph "AST Layer"
@@ -82,15 +83,18 @@ graph TD
 
     Mediator -- "Manage" --> Model
     Mediator -- "Expose" --> AST
+    
+    Mediator -- "Format" --> Formatter
 ```
 
 ### Component Descriptions
 
 1.  XMLAPI: The central mediator and controller. It manages the lifecycle of the system and serves as the single entry point for external applications. It orchestrates the flow of data between the Parser, Binder, and Schema.
-2.  XMLBinder: A logic engine that handles data synchronization and transformation. It performs hydration from CST to Model, reconciliation of changes, and generation of text patches. It does not maintain state.
+2.  XMLBinder: A logic engine that handles data synchronization and transformation. It performs hydration from CST to Model, reconciliation of changes, and generation of text patches. It supports elements, text, and comments.
 3.  XMLAPIModel: The data structure definition for the logical model managed by the XMLAPI. It holds data and state but does not contain business logic.
 4.  Parser: An engine that parses input strings into a CST based on the defined Grammar.
 5.  XMLSchema: A definition of validation rules specific to the application domain.
+6.  Formatter: Handles the conversion of AST back to XML string. It prioritizes fidelity by preserving existing whitespace and comments by default, but also supports forced re-formatting with customizable indentation and newline styles.
 
 ## Validation Scenarios
 
@@ -108,28 +112,36 @@ When the user modifies the AST, such as adding an attribute, the XMLAPI resolves
 ### Scenario 4: Node Movement
 When a node is moved within the application, the Binder calculates a patch that removes the node from its original location and inserts it at the new location. The Binder adjusts indentation to match the new context.
 
+### Scenario 5: Fidelity & Formatting
+The Formatter ensures that the generated XML maintains the original style of the source code. It respects existing indentation and newlines found in the AST. Alternatively, the application can request a forced re-format to apply a consistent style (e.g., changing 2-space indentation to 4-space) across the document.
+
 ## Directory Structure
 
 ```
 .
 ├── src/
 │   ├── main.ts
-│   ├── xml-api.ts
+│   ├── integration.test.ts
 │   │
-│   ├── cst/
-│   │   ├── parser.ts
-│   │   ├── grammar.ts
-│   │   ├── xml-grammar.ts
-│   │   └── xml-cst.ts
-│   │
-│   ├── model/
-│   │   ├── xml-api-model.ts
-│   │   ├── xml-binder.ts
-│   │   ├── xml-schema.ts
-│   │   └── formatter.ts
-│   │
-│   └── ast/
-│       └── xml-ast.ts
+│   └── core/
+│       ├── xml-api.ts
+│       ├── xml-api-events.ts
+│       ├── history-manager.ts
+│       │
+│       ├── cst/
+│       │   ├── parser.ts
+│       │   ├── grammar.ts
+│       │   ├── xml-grammar.ts
+│       │   └── xml-cst.ts
+│       │
+│       ├── model/
+│       │   ├── xml-api-model.ts
+│       │   ├── xml-binder.ts
+│       │   ├── xml-schema.ts
+│       │   └── formatter.ts
+│       │
+│       └── ast/
+│           └── xml-ast.ts
 ```
 
 ## Development Guide

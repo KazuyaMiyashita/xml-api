@@ -1,26 +1,32 @@
-import { AST } from "./xml-ast";
+import { AST, ASTComment } from "../ast/xml-ast";
 
 export interface FormatterOptions {
   indent?: string; // e.g. "  ", "\t"
   newline?: string; // e.g. "\n"
+  force?: boolean; // If true, re-format even if existing formatting is present
 }
 
 export class Formatter {
   private indent: string;
   private newline: string;
+  private force: boolean;
 
   constructor(options: FormatterOptions = {}) {
     this.indent = options.indent ?? "  ";
     this.newline = options.newline ?? "\n";
+    this.force = options.force ?? false;
   }
 
   public format(node: AST): string {
     return this.formatNode(node, 0);
   }
 
-  private formatNode(node: AST | string, level: number): string {
+  private formatNode(node: AST | string | ASTComment, level: number): string {
     if (typeof node === "string") {
       return this.escape(node);
+    }
+    if (node instanceof ASTComment) {
+      return `<!--${node.content}-->`;
     }
 
     const tagName = node.tagName;
@@ -28,20 +34,27 @@ export class Formatter {
     const children = node.children;
 
     if (children.length === 0) {
-      return `<${tagName}${attributes}/>`;
+      return `<${tagName}${attributes} />`;
     }
 
     const isInline = this.isInline(children);
+    const hasFormatting = this.force ? false : this.hasFormatting(children);
 
     let result = `<${tagName}${attributes}>`;
 
-    if (isInline) {
+    if (isInline || hasFormatting) {
       for (const child of children) {
+        if (this.force && typeof child === "string" && child.includes("\n") && child.trim().length === 0) {
+            continue;
+        }
         result += this.formatNode(child, level + 1);
       }
       result += `</${tagName}>`;
     } else {
       for (const child of children) {
+        if (this.force && typeof child === "string" && child.includes("\n") && child.trim().length === 0) {
+            continue;
+        }
         result +=
           this.newline +
           this.getIndent(level + 1) +
@@ -59,16 +72,28 @@ export class Formatter {
     return (
       " " +
       keys
-        .map((key) => `${key}="${this.escapeAttribute(attributes[key])}"`) // Corrected: escaped " to \"
+        .map((key) => `${key}="${this.escapeAttribute(attributes[key])}"`)
         .join(" ")
     );
   }
 
-  private isInline(children: (AST | string)[]): boolean {
-    for (const child of children) {
-      if (typeof child === "string") {
+  private isInline(children: (AST | string | ASTComment)[]): boolean {
+    for (const theChild of children) {
+      if (typeof theChild === "string") {
         // If there is any non-whitespace text, treat as inline.
-        if (child.trim().length > 0) return true;
+        if (theChild.trim().length > 0) return true;
+      }
+    }
+    return false;
+  }
+
+  private hasFormatting(children: (AST | string | ASTComment)[]): boolean {
+    for (const theChild of children) {
+      if (typeof theChild === "string") {
+        // If it contains a newline and is otherwise whitespace, it's likely formatting.
+        if (theChild.includes("\n") && theChild.trim().length === 0) {
+            return true;
+        }
       }
     }
     return false;

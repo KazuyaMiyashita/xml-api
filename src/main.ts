@@ -1,10 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
-import { XMLAPI } from "./xml-api";
-import { Formatter } from "./formatter";
+import { XMLAPI } from "./core/xml-api";
+import { Formatter } from "./core/model/formatter";
+import { AST } from "./core/ast/xml-ast";
 
 try {
-  const xmlPath = path.join(__dirname, "sample_01.xml");
+  const xmlPath = path.join(__dirname, "core/sample_01.xml");
   console.log(`Reading XML file: ${xmlPath}`);
   const xmlContent = fs.readFileSync(xmlPath, "utf8");
 
@@ -44,7 +45,7 @@ try {
       console.log(`Updating "${targetText}" -> "${newText}"...`);
       
       // Perform incremental update
-      api.update_input(startPos, startPos + targetText.length, newText);
+      api.updateInput(startPos, startPos + targetText.length, newText);
       
       // Verify AST update
       const newTitles = api.ast.find("title");
@@ -52,6 +53,51 @@ try {
       
       // Verify root identity (Differential Update check)
       console.log(`Root AST object preserved: ${api.ast === ast}`);
+    }
+
+    console.log("\n[AST Manipulation Demo]");
+    // Find the section with h2 "選定基準"
+    const sections = api.ast.find("section");
+    let targetSection: any = null;
+    
+    for (const section of sections) {
+        const h2 = section.find("h2")[0];
+        if (h2 && h2.text() === "選定基準") {
+            targetSection = section;
+            break;
+        }
+    }
+
+    if (targetSection) {
+        console.log("Target section found.");
+        
+        // Construct new content using AST
+        const newSectionAst = new AST("section", {}, [
+          new AST("h2", {}, ["りんごを選ぶ基準"]),
+          new AST("p", {}, ["りんごを選ぶ際の基準には、以下のような項目があります。"]),
+          new AST("ul", {}, [
+            new AST("li", {}, ["大きさ"]),
+            new AST("li", {}, ["色"]),
+            new AST("li", {}, ["硬さ"]),
+            new AST("li", {}, ["甘み"]),
+            new AST("li", {}, ["酸味"]),
+          ]),
+          new AST("p", {}, ["これら多くの基準を考慮して、自分好みのものを選びましょう。"]),
+        ]);
+
+        console.log("Replacing node using AST construction...");
+        api.replaceNode(targetSection, newSectionAst);
+        
+        // Due to in-place update, targetSection should reflect the new state
+        if (targetSection.cst) {
+             console.log(`Updated Section Location: start=${targetSection.cst.start}, end=${targetSection.cst.end}`);
+             console.log("Updated Content:");
+             console.log(api.input.slice(targetSection.cst.start, targetSection.cst.end));
+        } else {
+             console.log("Warning: CST info missing on updated node.");
+        }
+    } else {
+        console.log("Target section not found.");
     }
 
     console.log("\n[Formatter Demo]");

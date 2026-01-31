@@ -1,6 +1,6 @@
 import { XMLAPI } from "./xml-api";
-import { AST } from "./xml-ast";
-import { CST } from "./xml-cst";
+import { AST } from "./ast/xml-ast";
+import { CST } from "./cst/xml-cst";
 
 describe("AST-CST Mapping", () => {
   it("should attach CST node to AST element", () => {
@@ -34,8 +34,8 @@ describe("AST-CST Mapping", () => {
      // We need to import minGrammar/minConvert dynamically or from source
      // but for simplicity let's rely on default behavior or mock if needed.
      // Actually I can import them.
-     const { grammar: minGrammar } = require("./minimum-grammar");
-     const { convert: minConvert } = require("./minimum-converter");
+     const { grammar: minGrammar } = require("../experiments/minimum-grammar");
+     const { convert: minConvert } = require("../experiments/minimum-converter");
      
      const xml = "<root><child/></root>";
      const api = new XMLAPI(xml, minGrammar, minConvert);

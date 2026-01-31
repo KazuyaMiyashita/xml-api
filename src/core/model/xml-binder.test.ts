@@ -1,8 +1,8 @@
-import { grammar } from "./xml-grammar";
-import { Parser } from "./parser";
-import { convert } from "./xml-converter";
-import { AST } from "./xml-ast";
-import { CST } from "./xml-cst";
+import { grammar } from "../cst/xml-grammar";
+import { Parser } from "../cst/parser";
+import { convert } from "./xml-binder";
+import { AST } from "../ast/xml-ast";
+import { CST } from "../cst/xml-cst";
 
 describe("XML Converter", () => {
   const parser = new Parser(grammar);
