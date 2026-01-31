@@ -47,14 +47,14 @@ Implement the XMLAPIModel and its controlling components, XMLBinder and XMLSchem
 ## Phase 3: Operational API
 Implement functionality to convert operations from the application into minimal source code patches.
 
-- [ ] Patch Generation Logic:
+- [x] Patch Generation Logic:
     - [x] Implement logic in XMLBinder for setAttribute (attribute update/insertion).
     - [x] Implement logic for text updates.
-    - [ ] Implement logic for node replacement.
-- [ ] Operation API:
+    - [x] Implement logic for node replacement.
+- [x] Operation API:
     - [x] Implement setAttribute in XMLAPI.
     - [x] Implement updateText in XMLAPI.
-    - [ ] Implement replaceNode in XMLAPI.
+    - [x] Implement replaceNode in XMLAPI.
     - Implement methods such as setAttribute, updateText, and replaceNode in XMLAPI.
     - Invoke the Binder to generate patches and apply them to the input source.
 

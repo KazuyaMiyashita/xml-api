@@ -315,6 +315,20 @@ export class XMLBinder {
     return null;
   }
 
+  public calcReplaceNodePatch(
+    model: ModelNode,
+    newXml: string,
+  ): { start: number; end: number; text: string } | null {
+    if (!model.cst) return null;
+
+    // Direct replacement of the CST range
+    return {
+      start: model.cst.start,
+      end: model.cst.end,
+      text: newXml,
+    };
+  }
+
   private parseTag(node: CST): ModelElement {
     const structural = node.unwrap();
     const nameNode = structural.children[1];

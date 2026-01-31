@@ -35,4 +35,15 @@ describe("XMLAPI Operations", () => {
     expect(api.input).toBe("<root><title>New Title</title></root>");
     expect(title.text()).toBe("New Title");
   });
+
+  it("should replace entire node", () => {
+    const xml = "<root><old>content</old></root>";
+    const api = new XMLAPI(xml);
+    const oldNode = api.ast!.find("old")[0];
+
+    api.replaceNode(oldNode, "<new>replaced</new>");
+
+    expect(api.input).toBe("<root><new>replaced</new></root>");
+    expect(api.ast!.find("new")[0].text()).toBe("replaced");
+  });
 });
