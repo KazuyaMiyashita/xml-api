@@ -56,6 +56,17 @@ export class XMLAPI {
 
   /**
    * Updates the input text and refreshes the CST/AST.
+   * 
+   * - `update_input` is defined only when `from <= to` and both indices are within the range of the original `input` string.
+   * - The state of the `XMLAPI` instance after calling `update_input(from, to, value)` **MUST** be identical to the state of a `new XMLAPI(input.slice(0, from) + value + input.slice(to))` instance.
+   * - The implementation **SHOULD** perform incremental updates by re-parsing only the affected sub-tree and avoiding a full re-parse unless structural changes necessitate it, ensuring the operation remains inexpensive.
+   * 
+   * NOTE: Currently, it first attempts an efficient incremental update by finding the smallest node covering the change and re-parsing it.
+   * If the re-parsed node's length doesn't match the expected structural boundaries (implying the change affected surrounding nodes),
+   * it expands the search to parent nodes. If even the root re-parse fails to match boundaries, it falls back to a full re-parse.
+   * 
+   * TODO: Validate that `from` and `to` are within bounds and `from <= to`.
+   * 
    * @param from Start offset of the change.
    * @param to End offset of the change.
    * @param value New text to insert.
@@ -88,6 +99,18 @@ export class XMLAPI {
     }
   }
 
+  /**
+   * Attempts to update the CST incrementally by re-parsing only the affected part of the tree.
+   * 
+   * Strategy:
+   * 1. Find the deepest node that fully contains the changed range.
+   * 2. Traverse up from that node to find a "stable" ancestor (one that represents a named rule).
+   * 3. Attempt to re-parse that ancestor's rule with the new input.
+   * 4. If parsing succeeds and the new node length matches the old node's shifted length (preserving structure),
+   *    replace the old node with the new one.
+   * 
+   * @returns true if the incremental update was successful, false otherwise.
+   */
   private tryIncrementalUpdate(from: number, to: number): boolean {
     if (!this.cst) return false;
 

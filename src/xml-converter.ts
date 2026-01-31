@@ -38,12 +38,14 @@ export function convert(node: CST, input: string): AST | string | null {
         const structural = node.unwrap();
         
         // document rule: seq(prolog, element, Misc*)
+        // structural.children[1] corresponds to the 'element' rule (the root element).
         if (node.name === 'document' && structural.type === 'sequence' && structural.children.length >= 2) {
              const elementNode = structural.children[1];
              return convert(elementNode, input);
         }
         
         // Case 1: Sequence [STag, content, ETag]
+        // Corresponds to rule: element ::= STag content ETag
         if (structural.children.length === 3 && structural.children[0].name === 'STag') {
             const stag = structural.children[0];
             const content = structural.children[1];

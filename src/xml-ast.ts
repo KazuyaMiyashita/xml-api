@@ -2,6 +2,7 @@ export class AST {
     constructor(
         public tagName: string,
         public attributes: { [key: string]: string } = {},
+        /** Child nodes can be either nested AST elements or raw text strings. */
         public children: (AST | string)[] = []
     ) {}
 
