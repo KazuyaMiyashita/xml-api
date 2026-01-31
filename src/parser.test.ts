@@ -134,4 +134,75 @@ describe("Parser Combinators", () => {
       expect(parser.parse("X")).toBeNull();
     });
   });
+
+  describe("parseAt", () => {
+    it("should parse starting from a specific offset", () => {
+      const gb = new GrammarBuilder();
+      gb.rule("start", lit("START"));
+      gb.rule("end", lit("END"));
+      // root not strictly needed for parseAt if we pass rule name, but good practice
+      gb.rule("root", seq(opt(lit("junk")), lit("START"))); 
+      const parser = new Parser(gb.build("root"));
+
+      const input = "prefixSTARTsuffix";
+      // Parse 'start' rule at index 6
+      const result = parser.parseAt(input, 6, "start");
+      
+      expect(result).not.toBeNull();
+      expect(result?.node.getText(input)).toBe("START");
+      expect(result?.end).toBe(11);
+    });
+
+    it("should return null if parsing fails at the offset", () => {
+      const gb = new GrammarBuilder();
+      gb.rule("target", lit("TARGET"));
+      const parser = new Parser(gb.build("target"));
+
+      const input = "prefixTARGET";
+      // Try to parse at 0, should fail
+      const result = parser.parseAt(input, 0, "target");
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("Validator Integration", () => {
+    it("should mark node as not well-formed if validator fails", () => {
+      const gb = new GrammarBuilder();
+      gb.rule("root", lit("test"));
+      
+      // Add a validator that always fails
+      gb.verifyRule("root", (node, input) => false);
+      
+      const parser = new Parser(gb.build());
+      const result = parser.parse("test");
+
+      expect(result).not.toBeNull();
+      expect(result?.wellFormed).toBe(false);
+    });
+
+    it("should pass validator context correctly", () => {
+      const gb = new GrammarBuilder();
+      gb.rule("root", lit("test"));
+      
+      let receivedNode: any = null;
+      let receivedInput: string = "";
+
+      gb.verifyRule("root", (node, input) => {
+        receivedNode = node;
+        receivedInput = input;
+        return true;
+      });
+      
+      const parser = new Parser(gb.build());
+      const input = "test";
+      const result = parser.parse(input);
+
+      expect(result).not.toBeNull();
+      expect(receivedInput).toBe(input);
+      expect(receivedNode).toBe(result);
+      // Ensure validator sees the node with correct properties
+      expect(receivedNode.name).toBe("root");
+    });
+  });
 });
+
