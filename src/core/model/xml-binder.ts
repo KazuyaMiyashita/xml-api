@@ -1,10 +1,11 @@
 import { CST } from "../cst/xml-cst";
-import { AST, ASTComment } from "../ast/xml-ast";
+import { AST, ASTComment, ASTCDATA } from "../ast/xml-ast";
 import {
   ModelNode,
   ModelElement,
   ModelText,
   ModelComment,
+  ModelCDATA,
   ModelNodeType,
 } from "./xml-api-model";
 
@@ -37,10 +38,10 @@ export class XMLBinder {
     } else if (node.name === "CDSect") {
       const structural = node.unwrap();
       if (structural.children.length === 3) {
-        result = new ModelText(structural.children[1].getText(this.input));
+        result = new ModelCDATA(structural.children[1].getText(this.input));
       }
       else {
-        result = new ModelText("");
+        result = new ModelCDATA("");
       }
     } else if (node.name === "Comment") {
        const text = node.getText(this.input);
@@ -179,50 +180,96 @@ export class XMLBinder {
       if (target.getType() === ModelNodeType.Text) {
           (target as ModelText).text = (source as ModelText).text;
       }
+      else if (target.getType() === ModelNodeType.Comment) {
+          (target as ModelComment).content = (source as ModelComment).content;
+      }
+      else if (target.getType() === ModelNodeType.CDATA) {
+          (target as ModelCDATA).content = (source as ModelCDATA).content;
+      }
       else {
           const t = target as ModelElement;
           const s = source as ModelElement;
 
           // Update Attributes
-          t.attributes = s.attributes; // Direct map replacement is fine for now
+          t.attributes = s.attributes;
 
-          // Reconcile Children
-          // Simple strategy: reconcile by index.
-          // If length differs, we might have insertions/deletions.
-          // For now, strict index matching. Improving this requires diff algorithm (e.g. Myers).
-          // Given we are doing "Incremental Update" usually targeted at a specific node,
-          // broad structural changes might just regenerate children.
-          
-          const maxLength = Math.max(t.children.length, s.children.length);
+          // Reconcile Children with Key-based Matching
           const newChildren: ModelNode[] = [];
+          
+          // 1. Map existing children by ID
+          const keyedChildren = new Map<string, ModelElement>();
+          const nonKeyedChildren: ModelNode[] = [];
 
-          for (let i = 0; i < maxLength; i++) {
-              if (i < t.children.length && i < s.children.length) {
-                  const tChild = t.children[i];
-                  const sChild = s.children[i];
-                  const reconciled = this.reconcile(tChild, sChild.cst!); // Recurse
-                  reconciled.parent = t;
-                  newChildren.push(reconciled);
-              } else if (i < s.children.length) {
-                  // Insertion
-                  const sChild = s.children[i];
-                  sChild.parent = t;
-                  newChildren.push(sChild);
+          for (const child of t.children) {
+              if (child.getType() === ModelNodeType.Element) {
+                  const el = child as ModelElement;
+                  const id = el.attributes.get("id");
+                  if (id) {
+                      keyedChildren.set(id, el);
+                  } else {
+                      nonKeyedChildren.push(child);
+                  }
               } else {
-                  // Deletion (t has more children)
-                  // Ignored
+                  nonKeyedChildren.push(child);
               }
           }
+
+          // 2. Iterate source children and try to match
+          for (const sChild of s.children) {
+              let matchedNode: ModelNode | undefined;
+
+              // Try Keyed Match
+              if (sChild.getType() === ModelNodeType.Element) {
+                  const sEl = sChild as ModelElement;
+                  const id = sEl.attributes.get("id");
+                  if (id && keyedChildren.has(id)) {
+                      matchedNode = keyedChildren.get(id);
+                      keyedChildren.delete(id); 
+                  }
+              }
+
+              // Try Non-Keyed Match (First compatible)
+              if (!matchedNode) {
+                  for (let i = 0; i < nonKeyedChildren.length; i++) {
+                      const candidate = nonKeyedChildren[i];
+                      if (this.canReconcile(candidate, sChild)) {
+                          matchedNode = candidate;
+                          nonKeyedChildren.splice(i, 1);
+                          break;
+                      }
+                  }
+              }
+
+              if (matchedNode) {
+                  // Found a match (keyed or non-keyed)
+                  // Use CST from new node to update existing node
+                  const reconciled = this.reconcile(matchedNode, sChild.cst!); 
+                  reconciled.parent = t;
+                  newChildren.push(reconciled);
+              } else {
+                  // No match found, use new node
+                  sChild.parent = t;
+                  newChildren.push(sChild);
+              }
+          }
+          
           t.children = newChildren;
       }
   }
 
-  public project(model: ModelNode): AST | string | ASTComment {
+  public project(model: ModelNode): AST | string | ASTComment | ASTCDATA {
     if (model.getType() === ModelNodeType.Text) {
       return (model as ModelText).text;
     }
     if (model.getType() === ModelNodeType.Comment) {
-      return new ASTComment((model as ModelComment).content);
+      const ast = new ASTComment((model as ModelComment).content);
+      ast.cst = model.cst;
+      return ast;
+    }
+    if (model.getType() === ModelNodeType.CDATA) {
+      const ast = new ASTCDATA((model as ModelCDATA).content);
+      ast.cst = model.cst;
+      return ast;
     }
 
     const el = model as ModelElement;
@@ -307,7 +354,7 @@ export class XMLBinder {
             return {
               start: attValueNode.start,
               end: attValueNode.end,
-              text: `${newQuote}${value}${newQuote}`,
+              text: `${newQuote}${escapeAttributeValue(value)}${newQuote}`,
             };
           }
         }
@@ -335,7 +382,7 @@ export class XMLBinder {
     return {
       start: closing.start,
       end: closing.start,
-      text: ` ${key}="${value}"`,
+      text: ` ${key}="${escapeAttributeValue(value)}"`,
     };
   }
 
@@ -356,7 +403,7 @@ export class XMLBinder {
       return {
         start: contentNode.start,
         end: contentNode.end,
-        text: text, // Should we escape? Yes, ideally. For now raw.
+        text: escapeText(text),
       };
     }
 
@@ -371,7 +418,7 @@ export class XMLBinder {
             return {
                 start: closing.start,
                 end: closing.end,
-                text: `>${text}</${model.tagName}>`
+                text: `>${escapeText(text)}</${model.tagName}>`
             };
         }
     }
@@ -458,4 +505,15 @@ export function convert(node: CST, input: string): AST | string | ASTComment | n
     const model = binder.hydrate(node);
     if (!model) return null;
     return binder.project(model);
+}
+
+function escapeText(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function escapeAttributeValue(str: string): string {
+  return escapeText(str).replace(/"/g, "&quot;");
 }

@@ -7,6 +7,7 @@ export enum ModelNodeType {
   Element = "Element",
   Text = "Text",
   Comment = "Comment",
+  CDATA = "CDATA",
 }
 
 export abstract class ModelNode {
@@ -68,5 +69,18 @@ export class ModelComment extends ModelNode {
 
   getType(): ModelNodeType {
     return ModelNodeType.Comment;
+  }
+}
+
+export class ModelCDATA extends ModelNode {
+  public content: string;
+
+  constructor(content: string) {
+    super();
+    this.content = content;
+  }
+
+  getType(): ModelNodeType {
+    return ModelNodeType.CDATA;
   }
 }

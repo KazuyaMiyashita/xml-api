@@ -1,5 +1,5 @@
 import { CST } from "./cst/xml-cst";
-import { AST, ASTComment } from "./ast/xml-ast";
+import { AST, ASTComment, ASTCDATA, ASTNode } from "./ast/xml-ast";
 import { Grammar } from "./cst/grammar";
 import { Parser } from "./cst/parser";
 import { grammar as defaultGrammar } from "./cst/xml-grammar";
@@ -10,7 +10,7 @@ import { EventEmitter, EventHandler, ChangeEvent } from "./xml-api-events";
 import { HistoryManager, Transaction } from "./history-manager";
 import { Formatter } from "./model/formatter";
 
-export type Converter = (node: CST, input: string) => AST | string | ASTComment | null;
+export type Converter = (node: CST, input: string) => AST | string | ASTComment | ASTCDATA | null;
 
 export class XMLAPI {
   public input: string;
@@ -249,7 +249,7 @@ export class XMLAPI {
    * @param astNode The AST node to replace.
    * @param content New content as an AST object.
    */
-  public replaceNode(astNode: AST, content: AST): void {
+  public replaceNode(astNode: AST | ASTComment | ASTCDATA, content: ASTNode): void {
     if (!this.binder || !this.model) {
       throw new Error("Operational API requires standard binder and model.");
     }
@@ -262,9 +262,34 @@ export class XMLAPI {
       throw new Error("Corresponding model node not found.");
     }
 
-    // Convert AST to string using formatter
-    // TODO: Detect indentation from context if possible, for now use default or configured formatter
-    const newXml = this.formatter.format(content);
+    // Detect indentation
+    let indentUnit = "  "; // Default
+    let currentIndent = "";
+    if (modelNode.cst) {
+        currentIndent = this.detectIndent(modelNode.cst);
+        
+        if (modelNode.parent && modelNode.parent.cst) {
+            const parentIndent = this.detectIndent(modelNode.parent.cst);
+            if (currentIndent.startsWith(parentIndent)) {
+                const diff = currentIndent.slice(parentIndent.length);
+                if (diff.length > 0 && !diff.includes('\n')) {
+                    indentUnit = diff;
+                }
+            }
+        }
+    }
+
+    // Convert AST to string using formatter with detected indent
+    const formatter = new Formatter({ indent: indentUnit });
+    let newXml = formatter.format(content);
+
+    // Apply base indent to all lines except the first one
+    if (currentIndent && newXml.includes('\n')) {
+        newXml = newXml.split('\n').map((line, index) => {
+            if (index === 0) return line;
+            return currentIndent + line;
+        }).join('\n');
+    }
 
     const patch = this.binder.calcReplaceNodePatch(modelNode, newXml);
     if (patch) {
@@ -272,7 +297,23 @@ export class XMLAPI {
     }
   }
 
+  private detectIndent(node: CST): string {
+    const input = this.input;
+    let i = node.start - 1;
+    while (i >= 0) {
+      if (input[i] === '\n') {
+        return input.slice(i + 1, node.start);
+      }
+      if (input[i] !== ' ' && input[i] !== '\t') {
+        return "";
+      }
+      i--;
+    }
+    return "";
+  }
+
   private findModelNodeByCST(root: ModelNode, cst: CST): ModelNode | null {
+
     if (root.cst === cst) return root;
     if (root instanceof ModelElement) {
       for (const child of root.children) {
