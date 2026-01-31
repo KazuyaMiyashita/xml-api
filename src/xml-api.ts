@@ -82,20 +82,29 @@ export class XMLAPI {
     if (this.cst) {
       // 1. Try incremental re-parse without shifting yet
       // We pass 'to' (old end) because cst is still in old coordinates.
-      const success = this.tryIncrementalUpdate(from, to, delta);
-      if (!success) {
+      const incrementalResult = this.tryIncrementalUpdate(from, to, delta);
+      if (incrementalResult) {
+        // Incremental update successful.
+        // CST is already shifted and patched in tryIncrementalUpdate.
+        // Now try to update AST incrementally.
+        this.updateASTIncremental(incrementalResult.oldNode, incrementalResult.newNode);
+      } else {
         // Fallback: Full re-parse
         // (Old CST is discarded, so we don't need to shift it)
         this.cst = this.parse();
+        if (this.cst && this.cst.wellFormed) {
+          this.ast = this.generateAST(this.cst);
+        } else {
+          this.ast = null;
+        }
       }
     } else {
       this.cst = this.parse();
-    }
-
-    if (this.cst && this.cst.wellFormed) {
-      this.ast = this.generateAST(this.cst);
-    } else {
-      this.ast = null;
+      if (this.cst && this.cst.wellFormed) {
+        this.ast = this.generateAST(this.cst);
+      } else {
+        this.ast = null;
+      }
     }
   }
 
@@ -112,10 +121,14 @@ export class XMLAPI {
    * @param from Start offset of the change (old coordinate).
    * @param to End offset of the change (old coordinate).
    * @param delta Change in length (newLength - oldLength).
-   * @returns true if the incremental update was successful, false otherwise.
+   * @returns object with old and new nodes if successful, null otherwise.
    */
-  private tryIncrementalUpdate(from: number, to: number, delta: number): boolean {
-    if (!this.cst) return false;
+  private tryIncrementalUpdate(
+    from: number,
+    to: number,
+    delta: number,
+  ): { oldNode: CST; newNode: CST } | null {
+    if (!this.cst) return null;
 
     // Start search from the smallest node touching the change (in old coordinates)
     let target: CST | null = this.findNodeAt(from, to);
@@ -141,7 +154,7 @@ export class XMLAPI {
           if (target.parent) {
             // Commit the shift now that we know we are keeping the tree.
             this.cst.shift(from, delta);
-            
+
             // target's coordinates are now updated by shift.
             // Replace target with result.node
             const index = target.parent.children.indexOf(target);
@@ -149,14 +162,14 @@ export class XMLAPI {
               target.parent.children[index] = result.node;
               result.node.parent = target.parent;
               this.updateAncestorsWellFormed(result.node);
-              return true;
+              return { oldNode: target, newNode: result.node };
             }
           } else {
             // We replaced the root node.
             // No need to shift the old tree as we are replacing it entirely.
             this.cst = result.node;
             // Root has no ancestors to update
-            return true;
+            return { oldNode: target, newNode: result.node };
           }
         }
       }
@@ -166,8 +179,70 @@ export class XMLAPI {
     }
 
     // If we reached here, even re-parsing the root failed (or matched wrong length).
-    return false;
+    return null;
   }
+
+  private updateASTIncremental(oldNode: CST, newNode: CST): void {
+    if (!this.ast) {
+      if (this.cst && this.cst.wellFormed) {
+        this.ast = this.generateAST(this.cst);
+      }
+      return;
+    }
+
+    let currentOld: CST | null = oldNode;
+    let currentNew: CST | null = newNode;
+
+    while (currentOld) {
+      const astNode = this.findASTNode(this.ast, currentOld);
+      if (astNode && currentNew) {
+        // Re-convert the new CST node
+        const newAST = this.converter(currentNew, this.input);
+
+        // We can only perform in-place update if both are AST objects (Elements).
+        // If the type changed (Element <-> Text), we can't easily update in-place
+        // without knowing the parent AST and index.
+        if (newAST instanceof AST) {
+          astNode.tagName = newAST.tagName;
+          astNode.attributes = newAST.attributes;
+          astNode.children = newAST.children;
+          astNode.cst = newAST.cst;
+          return;
+        }
+      }
+
+      // Move up to parent
+      if (currentOld.parent) {
+        currentOld = currentOld.parent;
+        // The parent structure in CST is reused (mutated), so new parent is same object
+        // (unless we are traversing up past the point of attachment, but here we start at attachment).
+        // If oldNode was detached, oldNode.parent is the container.
+        // newNode.parent is also set to that container.
+        currentNew = currentOld;
+      } else {
+        break;
+      }
+    }
+
+    // Fallback: full regeneration
+    if (this.cst && this.cst.wellFormed) {
+      this.ast = this.generateAST(this.cst);
+    } else {
+      this.ast = null;
+    }
+  }
+
+  private findASTNode(root: AST, cstNode: CST): AST | null {
+    if (root.cst === cstNode) return root;
+    for (const child of root.children) {
+      if (child instanceof AST) {
+        const found = this.findASTNode(child, cstNode);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
 
   private findNodeAt(from: number, to: number): CST | null {
     if (!this.cst) return null;

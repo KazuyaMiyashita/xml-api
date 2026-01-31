@@ -27,7 +27,7 @@ Goal: Bridge the gap between the raw CST (formatting/whitespace rich) and the hi
 Current Issue: `update_input` regenerates the entire AST (`generateAST`) even for small changes.
 Goal: Update only the affected parts of the AST/Intermediate layer.
 
-- [ ] **Differential Update Logic**:
+- [x] **Differential Update Logic**:
     - Identify corresponding AST/Intermediate nodes from changed CST nodes.
     - Re-run conversion *only* on the affected subtree.
     - Update the existing AST structure in-place (splice).
