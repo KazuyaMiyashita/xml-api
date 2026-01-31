@@ -1,10 +1,11 @@
 import { CST } from "../cst/xml-cst";
-import { AST, ASTComment } from "../ast/xml-ast";
+import { AST, ASTComment, ASTCDATA } from "../ast/xml-ast";
 import {
   ModelNode,
   ModelElement,
   ModelText,
   ModelComment,
+  ModelCDATA,
   ModelNodeType,
 } from "./xml-api-model";
 
@@ -37,10 +38,10 @@ export class XMLBinder {
     } else if (node.name === "CDSect") {
       const structural = node.unwrap();
       if (structural.children.length === 3) {
-        result = new ModelText(structural.children[1].getText(this.input));
+        result = new ModelCDATA(structural.children[1].getText(this.input));
       }
       else {
-        result = new ModelText("");
+        result = new ModelCDATA("");
       }
     } else if (node.name === "Comment") {
        const text = node.getText(this.input);
@@ -179,6 +180,12 @@ export class XMLBinder {
       if (target.getType() === ModelNodeType.Text) {
           (target as ModelText).text = (source as ModelText).text;
       }
+      else if (target.getType() === ModelNodeType.Comment) {
+          (target as ModelComment).content = (source as ModelComment).content;
+      }
+      else if (target.getType() === ModelNodeType.CDATA) {
+          (target as ModelCDATA).content = (source as ModelCDATA).content;
+      }
       else {
           const t = target as ModelElement;
           const s = source as ModelElement;
@@ -250,12 +257,19 @@ export class XMLBinder {
       }
   }
 
-  public project(model: ModelNode): AST | string | ASTComment {
+  public project(model: ModelNode): AST | string | ASTComment | ASTCDATA {
     if (model.getType() === ModelNodeType.Text) {
       return (model as ModelText).text;
     }
     if (model.getType() === ModelNodeType.Comment) {
-      return new ASTComment((model as ModelComment).content);
+      const ast = new ASTComment((model as ModelComment).content);
+      ast.cst = model.cst;
+      return ast;
+    }
+    if (model.getType() === ModelNodeType.CDATA) {
+      const ast = new ASTCDATA((model as ModelCDATA).content);
+      ast.cst = model.cst;
+      return ast;
     }
 
     const el = model as ModelElement;

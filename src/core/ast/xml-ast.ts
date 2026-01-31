@@ -10,6 +10,18 @@ export class ASTComment {
   }
 }
 
+export class ASTCDATA {
+  public cst: CST | null = null;
+
+  constructor(public content: string) {}
+
+  text(): string {
+    return this.content;
+  }
+}
+
+export type ASTNode = AST | ASTComment | ASTCDATA | string;
+
 export class AST {
   /** Reference to the CST node that generated this AST node. */
   public cst: CST | null = null;
@@ -17,8 +29,8 @@ export class AST {
   constructor(
     public tagName: string,
     public attributes: { [key: string]: string } = {},
-    /** Child nodes can be either nested AST elements, raw text strings, or comments. */
-    public children: (AST | string | ASTComment)[] = [],
+    /** Child nodes can be either nested AST elements, raw text strings, comments, or CDATA. */
+    public children: ASTNode[] = [],
   ) {}
 
   // Get attribute value by name

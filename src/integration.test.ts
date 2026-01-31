@@ -1,7 +1,7 @@
 import { grammar } from "./core/cst/xml-grammar";
 import { Parser } from "./core/cst/parser";
 import { convert } from "./core/model/xml-binder";
-import { AST } from "./core/ast/xml-ast";
+import { AST, ASTCDATA, ASTComment } from "./core/ast/xml-ast";
 import { XMLAPI } from "./core/xml-api";
 import { Formatter } from "./core/model/formatter";
 import * as fs from "fs";
@@ -107,5 +107,37 @@ describe("Integration Test", () => {
     
     // Verify source update
     expect(api.input).toContain("<li>大きさ</li>");
+  });
+
+  it("should support extended features (CDATA, Comments)", () => {
+    const api = new XMLAPI(xmlContent);
+    const targetSection = api.ast!.find("section")[0];
+    expect(targetSection).toBeDefined();
+
+    const newContent = new AST("section", {}, [
+        new AST("h2", {}, ["Advanced Content"]),
+        new ASTComment(" Extended Content "),
+        new ASTCDATA("Some <raw> data"),
+    ]);
+
+    api.replaceNode(targetSection, newContent);
+
+    expect(api.input).toContain("<!-- Extended Content -->");
+    expect(api.input).toContain("<![CDATA[Some <raw> data]]>");
+    
+    // Re-parse verification
+    const api2 = new XMLAPI(api.input);
+    const sections = api2.ast!.find("section");
+    const updatedSection = sections[0];
+    
+    // Children: h2, Comment, CDATA (and whitespace text nodes potentially)
+    
+    const commentNode = updatedSection.children.find(c => c instanceof ASTComment) as ASTComment;
+    expect(commentNode).toBeDefined();
+    expect(commentNode.content).toBe(" Extended Content ");
+    
+    const cdataNode = updatedSection.children.find(c => c instanceof ASTCDATA) as ASTCDATA;
+    expect(cdataNode).toBeDefined();
+    expect(cdataNode.content).toBe("Some <raw> data");
   });
 });

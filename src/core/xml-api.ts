@@ -1,5 +1,5 @@
 import { CST } from "./cst/xml-cst";
-import { AST, ASTComment } from "./ast/xml-ast";
+import { AST, ASTComment, ASTCDATA, ASTNode } from "./ast/xml-ast";
 import { Grammar } from "./cst/grammar";
 import { Parser } from "./cst/parser";
 import { grammar as defaultGrammar } from "./cst/xml-grammar";
@@ -10,7 +10,7 @@ import { EventEmitter, EventHandler, ChangeEvent } from "./xml-api-events";
 import { HistoryManager, Transaction } from "./history-manager";
 import { Formatter } from "./model/formatter";
 
-export type Converter = (node: CST, input: string) => AST | string | ASTComment | null;
+export type Converter = (node: CST, input: string) => AST | string | ASTComment | ASTCDATA | null;
 
 export class XMLAPI {
   public input: string;
@@ -249,7 +249,7 @@ export class XMLAPI {
    * @param astNode The AST node to replace.
    * @param content New content as an AST object.
    */
-  public replaceNode(astNode: AST, content: AST): void {
+  public replaceNode(astNode: AST | ASTComment | ASTCDATA, content: ASTNode): void {
     if (!this.binder || !this.model) {
       throw new Error("Operational API requires standard binder and model.");
     }
@@ -313,6 +313,7 @@ export class XMLAPI {
   }
 
   private findModelNodeByCST(root: ModelNode, cst: CST): ModelNode | null {
+
     if (root.cst === cst) return root;
     if (root instanceof ModelElement) {
       for (const child of root.children) {

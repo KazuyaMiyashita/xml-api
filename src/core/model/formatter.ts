@@ -1,4 +1,4 @@
-import { AST, ASTComment } from "../ast/xml-ast";
+import { AST, ASTComment, ASTCDATA, ASTNode } from "../ast/xml-ast";
 
 export interface FormatterOptions {
   indent?: string; // e.g. "  ", "\t"
@@ -17,16 +17,19 @@ export class Formatter {
     this.force = options.force ?? false;
   }
 
-  public format(node: AST): string {
+  public format(node: ASTNode): string {
     return this.formatNode(node, 0);
   }
 
-  private formatNode(node: AST | string | ASTComment, level: number): string {
+  private formatNode(node: ASTNode, level: number): string {
     if (typeof node === "string") {
       return this.escape(node);
     }
     if (node instanceof ASTComment) {
       return `<!--${node.content}-->`;
+    }
+    if (node instanceof ASTCDATA) {
+      return `<![CDATA[${node.content}]]>`;
     }
 
     const tagName = node.tagName;
@@ -77,17 +80,20 @@ export class Formatter {
     );
   }
 
-  private isInline(children: (AST | string | ASTComment)[]): boolean {
+  private isInline(children: (AST | string | ASTComment | ASTCDATA)[]): boolean {
     for (const theChild of children) {
       if (typeof theChild === "string") {
         // If there is any non-whitespace text, treat as inline.
         if (theChild.trim().length > 0) return true;
       }
+      if (theChild instanceof ASTCDATA) {
+          return true;
+      }
     }
     return false;
   }
 
-  private hasFormatting(children: (AST | string | ASTComment)[]): boolean {
+  private hasFormatting(children: (AST | string | ASTComment | ASTCDATA)[]): boolean {
     for (const theChild of children) {
       if (typeof theChild === "string") {
         // If it contains a newline and is otherwise whitespace, it's likely formatting.

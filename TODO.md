@@ -95,13 +95,8 @@ Ensure the Formatter can perfectly reconstruct the source and support customizat
     - [x] Implement support for changing indentation (tab vs space, width).
     - [x] Implement support for newline style.
 
-## Phase 11: Extended Feature Support
-Add support for editing less common XML constructs.
-
-- [ ] CDATA/Comment Support:
-    - Add explicit API methods for creating/updating CDATA sections and Comments via `XMLAPI`.
-
 ## Completed Tasks
+- [x] CDATA/Comment Support: Explicit AST nodes and formatting for CDATA and Comments.
 - [x] Context-Aware Formatting: Automatic indentation detection and preservation.
 - [x] Key-based Reconciliation: ID-based matching and heuristic list reconciliation.
 - [x] Escape logic for Text Updates and Attribute Updates.
