@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import type { CST } from "../cst/xml-cst";
 
 export type NodeId = string;
@@ -16,7 +15,7 @@ export abstract class ModelNode {
   public cst: CST | null = null;
 
   constructor() {
-    this.id = randomUUID();
+    this.id = crypto.randomUUID();
   }
 
   abstract getType(): ModelNodeType;

@@ -9,7 +9,8 @@
     "test:wip": "jest src/experiments",
     "test:all": "jest",
     "format": "biome format --write .",
-    "start": "ts-node src/main.ts"
+    "start": "ts-node src/main.ts",
+    "build:demo": "esbuild demo/app.ts --bundle --outfile=demo/bundle.js --platform=browser --sourcemap"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,7 @@
     "@types/jest": "^30.0.0",
     "@types/jsdom": "^27.0.0",
     "@types/node": "^25.0.10",
+    "esbuild": "^0.27.2",
     "jest": "^30.2.0",
     "jsdom": "^27.4.0",
     "ts-jest": "^29.4.6",

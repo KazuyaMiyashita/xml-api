@@ -67,10 +67,10 @@ Regardless of the chosen path, the system must handle namespaces and source sync
 
 Build a dual-pane editor to showcase the capabilities.
 
-- [ ] **Setup Demo Environment**: Create a web-based entry point.
-- [ ] **Source Editor**: A text area showing the real-time XML source.
-- [ ] **WYSIWYG Editor**: A visual editor manipulating the AST (using the chosen DOM-compatible API).
-- [ ] **Integration**:
-    - [ ] Implement real-time parsing (Source -> AST).
-    - [ ] Implement real-time patching (AST Mutation -> Source).
-- [ ] **Scenario Testing**: Demonstrate editing a document with mixed namespaces (known vs. unknown).
+- [x] **Setup Demo Environment**: Create a web-based entry point.
+- [x] **Source Editor**: A text area showing the real-time XML source.
+- [x] **WYSIWYG Editor**: A visual editor manipulating the AST (using the chosen DOM-compatible API).
+- [x] **Integration**:
+    - [x] Implement real-time parsing (Source -> AST).
+    - [x] Implement real-time patching (AST Mutation -> Source).
+- [x] **Scenario Testing**: Demonstrate editing a document with mixed namespaces (known vs. unknown).
