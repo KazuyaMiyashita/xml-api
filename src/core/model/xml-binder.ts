@@ -184,35 +184,68 @@ export class XMLBinder {
           const s = source as ModelElement;
 
           // Update Attributes
-          t.attributes = s.attributes; // Direct map replacement is fine for now
+          t.attributes = s.attributes;
 
-          // Reconcile Children
-          // Simple strategy: reconcile by index.
-          // If length differs, we might have insertions/deletions.
-          // For now, strict index matching. Improving this requires diff algorithm (e.g. Myers).
-          // Given we are doing "Incremental Update" usually targeted at a specific node,
-          // broad structural changes might just regenerate children.
-          
-          const maxLength = Math.max(t.children.length, s.children.length);
+          // Reconcile Children with Key-based Matching
           const newChildren: ModelNode[] = [];
+          
+          // 1. Map existing children by ID
+          const keyedChildren = new Map<string, ModelElement>();
+          const nonKeyedChildren: ModelNode[] = [];
 
-          for (let i = 0; i < maxLength; i++) {
-              if (i < t.children.length && i < s.children.length) {
-                  const tChild = t.children[i];
-                  const sChild = s.children[i];
-                  const reconciled = this.reconcile(tChild, sChild.cst!); // Recurse
-                  reconciled.parent = t;
-                  newChildren.push(reconciled);
-              } else if (i < s.children.length) {
-                  // Insertion
-                  const sChild = s.children[i];
-                  sChild.parent = t;
-                  newChildren.push(sChild);
+          for (const child of t.children) {
+              if (child.getType() === ModelNodeType.Element) {
+                  const el = child as ModelElement;
+                  const id = el.attributes.get("id");
+                  if (id) {
+                      keyedChildren.set(id, el);
+                  } else {
+                      nonKeyedChildren.push(child);
+                  }
               } else {
-                  // Deletion (t has more children)
-                  // Ignored
+                  nonKeyedChildren.push(child);
               }
           }
+
+          // 2. Iterate source children and try to match
+          for (const sChild of s.children) {
+              let matchedNode: ModelNode | undefined;
+
+              // Try Keyed Match
+              if (sChild.getType() === ModelNodeType.Element) {
+                  const sEl = sChild as ModelElement;
+                  const id = sEl.attributes.get("id");
+                  if (id && keyedChildren.has(id)) {
+                      matchedNode = keyedChildren.get(id);
+                      keyedChildren.delete(id); 
+                  }
+              }
+
+              // Try Non-Keyed Match (First compatible)
+              if (!matchedNode) {
+                  for (let i = 0; i < nonKeyedChildren.length; i++) {
+                      const candidate = nonKeyedChildren[i];
+                      if (this.canReconcile(candidate, sChild)) {
+                          matchedNode = candidate;
+                          nonKeyedChildren.splice(i, 1);
+                          break;
+                      }
+                  }
+              }
+
+              if (matchedNode) {
+                  // Found a match (keyed or non-keyed)
+                  // Use CST from new node to update existing node
+                  const reconciled = this.reconcile(matchedNode, sChild.cst!); 
+                  reconciled.parent = t;
+                  newChildren.push(reconciled);
+              } else {
+                  // No match found, use new node
+                  sChild.parent = t;
+                  newChildren.push(sChild);
+              }
+          }
+          
           t.children = newChildren;
       }
   }

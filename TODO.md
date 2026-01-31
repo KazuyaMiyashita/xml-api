@@ -95,13 +95,6 @@ Ensure the Formatter can perfectly reconstruct the source and support customizat
     - [x] Implement support for changing indentation (tab vs space, width).
     - [x] Implement support for newline style.
 
-## Phase 9: Advanced Reconciliation
-Improve the reconciliation algorithm to handle list mutations more gracefully.
-
-- [ ] Key-based Reconciliation:
-    - Implement a heuristic to match nodes by attributes (e.g. `id`) or content similarity, rather than just index.
-    - Mitigate ID shifting on insertions/deletions.
-
 ## Phase 10: Context-Aware Formatting
 Enhance the formatter to respect the surrounding code style when inserting new nodes.
 
@@ -118,6 +111,7 @@ Add support for editing less common XML constructs.
     - Add explicit API methods for creating/updating CDATA sections and Comments via `XMLAPI`.
 
 ## Completed Tasks
+- [x] Key-based Reconciliation: ID-based matching and heuristic list reconciliation.
 - [x] Escape logic for Text Updates and Attribute Updates.
 - [x] Performance Optimization: Delayed coordinate update and atomic transactions.
 - [x] Architecture Evolution: Prototype of the Enhanced AST.
