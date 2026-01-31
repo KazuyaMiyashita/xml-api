@@ -41,8 +41,8 @@ Goal: Provide a way to format XML programmatically, potentially leveraging the C
 
 ## 🛠️ Infrastructure & Testing
 - [ ] **Performance Benchmarks**: Add benchmarks for `update_input` with large files.
-- [ ] **Transaction Tests**: Verify atomic updates.
-- [ ] **Mapping & Fidelity Tests**: Ensure AST->CST modifications (if any) or updates don't lose unrelated whitespace.
+- [x] **Transaction Tests**: Verify atomic updates.
+- [x] **Mapping & Fidelity Tests**: Ensure AST->CST modifications (if any) or updates don't lose unrelated whitespace.
 
 ## 🔮 Future: WYSIWYG & Bidirectional Sync
 - [ ] **Atomic Operations**: Ensure reliable undo/redo.
