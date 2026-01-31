@@ -57,11 +57,11 @@ Proceed with the implementation based on the decision made in Phase 0.
 
 Regardless of the chosen path, the system must handle namespaces and source synchronization robustly.
 
-- [ ] **Namespace Support**:
-    - [ ] Implement `namespaceURI`, `prefix`, `localName` support in the AST.
-    - [ ] **Unknown Element Handling**: Ensure elements from unknown namespaces are preserved in the source but treated as generic nodes in the AST.
-- [ ] **Fidelity Verification**:
-    - [ ] Add rigorous tests to ensure round-trip editing (Source -> AST -> Source) changes *only* the intended parts and preserves all other formatting.
+- [x] **Namespace Support**:
+    - [x] Implement `namespaceURI`, `prefix`, `localName` support in the AST.
+    - [x] **Unknown Element Handling**: Ensure elements from unknown namespaces are preserved in the source but treated as generic nodes in the AST.
+- [x] **Fidelity Verification**:
+    - [x] Add rigorous tests to ensure round-trip editing (Source -> AST -> Source) changes *only* the intended parts and preserves all other formatting.
 
 ## Phase 3: Demonstration Application
 

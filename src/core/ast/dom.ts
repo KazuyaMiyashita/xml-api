@@ -7,6 +7,13 @@ import {
   ModelText,
 } from "../model/xml-api-model";
 
+export interface DOMObserver {
+  onAttributeChange(element: Element, name: string, value: string | null): void;
+  onTextChange(node: CharacterData, text: string): void;
+  onChildAdded(parent: Node, child: Node, index: number): void;
+  onChildRemoved(parent: Node, child: Node, index: number): void;
+}
+
 /**
  * Base class for all DOM nodes.
  * Implements a subset of the W3C Node interface.
@@ -28,9 +35,6 @@ export abstract class Node {
 
   get parentNode(): Node | null {
     if (!this.model.parent) return null;
-    // In a real DOM, we would need to ensure identity consistency (same wrapper for same model).
-    // For now, we create new wrappers on the fly, which is inefficient but functional for Phase 1.
-    // To fix identity, we would need a WeakMap cache in the Document.
     return createWrapper(this.model.parent, this.ownerDocument);
   }
 
@@ -87,24 +91,37 @@ export abstract class Node {
 
   set textContent(value: string | null) {
     const val = value || "";
-    if (this.model instanceof ModelText) this.model.text = val;
-    else if (this.model instanceof ModelComment) this.model.content = val;
-    else if (this.model instanceof ModelCDATA) this.model.content = val;
+    
+    if (this.model instanceof ModelText) {
+      this.model.text = val;
+      this.ownerDocument?.notifyTextChange(this as any as CharacterData, val);
+    }
+    else if (this.model instanceof ModelComment) {
+      this.model.content = val;
+      this.ownerDocument?.notifyTextChange(this as any as CharacterData, val);
+    }
+    else if (this.model instanceof ModelCDATA) {
+      this.model.content = val;
+      this.ownerDocument?.notifyTextChange(this as any as CharacterData, val);
+    }
     else if (this.model instanceof ModelElement) {
       this.model.children = [];
       if (val) {
-        this.model.addChild(new ModelText(val));
+        const textNode = new ModelText(val);
+        this.model.addChild(textNode);
+        // Notification for element textContent set is complex (removes children)
+        // For now, we assume this is handled by re-parsing if needed or generic update.
       }
     }
   }
 
   appendChild<T extends Node>(newChild: T): T {
     if (this.model instanceof ModelElement) {
-      // If newChild is already in the tree, remove it first (not implemented yet for simplicity)
       this.model.addChild(newChild.getModel());
-      // Update the wrapper's ownerDocument
-      // @ts-ignore - protected access
+      // @ts-ignore
       newChild.ownerDocument = this.ownerDocument;
+      
+      this.ownerDocument?.notifyChildAdded(this, newChild, this.model.children.length - 1);
       return newChild;
     }
     throw new Error("HierarchyRequestError");
@@ -191,16 +208,42 @@ export class Element extends Node {
     return this.model.tagName;
   }
 
+  get prefix(): string | null {
+    const parts = this.model.tagName.split(":");
+    return parts.length > 1 ? parts[0] : null;
+  }
+
+  get localName(): string {
+    const parts = this.model.tagName.split(":");
+    return parts.length > 1 ? parts[1] : parts[0];
+  }
+
+  get namespaceURI(): string | null {
+    const prefix = this.prefix;
+    const xmlnsKey = prefix ? `xmlns:${prefix}` : "xmlns";
+    
+    let current: ModelElement | null = this.model;
+    while (current) {
+      if (current.attributes.has(xmlnsKey)) {
+        return current.attributes.get(xmlnsKey) || null;
+      }
+      current = current.parent;
+    }
+    return null;
+  }
+
   getAttribute(name: string): string | null {
     return this.model.attributes.get(name) ?? null;
   }
 
   setAttribute(name: string, value: string): void {
     this.model.attributes.set(name, value);
+    this.ownerDocument?.notifyAttributeChange(this, name, value);
   }
 
   removeAttribute(name: string): void {
     this.model.attributes.delete(name);
+    this.ownerDocument?.notifyAttributeChange(this, name, null);
   }
 
   hasAttribute(name: string): boolean {
@@ -222,6 +265,7 @@ export class Element extends Node {
 
 export class Document extends Node {
   private _documentElement: Element | null = null;
+  private observer: DOMObserver | null = null;
 
   constructor() {
     // Document doesn't strictly have a ModelNode parent in this simplified architecture
@@ -229,6 +273,22 @@ export class Document extends Node {
     // For now, we'll create a dummy root model or handle it differently
     super(new ModelElement("#document"), null);
     this.ownerDocument = this; // Document owns itself
+  }
+  
+  setObserver(observer: DOMObserver) {
+    this.observer = observer;
+  }
+  
+  notifyAttributeChange(element: Element, name: string, value: string | null) {
+    this.observer?.onAttributeChange(element, name, value);
+  }
+  
+  notifyTextChange(node: CharacterData, text: string) {
+    this.observer?.onTextChange(node, text);
+  }
+  
+  notifyChildAdded(parent: Node, child: Node, index: number) {
+    this.observer?.onChildAdded(parent, child, index);
   }
 
   get nodeType(): number {

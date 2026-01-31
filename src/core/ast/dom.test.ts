@@ -152,4 +152,52 @@ describe("Custom DOM Wrapper", () => {
       expect(subFromChild).not.toBeNull();
     });
   });
+
+  describe("Namespace Support", () => {
+    it("should handle prefix and localName", () => {
+      const el = doc.createElement("svg:circle");
+      expect(el.prefix).toBe("svg");
+      expect(el.localName).toBe("circle");
+      
+      const el2 = doc.createElement("div");
+      expect(el2.prefix).toBeNull();
+      expect(el2.localName).toBe("div");
+    });
+
+    it("should resolve namespaceURI", () => {
+      const root = doc.createElement("root");
+      root.setAttribute("xmlns:svg", "http://www.w3.org/2000/svg");
+      root.setAttribute("xmlns", "http://example.com/default");
+      doc.documentElement = root;
+      
+      const circle = doc.createElement("svg:circle");
+      root.appendChild(circle);
+      
+      const div = doc.createElement("div");
+      root.appendChild(div);
+      
+      const orphan = doc.createElement("svg:rect"); // No parent
+      
+      expect(circle.namespaceURI).toBe("http://www.w3.org/2000/svg");
+      expect(div.namespaceURI).toBe("http://example.com/default");
+      expect(orphan.namespaceURI).toBeNull();
+    });
+    
+    it("should resolve nested namespaceURI", () => {
+      const root = doc.createElement("root");
+      root.setAttribute("xmlns", "http://root.com");
+      doc.documentElement = root;
+      
+      const child = doc.createElement("child");
+      child.setAttribute("xmlns", "http://child.com");
+      root.appendChild(child);
+      
+      const grandChild = doc.createElement("item");
+      child.appendChild(grandChild);
+      
+      expect(root.namespaceURI).toBe("http://root.com");
+      expect(child.namespaceURI).toBe("http://child.com"); // Shadowing
+      expect(grandChild.namespaceURI).toBe("http://child.com"); // Inherited from child
+    });
+  });
 });
