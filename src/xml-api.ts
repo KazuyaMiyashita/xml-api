@@ -1,9 +1,9 @@
-import { CST } from './xml-cst';
-import { AST } from './xml-ast';
-import { Grammar } from './grammar';
-import { Parser } from './parser';
-import { grammar as defaultGrammar } from './xml-grammar';
-import { convert as defaultConverter } from './xml-converter';
+import { CST } from "./xml-cst";
+import { AST } from "./xml-ast";
+import { Grammar } from "./grammar";
+import { Parser } from "./parser";
+import { grammar as defaultGrammar } from "./xml-grammar";
+import { convert as defaultConverter } from "./xml-converter";
 
 export type Converter = (node: CST, input: string) => AST | string | null;
 
@@ -19,9 +19,9 @@ export class XMLAPI {
   public ast: AST | null = null;
 
   constructor(
-    input: string, 
-    grammar: Grammar = defaultGrammar, 
-    converter: Converter = defaultConverter
+    input: string,
+    grammar: Grammar = defaultGrammar,
+    converter: Converter = defaultConverter,
   ) {
     this.input = input;
     this.grammar = grammar;
@@ -56,17 +56,17 @@ export class XMLAPI {
 
   /**
    * Updates the input text and refreshes the CST/AST.
-   * 
+   *
    * - `update_input` is defined only when `from <= to` and both indices are within the range of the original `input` string.
    * - The state of the `XMLAPI` instance after calling `update_input(from, to, value)` **MUST** be identical to the state of a `new XMLAPI(input.slice(0, from) + value + input.slice(to))` instance.
    * - The implementation **SHOULD** perform incremental updates by re-parsing only the affected sub-tree and avoiding a full re-parse unless structural changes necessitate it, ensuring the operation remains inexpensive.
-   * 
+   *
    * NOTE: Currently, it first attempts an efficient incremental update by finding the smallest node covering the change and re-parsing it.
    * If the re-parsed node's length doesn't match the expected structural boundaries (implying the change affected surrounding nodes),
    * it expands the search to parent nodes. If even the root re-parse fails to match boundaries, it falls back to a full re-parse.
-   * 
+   *
    * TODO: Validate that `from` and `to` are within bounds and `from <= to`.
-   * 
+   *
    * @param from Start offset of the change.
    * @param to End offset of the change.
    * @param value New text to insert.
@@ -80,9 +80,9 @@ export class XMLAPI {
     if (this.cst) {
       // 1. Shift existing positions
       this.cst.shift(from, delta);
-      
+
       // 2. Try incremental re-parse
-      // We try to update the tree in-place. 
+      // We try to update the tree in-place.
       // If we fail to update even the root, cst becomes null.
       const success = this.tryIncrementalUpdate(from, newEnd);
       if (!success) {
@@ -101,14 +101,14 @@ export class XMLAPI {
 
   /**
    * Attempts to update the CST incrementally by re-parsing only the affected part of the tree.
-   * 
+   *
    * Strategy:
    * 1. Find the deepest node that fully contains the changed range.
    * 2. Traverse up from that node to find a "stable" ancestor (one that represents a named rule).
    * 3. Attempt to re-parse that ancestor's rule with the new input.
    * 4. If parsing succeeds and the new node length matches the old node's shifted length (preserving structure),
    *    replace the old node with the new one.
-   * 
+   *
    * @returns true if the incremental update was successful, false otherwise.
    */
   private tryIncrementalUpdate(from: number, to: number): boolean {
@@ -116,41 +116,45 @@ export class XMLAPI {
 
     // Start search from the smallest node touching the change
     let target: CST | null = this.findNodeAt(from, to);
-    
-    // Iterate up the tree until we find a node that can successfully re-parse 
+
+    // Iterate up the tree until we find a node that can successfully re-parse
     // and accommodate the change (size matches).
     while (target) {
-        // We can only re-parse named nodes (rules)
-        if (target.name) {
-             const result = this.parser.parseAt(this.input, target.start, target.name);
-             
-             // Check if parse was successful AND the new node's length matches the 
-             // expected length of the target node (which has been shifted).
-             // If length matches, it means the change is contained within this node's boundaries.
-             if (result && result.end === target.end) {
-                 // Success! Replace target with result.node
-                 if (target.parent) {
-                     const index = target.parent.children.indexOf(target);
-                     if (index !== -1) {
-                         target.parent.children[index] = result.node;
-                         result.node.parent = target.parent;
-                         this.updateAncestorsWellFormed(result.node);
-                         return true;
-                     }
-                 } else {
-                     // We replaced the root node
-                     this.cst = result.node;
-                     // Root has no ancestors to update
-                     return true;
-                 }
-             }
+      // We can only re-parse named nodes (rules)
+      if (target.name) {
+        const result = this.parser.parseAt(
+          this.input,
+          target.start,
+          target.name,
+        );
+
+        // Check if parse was successful AND the new node's length matches the
+        // expected length of the target node (which has been shifted).
+        // If length matches, it means the change is contained within this node's boundaries.
+        if (result && result.end === target.end) {
+          // Success! Replace target with result.node
+          if (target.parent) {
+            const index = target.parent.children.indexOf(target);
+            if (index !== -1) {
+              target.parent.children[index] = result.node;
+              result.node.parent = target.parent;
+              this.updateAncestorsWellFormed(result.node);
+              return true;
+            }
+          } else {
+            // We replaced the root node
+            this.cst = result.node;
+            // Root has no ancestors to update
+            return true;
+          }
         }
-        
-        // If we couldn't parse or boundaries didn't match, try the parent.
-        // This effectively expands the scope of re-parsing.
-        target = target.parent;
+      }
+
+      // If we couldn't parse or boundaries didn't match, try the parent.
+      // This effectively expands the scope of re-parsing.
+      target = target.parent;
     }
-    
+
     // If we reached here, even re-parsing the root failed (or matched wrong length).
     return false;
   }

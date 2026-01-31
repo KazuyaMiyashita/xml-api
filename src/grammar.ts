@@ -1,8 +1,8 @@
-import { CST } from './xml-cst';
+import { CST } from "./xml-cst";
 
 /**
  * A function that performs semantic or contextual validation on a parsed CST node.
- * 
+ *
  * It is used to enforce rules that cannot be easily expressed by the grammar itself,
  * such as matching start and end tag names or ensuring attribute uniqueness.
  * If it returns false, the node's `wellFormed` flag is set to false, but the
@@ -16,46 +16,74 @@ export type Validator = (node: CST, input: string) => boolean;
  */
 export type Expression =
   /** Matches a specific exact string. */
-  | { type: 'Literal', value: string }
+  | { type: "Literal"; value: string }
   /** Matches a regular expression pattern. */
-  | { type: 'RegExpMatch', pattern: string }
+  | { type: "RegExpMatch"; pattern: string }
   /** Matches multiple expressions in order (AND). */
-  | { type: 'Sequence', expressions: Expression[] }
+  | { type: "Sequence"; expressions: Expression[] }
   /** Matches any one of the provided expressions (OR). */
-  | { type: 'Choice', expressions: Expression[] }
+  | { type: "Choice"; expressions: Expression[] }
   /** Matches an expression repeated a specified number of times. */
-  | { type: 'Repeat', expression: Expression, min: number, max: number }
+  | { type: "Repeat"; expression: Expression; min: number; max: number }
   /** Matches expression A, provided that expression B does not match (negation/exclusion). */
-  | { type: 'Exclusion', a: Expression, b: Expression }
+  | { type: "Exclusion"; a: Expression; b: Expression }
   /** Invokes another named rule (used for recursive definitions). */
-  | { type: 'Reference', name: string };
+  | { type: "Reference"; name: string };
 
 // Combinators
 
 /** Defines a literal string match. */
-export const lit = (value: string): Expression => ({ type: 'Literal', value });
+export const lit = (value: string): Expression => ({ type: "Literal", value });
 /** Defines a regular expression match. */
-export const reg = (pattern: string): Expression => ({ type: 'RegExpMatch', pattern });
+export const reg = (pattern: string): Expression => ({
+  type: "RegExpMatch",
+  pattern,
+});
 /** Defines a sequence of matches in order. */
-export const seq = (...expressions: Expression[]): Expression => ({ type: 'Sequence', expressions });
+export const seq = (...expressions: Expression[]): Expression => ({
+  type: "Sequence",
+  expressions,
+});
 /** Defines a choice between multiple alternatives. */
-export const alt = (...expressions: Expression[]): Expression => ({ type: 'Choice', expressions });
+export const alt = (...expressions: Expression[]): Expression => ({
+  type: "Choice",
+  expressions,
+});
 /** Zero or more repetitions (equivalent to `*` in EBNF). */
-export const rep = (expression: Expression): Expression => ({ type: 'Repeat', expression, min: 0, max: Infinity });
+export const rep = (expression: Expression): Expression => ({
+  type: "Repeat",
+  expression,
+  min: 0,
+  max: Infinity,
+});
 /** One or more repetitions (equivalent to `+` in EBNF). */
-export const plus = (expression: Expression): Expression => ({ type: 'Repeat', expression, min: 1, max: Infinity });
+export const plus = (expression: Expression): Expression => ({
+  type: "Repeat",
+  expression,
+  min: 1,
+  max: Infinity,
+});
 /** Zero or one occurrence (equivalent to `?` in EBNF, optional). */
-export const opt = (expression: Expression): Expression => ({ type: 'Repeat', expression, min: 0, max: 1 });
+export const opt = (expression: Expression): Expression => ({
+  type: "Repeat",
+  expression,
+  min: 0,
+  max: 1,
+});
 /** Matches A but excludes B (e.g., matching PITarget as a Name excluding "xml"). */
-export const exc = (a: Expression, b: Expression): Expression => ({ type: 'Exclusion', a, b });
+export const exc = (a: Expression, b: Expression): Expression => ({
+  type: "Exclusion",
+  a,
+  b,
+});
 /** References another rule by its name. */
-export const ref = (name: string): Expression => ({ type: 'Reference', name });
+export const ref = (name: string): Expression => ({ type: "Reference", name });
 
 export class Grammar {
   constructor(
     public readonly rules: { [key: string]: Expression },
     public readonly validators: { [key: string]: Validator },
-    public readonly rootRule: string
+    public readonly rootRule: string,
   ) {}
 }
 
