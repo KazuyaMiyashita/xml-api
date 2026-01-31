@@ -1,81 +1,150 @@
 # XML API
 
-TypeScript で実装された、**WYSIWYG エディタや IDE のための基盤**となる XML パーサー・操作 API です。
+This project provides a foundational XML parser and manipulation API designed for WYSIWYG editors and Integrated Development Environments (IDEs). It aims to achieve both intuitive application operation and full fidelity of the source code. By maintaining a bidirectional synchronization between the application view and the source code, it ensures high performance and data integrity.
 
-「アプリケーションからの直感的な操作」と「ソースコードの完全な忠実性（Full Fidelity）」を両立させることを目的としており、パース結果の抽象構文木（AST）と生の構文木（CST）を高度にリンクさせることで、高速かつ堅牢な双方向同期（Bidirectional Sync）を実現します。
+## Project Goals
 
-## 🎯 プロジェクトのゴール
+The project aims to provide an editing infrastructure that satisfies the following requirements.
 
-本プロジェクトは、以下の要件を満たす **"Perfect Round-Trip"** な編集基盤を目指しています。
+1.  Intuitive Operation: The application layer can manipulate XML using an interface similar to the Document Object Model (DOM).
+2.  Full Fidelity: Automated edits must not alter any whitespace, indentation, or comments in parts of the code that are not explicitly modified.
+3.  Bidirectional Synchronization:
+    *   Source to Application: Edits in the source code are reflected in the application model immediately.
+    *   Application to Source: Operations in the application are converted into minimal text patches for the source code, preserving existing formatting.
+4.  Domain Suitability: The system recognizes schema-specific rules, such as void elements in XHTML5, to ensure valid edits.
 
-1.  **直感的な操作**: アプリケーション層（WYSIWYGエディタ等）は、DOMのような単純な API で XML を操作できる。
-2.  **完全な忠実性 (Full Fidelity)**: プログラムによる編集が行われても、**変更されていない箇所の空白、インデント、コメントは 1バイトたりとも変更しない**。
-3.  **双方向のリアルタイム同期**:
-    *   **Source -> App**: テキストエディタでのソース編集を、瞬時に AST に反映しアプリに通知する（増分パース）。
-    *   **App -> Source**: アプリ上での操作（ノード移動、属性変更）を、ソースコードへの**最小限のテキストパッチ**に変換し、フォーマットを崩さずに適用する。
+## Architecture
 
-## 🏗 アーキテクチャ (Target Architecture)
+The project adopts a three-layer architecture to separate the concerns of text fidelity and operational ease.
 
-本プロジェクトは、最終的に以下の **3層構造 (Three-Layer Architecture)** への到達を目指しています。
-これにより、「保存されたテキストの正確さ」と「編集のしやすさ」という相反する要件を完全に分離・解決します。
+### Layer Structure
 
-### Level 1: CST (Concrete Syntax Tree) - *The Source of Truth*
-*   **役割**: ソースコードの完全な構造化表現。
-*   **責務**: 空白、改行、コメント、属性の引用符の種類など、**テキスト上のすべての情報を保持**します。
-*   **不変性**: ユーザーが明示的に変更しない限り、この層の情報は一切失われません。フォーマッターはこの層を尊重します。
+| Layer | Name | Role | Configuration |
+| :--- | :--- | :--- | :--- |
+| CST Layer | CST | Represents the physical structure of the source code. | Grammar |
+| XML API Layer | XMLAPIModel | Represents the logical model and manages state. | XMLSchema |
+| AST Layer | AST | Represents the view model for the application. | - |
 
-### Level 2: Intermediate Representation (IR) - *The Semantic Bridge*
-*   **役割**: 構文（Level 1）とアプリケーションモデル（Level 3）の間の「意味的マッピング」と「状態管理」。
-*   **責務**:
-    *   **Identity & Tracking**: ノードに永続的な ID を割り当て、移動や変更を追跡します。
-    *   **Bi-directional Mapping**: CST の「どの範囲」が、AST の「どのノード」に対応するかを厳密に管理します。
-    *   **Abstraction**: `<br />` と `<br></br>` のような構文上の差異を吸収し、同一の意味として扱えるようにします。
+### Layer Details
 
-### Level 3: Application AST - *The View Model*
-*   **役割**: アプリケーション（エディタUIなど）が扱う純粋なデータモデル。
-*   **責務**: DOM に近い、シンプルで直感的な API を提供します。
-*   **隠蔽**: CST の複雑さ（位置情報、空白ノード）や IR の管理ロジックはこの層からは隠蔽され、開発者はビジネスロジックに集中できます。
+#### CST Layer: CST
+The Concrete Syntax Tree maintains all textual information including whitespace, newlines, comments, and attribute quote types. It corresponds directly to the parse result and holds positional information within the source text.
 
----
+#### XML API Layer: XMLAPIModel
+The XMLAPIModel serves as the authoritative model for the system. It resolves the discrepancy between the CST and the AST. It assigns persistent identifiers to nodes to track movement and modification. It preserves formatting information to ensure that edits respect the original style of the code.
 
-### 💻 現在の実装状況 (Current Implementation)
+#### AST Layer: AST
+The Application Abstract Syntax Tree is the data model used by the application. It provides a simplified interface with properties such as tag names, attributes, and children. It hides the complexity of the CST and the internal management logic of the XMLAPIModel.
 
-現在は過渡期として、**Level 2 (IR) と Level 3 (Application AST) を統合した "Enhanced AST"** パターンを採用しています。
+## System Components
 
-1.  **Parser Core**: `parser.ts`, `grammar.ts`
-2.  **CST (Level 1)**: `xml-cst.ts` - 完全な情報を保持。
-3.  **Enhanced AST (Level 2+3)**: `xml-ast.ts`
-    *   `AST` クラスが直接 `.cst` プロパティを持ち、Level 1 への参照を保持することでマッピングを実現しています。
-4.  **Incremental Engine**: アトミックな部分更新トランザクション。
-5.  **Formatter**: AST からの出力生成。
+The system is organized around the XMLAPI, which acts as a mediator.
 
-今後の開発で複雑度が増すにつれ、Enhanced AST から IR 層（Level 2）を分離・独立させていくロードマップを描いています。
+### Component Map
 
-### ディレクトリ構成
+```mermaid
+graph TD
+    User["Application"]
+
+    subgraph "XML API System Boundary"
+        Mediator["XMLAPI"]
+
+        subgraph "CST Layer"
+            Parser["Parser Engine"]
+            CST["CST Data"]
+        end
+
+        subgraph "XML API Layer"
+            Binder["XMLBinder"]
+            Model["XMLAPIModel"]
+            Schema["XMLSchema"]
+        end
+        
+        subgraph "AST Layer"
+            AST["AST Data"]
+        end
+    end
+
+    %% External Access
+    User <==>|"Init / Operation / Event"| Mediator
+
+    %% Mediation Flows
+    Mediator -- "1. Parse" --> Parser
+    Parser -- "return CST" --> Mediator
+    
+    Mediator -- "2. Validate" --> Schema
+    
+    Mediator -- "3. Hydrate" --> Binder
+    Binder -- "return Model" --> Mediator
+    
+    Mediator -- "4. Project" --> Binder
+    Binder -- "return AST" --> Mediator
+
+    Mediator -- "Manage" --> Model
+    Mediator -- "Expose" --> AST
+```
+
+### Component Descriptions
+
+1.  XMLAPI: The central mediator and controller. It manages the lifecycle of the system and serves as the single entry point for external applications. It orchestrates the flow of data between the Parser, Binder, and Schema.
+2.  XMLBinder: A logic engine that handles data synchronization and transformation. It performs hydration from CST to Model, reconciliation of changes, and generation of text patches. It does not maintain state.
+3.  XMLAPIModel: The data structure definition for the logical model managed by the XMLAPI. It holds data and state but does not contain business logic.
+4.  Parser: An engine that parses input strings into a CST based on the defined Grammar.
+5.  XMLSchema: A definition of validation rules specific to the application domain.
+
+## Validation Scenarios
+
+This section describes how the architecture fulfills the requirements through specific use cases.
+
+### Scenario 1: Initialization
+When the application starts, the XMLAPI initializes the system using the provided source code and XMLSchema. The Mediator invokes the Parser to generate the CST, then uses the Binder to hydrate the XMLAPIModel and project the AST.
+
+### Scenario 2: Source Synchronization
+When the user edits the source code, the XMLAPI performs an incremental parse to update the CST. The Binder reconciles the changes with the existing XMLAPIModel, preserving node identity. The updated model is then projected to the AST, and the application is notified of the changes.
+
+### Scenario 3: Application Synchronization
+When the user modifies the AST, such as adding an attribute, the XMLAPI resolves the corresponding XMLAPIModel node. The Binder calculates a minimal text patch based on the formatting information in the model. The XMLAPI applies this patch to the source code.
+
+### Scenario 4: Node Movement
+When a node is moved within the application, the Binder calculates a patch that removes the node from its original location and inserts it at the new location. The Binder adjusts indentation to match the new context.
+
+## Directory Structure
 
 ```
 .
 ├── src/
-│   ├── main.ts                  # デモ・エントリーポイント
-│   ├── xml-api.ts               # API ファサード
-│   ├── parser.ts                # パースエンジン
-│   ├── grammar.ts               # 文法構築
-│   ├── xml-cst.ts               # [Level 1] CST 定義
-│   ├── xml-ast.ts               # [Level 2+3] AST 定義 (Enhanced)
-│   ├── xml-converter.ts         # CST -> AST 変換・マッピング
-│   ├── formatter.ts             # XML 出力
-│   ├── xml-grammar.ts           # 文法定義
-│   └── *.test.ts                # テスト
+│   ├── main.ts
+│   ├── xml-api.ts
+│   │
+│   ├── cst/
+│   │   ├── parser.ts
+│   │   ├── grammar.ts
+│   │   ├── xml-grammar.ts
+│   │   └── xml-cst.ts
+│   │
+│   ├── model/
+│   │   ├── xml-api-model.ts
+│   │   ├── xml-binder.ts
+│   │   ├── xml-schema.ts
+│   │   └── formatter.ts
+│   │
+│   └── ast/
+│       └── xml-ast.ts
 ```
 
-## 🔄 同期メカニズム（実装済み）
+## Development Guide
 
-### Source to AST (Incremental Update)
-ユーザーがソースコードを編集した際、`update_input(from, to, text)` が呼び出されます。
-1.  **再パース**: 変更範囲を含む最小の CST ノードを特定し、その部分だけを再パースします。
-2.  **CST 更新**: パース成功時のみ、ツリーを差し替えます（アトミック更新）。
-3.  **AST 追従**: 変更された CST ノードに対応する AST ノードのみを再生成し、オブジェクトの参照（Identity）を保ったまま中身を更新します。これにより、アプリ側の再レンダリングを最小化します。
+### Directory Structure Strategy
 
----
+To balance stability and experimental refactoring, we use a separated directory structure.
 
-*今後の開発ロードマップについては [TODO.md](./TODO.md) を参照してください。*
+*   `src/core/`: Contains the stable, production-ready code organized by the 3-layer architecture (CST, Model, AST).
+    *   Rule: Changes here must always pass `pnpm test`.
+*   `src/experiments/`: Contains experimental code (`minimum-*.ts`) and prototypes for large-scale changes.
+    *   Rule: Use this space for "wip" features. It is isolated from the core test suite. To test safe refactoring, copy core files here, modify them, and verify, before merging back to core.
+
+### Testing Commands
+
+*   `pnpm test`: Runs tests for the stable `src/core/` directory. Use this for standard development and CI.
+*   `pnpm test:wip`: Runs tests for `src/experiments/`. Use this when iterating on experimental features.
+*   `pnpm test:all`: Runs all tests.
