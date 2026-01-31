@@ -10,6 +10,11 @@ export function convert(node: CST, input: string): AST | string {
   }
 
   if (node.name === "element" || node.name === "document") {
+    let cstNode = node;
+    if (node.name === "document" && node.children.length === 1) {
+      cstNode = node.children[0];
+    }
+
     // Find the actual element structure (either EmptyElemTag or STag sequence)
     let elementStructure = structural;
     if (
@@ -28,6 +33,7 @@ export function convert(node: CST, input: string): AST | string {
       const content = elementStructure.children[1];
 
       const elem = parseTag(stag, input);
+      elem.cst = cstNode;
 
       // Process content
       const contentNodes = convertContent(content, input);
@@ -46,7 +52,9 @@ export function convert(node: CST, input: string): AST | string {
         elementStructure.children[0].type === "literal" &&
         elementStructure.children[0].getText(input) === "<")
     ) {
-      return parseTag(elementStructure, input);
+      const elem = parseTag(elementStructure, input);
+      elem.cst = cstNode;
+      return elem;
     }
   }
 

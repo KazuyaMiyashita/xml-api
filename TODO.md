@@ -15,11 +15,11 @@ Goal: Delay shifting until the incremental update is confirmed successful.
 ## 🏗️ Architecture Evolution: Intermediate AST & Fidelity
 Goal: Bridge the gap between the raw CST (formatting/whitespace rich) and the high-level AST (application logic).
 
-- [ ] **Design 3-Layer Structure (Potential)**:
+- [x] **Design 3-Layer Structure (Potential)**:
     - **Application AST**: Pure data for the user (existing `AST` might evolve into this or stay as is).
     - **Intermediate/Mapped AST**: A structure managed by `XMLAPI` that holds both semantic data and links to `CST` (positions, formatting).
     - **CST**: Raw parse tree.
-- [ ] **Enhanced AST / Identity Mapping**:
+- [x] **Enhanced AST / Identity Mapping**:
     - Modify the AST (or implement the Intermediate layer) to hold position information or direct references to CST nodes.
     - **Constraint**: Must allow preserving original CST details (whitespace, indentation) when converting back or modifying.
 

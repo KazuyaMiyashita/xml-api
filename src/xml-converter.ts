@@ -58,6 +58,7 @@ export function convert(node: CST, input: string): AST | string | null {
       const content = structural.children[1];
 
       const elem = parseTag(stag, input);
+      elem.cst = node;
       const contentStructural = content.unwrap();
 
       // content rule: seq(opt(CharData), rep(seq(alt(...), opt(CharData))))
@@ -94,7 +95,9 @@ export function convert(node: CST, input: string): AST | string | null {
       structural.children[0].type === "literal" &&
       structural.children[0].getText(input) === "<"
     ) {
-      return parseTag(node, input);
+      const elem = parseTag(node, input);
+      elem.cst = node;
+      return elem;
     }
 
     // If it's just a wrapper
