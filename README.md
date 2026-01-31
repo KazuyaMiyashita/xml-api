@@ -48,13 +48,13 @@ This approach involves projecting the CST/Model directly into a native `XMLDocum
 *   **Pros**: Full compatibility with standard Web APIs (XPath, QuerySelector, etc.) out of the box.
 *   **Cons**: Potential loss of formatting fidelity (whitespace, attribute quotes) due to native parser normalization. Synchronization of mutations back to the source is complex.
 
-#### Option B: DOM-Compatible Custom AST
+#### Option B: DOM-Compatible Custom AST (Selected)
 
 This approach involves implementing a custom AST that mimics the W3C DOM interfaces (`Node`, `Element`, `Document`) but is backed internally by the `XMLAPIModel`.
-*   **Pros**: Full control over fidelity and source mapping. Direct linkage to the CST.
-*   **Cons**: Requires reimplementing standard DOM methods and traversal logic. XPath support needs to be polyfilled or implemented manually.
+*   **Pros**: Full control over fidelity and source mapping. Direct linkage to the CST. High performance.
+*   **Cons**: Requires reimplementing standard DOM methods and traversal logic.
 
-*A detailed Feasibility Report and the final decision will be documented here upon completion of Phase 0.*
+**Decision**: Option B was selected because it is the only approach that guarantees the "Full Fidelity" requirement. Native DOM implementations (Option A) were found to normalize formatting during serialization, which is unacceptable for this project's goals. See `docs/architecture_comparison.md` for details.
 
 ## System Components
 

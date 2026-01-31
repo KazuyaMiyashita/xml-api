@@ -18,26 +18,26 @@ For each checklist item below, strictly follow this cycle:
 
 Investigate and compare two potential architectures for the AST layer to maximize compatibility with standard Web APIs while maintaining source fidelity.
 
-- [ ] **Option A: Native DOM Integration (jsdom/xmldom)**
-    - [ ] **Investigate**: Check capabilities of `jsdom` (or standard Browser DOM) regarding whitespace preservation and source mapping.
-    - [ ] **Prototype**: Create `src/experiments/native-dom-adapter.ts`.
-        - [ ] Implement logic to project `XMLAPIModel` into a live `XMLDocument`.
-        - [ ] Verify if the native parser/serializer preserves `CST` fidelity (whitespace, attribute quotes) perfectly.
-        - [ ] Implement a prototype for syncing DOM mutations (MutationObserver) back to `XMLAPIModel`.
-    - [ ] **Evaluation**: Assess fidelity risks, performance cost (double parsing), and dependency overhead.
+- [x] **Option A: Native DOM Integration (jsdom/xmldom)**
+    - [x] **Investigate**: Check capabilities of `jsdom` (or standard Browser DOM) regarding whitespace preservation and source mapping.
+    - [x] **Prototype**: Create `src/experiments/native-dom-adapter.ts`.
+        - [x] Implement logic to project `XMLAPIModel` into a live `XMLDocument`.
+        - [x] Verify if the native parser/serializer preserves `CST` fidelity (whitespace, attribute quotes) perfectly.
+        - [x] Implement a prototype for syncing DOM mutations (MutationObserver) back to `XMLAPIModel`.
+    - [x] **Evaluation**: Assess fidelity risks, performance cost (double parsing), and dependency overhead.
 
-- [ ] **Option B: Custom DOM-like Wrapper (Duck Typing)**
-    - [ ] **Prototype**: Create `src/experiments/dom-wrapper-impl.ts`.
-        - [ ] Create wrapper classes that implement standard `Node`, `Element`, and `Document` interfaces backed directly by `XMLAPIModel`.
-        - [ ] Implement traversal (`parentNode`, `nextSibling`) and manipulation (`setAttribute`, `appendChild`) logic.
-    - [ ] **Evaluation**: Assess implementation effort, API coverage correctness, and runtime efficiency.
+- [x] **Option B: Custom DOM-like Wrapper (Duck Typing)**
+    - [x] **Prototype**: Create `src/experiments/dom-wrapper-impl.ts`.
+        - [x] Create wrapper classes that implement standard `Node`, `Element`, and `Document` interfaces backed directly by `XMLAPIModel`.
+        - [x] Implement traversal (`parentNode`, `nextSibling`) and manipulation (`setAttribute`, `appendChild`) logic.
+    - [x] **Evaluation**: Assess implementation effort, API coverage correctness, and runtime efficiency.
 
-- [ ] **Decision & Reporting**
-    - [ ] **Report**: Create a comprehensive report (`docs/architecture_comparison.md`) summarizing the findings.
-        - [ ] Comparison of Fidelity (Can it preserve the original source exactly?)
-        - [ ] Comparison of Compatibility (Can it run standard XPath/QuerySelector?)
-        - [ ] Comparison of Complexity (Maintenance cost).
-    - [ ] **Decision**: Choose the final architecture and update `README.md` to reflect the decision.
+- [x] **Decision & Reporting**
+    - [x] **Report**: Create a comprehensive report (`docs/architecture_comparison.md`) summarizing the findings.
+        - [x] Comparison of Fidelity (Can it preserve the original source exactly?)
+        - [x] Comparison of Compatibility (Can it run standard XPath/QuerySelector?)
+        - [x] Comparison of Complexity (Maintenance cost).
+    - [x] **Decision**: Choose the final architecture and update `README.md` to reflect the decision.
 
 ## Phase 1: Implementation (Branching Paths)
 
