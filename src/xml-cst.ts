@@ -60,15 +60,35 @@ export class CST {
    * @param delta The change in length.
    */
   shift(pos: number, delta: number): void {
-    if (this.start >= pos) {
-      this.start += delta;
-    } else if (this.end > pos) {
-      // If the change is inside this node, its end must be shifted.
-      // But its start remains the same.
-    }
+    if (delta > 0) {
+      if (this.start >= pos) {
+        this.start += delta;
+      }
+      if (this.end >= pos) {
+        this.end += delta;
+      }
+    } else {
+      // For deletion, delta is negative.
+      // The deletion range in original coordinates is [pos, pos - delta).
+      const deleteEnd = pos - delta;
 
-    if (this.end >= pos) {
-      this.end += delta;
+      if (this.start >= deleteEnd) {
+        // Node started after the deletion; shift it back.
+        this.start += delta;
+      } else if (this.start > pos) {
+        // Node started inside the deletion region.
+        // It now starts at the deletion point.
+        this.start = pos;
+      }
+
+      if (this.end >= deleteEnd) {
+        // Node ended after the deletion; shift it back.
+        this.end += delta;
+      } else if (this.end > pos) {
+        // Node ended inside the deletion region.
+        // It now ends at the deletion point.
+        this.end = pos;
+      }
     }
 
     for (const child of this.children) {

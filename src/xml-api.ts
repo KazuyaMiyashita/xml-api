@@ -122,9 +122,13 @@ export class XMLAPI {
     while (target) {
       // We can only re-parse named nodes (rules)
       if (target.name) {
+        // If target is root, we must re-parse from 0 to cover potential prefix changes.
+        // Otherwise, use the target's (potentially shifted) start position.
+        const parseStart = target.parent ? target.start : 0;
+
         const result = this.parser.parseAt(
           this.input,
-          target.start,
+          parseStart,
           target.name,
         );
 
