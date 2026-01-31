@@ -4,10 +4,10 @@
 Current Issue: `update_input` performs `CST.shift` (O(N)) immediately, which is heavy for large files.
 Goal: Delay shifting until the incremental update is confirmed successful.
 
-- [ ] **Implement Coordinate Projection**:
+- [x] **Implement Coordinate Projection**:
     - Create a mechanism to calculate "projected" coordinates for nodes without modifying the actual CST.
     - Allow the parser/traverser to work with these projected coordinates during the trial phase of incremental parsing.
-- [ ] **Atomic `update_input` Transaction**:
+- [x] **Atomic `update_input` Transaction**:
     - Refactor `update_input` to use a "Transaction" concept.
     - The transaction should hold the pending change (from, to, text).
     - Only commit changes (apply shift and node replacement) to the main CST if the incremental parse succeeds.

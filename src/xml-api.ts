@@ -80,14 +80,12 @@ export class XMLAPI {
     this.input = oldInput.slice(0, from) + value + oldInput.slice(to);
 
     if (this.cst) {
-      // 1. Shift existing positions
-      this.cst.shift(from, delta);
-
-      // 2. Try incremental re-parse
-      // We try to update the tree in-place.
-      // If we fail to update even the root, we fall back to a full re-parse.
-      const success = this.tryIncrementalUpdate(from, newEnd);
+      // 1. Try incremental re-parse without shifting yet
+      // We pass 'to' (old end) because cst is still in old coordinates.
+      const success = this.tryIncrementalUpdate(from, to, delta);
       if (!success) {
+        // Fallback: Full re-parse
+        // (Old CST is discarded, so we don't need to shift it)
         this.cst = this.parse();
       }
     } else {
@@ -105,18 +103,21 @@ export class XMLAPI {
    * Attempts to update the CST incrementally by re-parsing only the affected part of the tree.
    *
    * Strategy:
-   * 1. Find the deepest node that fully contains the changed range.
+   * 1. Find the deepest node that fully contains the changed range (using old coordinates).
    * 2. Traverse up from that node to find a "stable" ancestor (one that represents a named rule).
    * 3. Attempt to re-parse that ancestor's rule with the new input.
-   * 4. If parsing succeeds and the new node length matches the old node's shifted length (preserving structure),
-   *    replace the old node with the new one.
+   * 4. If parsing succeeds and the new node length matches the expected length (old length + delta),
+   *    we commit the change: shift the tree and replace the node.
    *
+   * @param from Start offset of the change (old coordinate).
+   * @param to End offset of the change (old coordinate).
+   * @param delta Change in length (newLength - oldLength).
    * @returns true if the incremental update was successful, false otherwise.
    */
-  private tryIncrementalUpdate(from: number, to: number): boolean {
+  private tryIncrementalUpdate(from: number, to: number, delta: number): boolean {
     if (!this.cst) return false;
 
-    // Start search from the smallest node touching the change
+    // Start search from the smallest node touching the change (in old coordinates)
     let target: CST | null = this.findNodeAt(from, to);
 
     // Iterate up the tree until we find a node that can successfully re-parse
@@ -124,18 +125,25 @@ export class XMLAPI {
     while (target) {
       // We can only re-parse named nodes (rules)
       if (target.name) {
-        // If target is root, we must re-parse from 0 to cover potential prefix changes.
-        // Otherwise, use the target's (potentially shifted) start position.
+        // The node's start position is stable because target covers [from, to).
+        // So target.start <= from. The change happens at or after target.start.
+        // Thus, target.start in new input is same as old input.
         const parseStart = target.parent ? target.start : 0;
 
         const result = this.parser.parseAt(this.input, parseStart, target.name);
 
         // Check if parse was successful AND the new node's length matches the
-        // expected length of the target node (which has been shifted).
-        // If length matches, it means the change is contained within this node's boundaries.
-        if (result && result.end === target.end) {
-          // Success! Replace target with result.node
+        // expected length (old length + delta).
+        const expectedEnd = target.end + delta;
+
+        if (result && result.end === expectedEnd) {
+          // Success!
           if (target.parent) {
+            // Commit the shift now that we know we are keeping the tree.
+            this.cst.shift(from, delta);
+            
+            // target's coordinates are now updated by shift.
+            // Replace target with result.node
             const index = target.parent.children.indexOf(target);
             if (index !== -1) {
               target.parent.children[index] = result.node;
@@ -144,7 +152,8 @@ export class XMLAPI {
               return true;
             }
           } else {
-            // We replaced the root node
+            // We replaced the root node.
+            // No need to shift the old tree as we are replacing it entirely.
             this.cst = result.node;
             // Root has no ancestors to update
             return true;
@@ -153,7 +162,6 @@ export class XMLAPI {
       }
 
       // If we couldn't parse or boundaries didn't match, try the parent.
-      // This effectively expands the scope of re-parsing.
       target = target.parent;
     }
 
