@@ -165,8 +165,8 @@ export class XMLAPI {
     if (!this.cst) return null;
     let current = this.cst;
 
-    // Boundary check
-    if (from < current.start || to > current.end) return null;
+    // Boundary check removed to allow root re-parse for out-of-bounds changes (prepend/append)
+    // if (from < current.start || to > current.end) return null;
 
     // Simple descent to find the deepest node covering the range
     while (true) {
