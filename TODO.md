@@ -49,9 +49,12 @@ Implement functionality to convert operations from the application into minimal 
 
 - [ ] Patch Generation Logic:
     - [x] Implement logic in XMLBinder for setAttribute (attribute update/insertion).
-    - [ ] Implement logic for text updates.
+    - [x] Implement logic for text updates.
     - [ ] Implement logic for node replacement.
 - [ ] Operation API:
+    - [x] Implement setAttribute in XMLAPI.
+    - [ ] Implement updateText in XMLAPI.
+    - [ ] Implement replaceNode in XMLAPI.
     - Implement methods such as setAttribute, updateText, and replaceNode in XMLAPI.
     - Invoke the Binder to generate patches and apply them to the input source.
 

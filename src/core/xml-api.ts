@@ -162,6 +162,40 @@ export class XMLAPI {
   }
 
   /**
+   * Sets an attribute on the specified AST node.
+   * Updates the source code, CST, Model, and AST.
+   */
+  public setAttribute(astNode: AST, key: string, value: string): void {
+    if (!this.binder || !this.model) {
+      throw new Error("Operational API requires standard binder and model.");
+    }
+    if (!astNode.cst) {
+      throw new Error("AST node is not linked to CST.");
+    }
+
+    const modelNode = this.findModelNodeByCST(this.model, astNode.cst);
+    if (!modelNode || !(modelNode instanceof ModelElement)) {
+      throw new Error("Corresponding model node not found.");
+    }
+
+    const patch = this.binder.calcSetAttributePatch(modelNode, key, value);
+    if (patch) {
+      this.update_input(patch.start, patch.end, patch.text);
+    }
+  }
+
+  private findModelNodeByCST(root: ModelNode, cst: CST): ModelNode | null {
+    if (root.cst === cst) return root;
+    if (root instanceof ModelElement) {
+      for (const child of root.children) {
+        const found = this.findModelNodeByCST(child, cst);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Attempts to update the CST incrementally by re-parsing only the affected part of the tree.
    *
    * Strategy:

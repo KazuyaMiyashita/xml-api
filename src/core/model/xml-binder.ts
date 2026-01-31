@@ -275,6 +275,46 @@ export class XMLBinder {
     };
   }
 
+  public calcUpdateTextPatch(
+    model: ModelElement,
+    text: string,
+  ): { start: number; end: number; text: string } | null {
+    if (!model.cst) return null;
+
+    const structural = model.cst.unwrap();
+
+    // Case 1: Sequence [STag, content, ETag]
+    if (
+      structural.children.length === 3 &&
+      structural.children[0].name === "STag"
+    ) {
+      const contentNode = structural.children[1];
+      return {
+        start: contentNode.start,
+        end: contentNode.end,
+        text: text, // Should we escape? Yes, ideally. For now raw.
+      };
+    }
+
+    // Case 2: EmptyElemTag
+    // <Name ... /> -> <Name ... >text</Name>
+    // We need to find "/>" at the end and replace it with ">text</Name>"
+    if (structural.name === "EmptyElemTag" || (structural.children.length >= 2 && structural.children[0].getText(this.input) === "<")) {
+        const len = structural.children.length;
+        const closing = structural.children[len - 1]; // "/>"
+        
+        if (closing.getText(this.input) === "/>") {
+            return {
+                start: closing.start,
+                end: closing.end,
+                text: `>${text}</${model.tagName}>`
+            };
+        }
+    }
+
+    return null;
+  }
+
   private parseTag(node: CST): ModelElement {
     const structural = node.unwrap();
     const nameNode = structural.children[1];
