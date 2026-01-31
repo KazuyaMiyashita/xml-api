@@ -36,6 +36,26 @@ The XMLAPIModel serves as the authoritative model for the system. It resolves th
 #### AST Layer: AST
 The Application Abstract Syntax Tree is the data model used by the application. It provides a simplified interface with properties such as tag names, attributes, and children. It supports standard elements, text nodes, and comments, hiding the complexity of the CST and the internal management logic of the XMLAPIModel.
 
+## Architecture Under Consideration
+
+### AST Design Strategy: Native DOM vs. Custom Wrapper
+
+To achieve the dual goals of utilizing standard Web APIs and maintaining strict source fidelity, the project is currently conducting a feasibility study (Phase 0) to compare two architectural approaches.
+
+#### Option A: Native XMLDocument Integration
+
+This approach involves projecting the CST/Model directly into a native `XMLDocument` (using browser DOM or `jsdom`).
+*   **Pros**: Full compatibility with standard Web APIs (XPath, QuerySelector, etc.) out of the box.
+*   **Cons**: Potential loss of formatting fidelity (whitespace, attribute quotes) due to native parser normalization. Synchronization of mutations back to the source is complex.
+
+#### Option B: DOM-Compatible Custom AST
+
+This approach involves implementing a custom AST that mimics the W3C DOM interfaces (`Node`, `Element`, `Document`) but is backed internally by the `XMLAPIModel`.
+*   **Pros**: Full control over fidelity and source mapping. Direct linkage to the CST.
+*   **Cons**: Requires reimplementing standard DOM methods and traversal logic. XPath support needs to be polyfilled or implemented manually.
+
+*A detailed Feasibility Report and the final decision will be documented here upon completion of Phase 0.*
+
 ## System Components
 
 The system is organized around the XMLAPI, which acts as a mediator.
