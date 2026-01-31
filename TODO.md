@@ -30,18 +30,18 @@ Establish a structure that separates the stable core from experimental changes t
 ## Phase 2: Logical Layer Foundation
 Implement the XMLAPIModel and its controlling components, XMLBinder and XMLSchema.
 
-- [ ] XMLSchema Definition:
+- [x] XMLSchema Definition:
     - Implement src/core/model/xml-schema.ts.
     - Define classes for validating element structure and attributes.
-- [ ] XMLAPIModel Implementation:
+- [x] XMLAPIModel Implementation:
     - Implement src/core/model/xml-api-model.ts.
     - Define data structures for nodes and elements.
     - Implement storage for persistent identifiers and formatting information.
-- [ ] XMLBinder Implementation:
+- [x] XMLBinder Implementation:
     - Implement src/core/model/xml-binder.ts.
     - Implement hydration logic to build the model from the CST.
     - Implement projection logic to generate the AST from the model.
-- [ ] Mediator Integration:
+- [x] Mediator Integration:
     - Update XMLAPI to orchestrate the flow from CST to Model to AST using the Binder.
 
 ## Phase 3: Operational API

@@ -4,6 +4,8 @@ import { Grammar } from "./cst/grammar";
 import { Parser } from "./cst/parser";
 import { grammar as defaultGrammar } from "./cst/xml-grammar";
 import { convert as defaultConverter } from "./model/xml-binder";
+import { XMLBinder } from "./model/xml-binder";
+import { ModelElement, ModelNode } from "./model/xml-api-model";
 
 export type Converter = (node: CST, input: string) => AST | string | null;
 
@@ -17,6 +19,10 @@ export class XMLAPI {
   public cst: CST | null = null;
   /** AST is null if CST is null or not well-formed. */
   public ast: AST | null = null;
+  /** Model is the authoritative logical representation. */
+  public model: ModelElement | null = null;
+  
+  private binder: XMLBinder | null = null;
 
   constructor(
     input: string,
@@ -30,7 +36,19 @@ export class XMLAPI {
 
     this.cst = this.parse();
     if (this.cst && this.cst.wellFormed) {
-      this.ast = this.generateAST(this.cst);
+      if (converter === defaultConverter) {
+        // Use the new Binder-based architecture
+        this.binder = new XMLBinder(input);
+        const modelNode = this.binder.hydrate(this.cst);
+        if (modelNode instanceof ModelElement) {
+          this.model = modelNode;
+          const proj = this.binder.project(this.model);
+          this.ast = proj instanceof AST ? proj : null;
+        }
+      } else {
+        // Legacy/Custom converter mode
+        this.ast = this.generateAST(this.cst);
+      }
     }
   }
 
@@ -78,6 +96,11 @@ export class XMLAPI {
     const oldInput = this.input;
     const newEnd = from + value.length;
     this.input = oldInput.slice(0, from) + value + oldInput.slice(to);
+    
+    // Update binder input if it exists
+    if (this.binder) {
+      this.binder = new XMLBinder(this.input);
+    }
 
     if (this.cst) {
       // 1. Try incremental re-parse without shifting yet
@@ -86,29 +109,54 @@ export class XMLAPI {
       if (incrementalResult) {
         // Incremental update successful.
         // CST is already shifted and patched in tryIncrementalUpdate.
-        // Now try to update AST incrementally.
-        this.updateASTIncremental(incrementalResult.oldNode, incrementalResult.newNode);
+        // Now try to update Model/AST incrementally.
+        if (this.model && this.binder) {
+           this.updateModelAndASTIncremental(incrementalResult.oldNode, incrementalResult.newNode);
+        } else {
+           this.updateASTIncremental(incrementalResult.oldNode, incrementalResult.newNode);
+        }
         
         // If the update resulted in a non-well-formed tree, null out AST to be consistent with full parse.
         if (this.cst && !this.cst.wellFormed) {
           this.ast = null;
+          this.model = null;
         }
       } else {
         // Fallback: Full re-parse
         // (Old CST is discarded, so we don't need to shift it)
         this.cst = this.parse();
         if (this.cst && this.cst.wellFormed) {
-          this.ast = this.generateAST(this.cst);
+          if (this.converter === defaultConverter) {
+             const modelNode = this.binder!.hydrate(this.cst);
+             if (modelNode instanceof ModelElement) {
+                this.model = modelNode;
+                const proj = this.binder!.project(this.model);
+                this.ast = proj instanceof AST ? proj : null;
+             }
+          } else {
+             this.ast = this.generateAST(this.cst);
+          }
         } else {
           this.ast = null;
+          this.model = null;
         }
       }
     } else {
       this.cst = this.parse();
       if (this.cst && this.cst.wellFormed) {
-        this.ast = this.generateAST(this.cst);
+         if (this.converter === defaultConverter) {
+             const modelNode = this.binder!.hydrate(this.cst);
+             if (modelNode instanceof ModelElement) {
+                this.model = modelNode;
+                const proj = this.binder!.project(this.model);
+                this.ast = proj instanceof AST ? proj : null;
+             }
+         } else {
+             this.ast = this.generateAST(this.cst);
+         }
       } else {
         this.ast = null;
+        this.model = null;
       }
     }
   }
@@ -143,6 +191,12 @@ export class XMLAPI {
     while (target) {
       // We can only re-parse named nodes (rules)
       if (target.name) {
+        // Optimization: Ensure target is a meaningful unit for the converter/binder
+        if (this.binder && !this.binder.isHydratable(target.name)) {
+             target = target.parent;
+             continue;
+        }
+
         // The node's start position is stable because target covers [from, to).
         // So target.start <= from. The change happens at or after target.start.
         // Thus, target.start in new input is same as old input.
@@ -186,6 +240,117 @@ export class XMLAPI {
     // If we reached here, even re-parsing the root failed (or matched wrong length).
     return null;
   }
+  
+  private updateModelAndASTIncremental(oldNode: CST, newNode: CST): void {
+      if (!this.model || !this.ast || !this.binder) return;
+      
+      // Special case: if oldNode corresponds to this.ast (root)
+      if (this.ast.cst === oldNode || this.model.cst === oldNode) {
+           const newModelNode = this.binder.hydrate(newNode);
+           if (newModelNode instanceof ModelElement) {
+               this.model = newModelNode;
+               const newAST = this.binder.project(newModelNode);
+               
+               if (newAST instanceof AST && this.ast instanceof AST) {
+                   // Mutate root AST to preserve identity
+                   this.ast.tagName = newAST.tagName;
+                   this.ast.attributes = newAST.attributes;
+                   this.ast.children = newAST.children;
+                   this.ast.cst = newAST.cst;
+               } else {
+                   this.ast = newAST instanceof AST ? newAST : null;
+               }
+               return;
+           }
+      }
+
+      // 1. Find the corresponding ModelNode
+      const modelPath = this.findModelNodePath(this.model, oldNode);
+      
+      if (modelPath) {
+          // 2. Hydrate new CST -> New ModelNode
+          const newModelNode = this.binder.hydrate(newNode);
+          
+          if (newModelNode) {
+              // 3. Replace in Model
+              modelPath.parent.children[modelPath.index] = newModelNode;
+              newModelNode.parent = modelPath.parent;
+              
+              // 4. Project new ModelNode -> New AST
+              const newAST = this.binder.project(newModelNode);
+              
+              // 5. Replace in AST using parent mapping
+              if (modelPath.parent.cst) {
+                  const astParent = this.findASTNode(this.ast, modelPath.parent.cst);
+                  if (astParent) {
+                      if (astParent.children.length > modelPath.index) {
+                          const oldChild = astParent.children[modelPath.index];
+                          if (oldChild instanceof AST && newAST instanceof AST) {
+                              // In-place update to preserve identity
+                              oldChild.tagName = newAST.tagName;
+                              oldChild.attributes = newAST.attributes;
+                              oldChild.children = newAST.children;
+                              oldChild.cst = newAST.cst;
+                          } else {
+                              // Replace (e.g. text node or type change)
+                              astParent.children[modelPath.index] = newAST;
+                          }
+                      } else {
+                          console.warn("AST children length mismatch", astParent.children.length, modelPath.index);
+                      }
+                      return;
+                  } else {
+                      console.warn("AST Parent not found for CST", modelPath.parent.cst);
+                  }
+              } else {
+                  console.warn("Model Parent has no CST");
+              }
+          }
+      } else {
+          // console.warn("Model Node not found for CST", oldNode);
+      }
+      
+      // Fallback: full regeneration
+      if (this.cst && this.cst.wellFormed) {
+          const modelNode = this.binder.hydrate(this.cst);
+          if (modelNode instanceof ModelElement) {
+            this.model = modelNode;
+            const proj = this.binder.project(this.model);
+            this.ast = proj instanceof AST ? proj : null;
+          }
+      } else {
+          this.ast = null;
+          this.model = null;
+      }
+  }
+  
+  private findModelNodePath(root: ModelElement, cstNode: CST): { parent: ModelElement, index: number, node: ModelNode } | null {
+      for (let i = 0; i < root.children.length; i++) {
+          const child = root.children[i];
+          if (child.cst === cstNode) {
+              return { parent: root, index: i, node: child };
+          }
+          if (child instanceof ModelElement) {
+              const found = this.findModelNodePath(child, cstNode);
+              if (found) return found;
+          }
+      }
+      return null;
+  }
+  
+  private replaceASTNode(root: AST, oldCstNode: CST, newContent: AST | string): boolean {
+      for (let i = 0; i < root.children.length; i++) {
+          const child = root.children[i];
+          if (child instanceof AST && child.cst === oldCstNode) {
+              root.children[i] = newContent;
+              return true;
+          }
+          if (child instanceof AST) {
+              if (this.replaceASTNode(child, oldCstNode, newContent)) return true;
+          }
+      }
+      return false;
+  }
 
   private updateASTIncremental(oldNode: CST, newNode: CST): void {
     if (!this.ast) {
@@ -199,14 +364,15 @@ export class XMLAPI {
     let currentNew: CST | null = newNode;
 
     while (currentOld) {
+      // Attempt to find AST node for this CST node
+      // Note: This only works for Element nodes in AST.
       const astNode = this.findASTNode(this.ast, currentOld);
+      
       if (astNode && currentNew) {
         // Re-convert the new CST node
         const newAST = this.converter(currentNew, this.input);
 
         // We can only perform in-place update if both are AST objects (Elements).
-        // If the type changed (Element <-> Text), we can't easily update in-place
-        // without knowing the parent AST and index.
         if (newAST instanceof AST) {
           astNode.tagName = newAST.tagName;
           astNode.attributes = newAST.attributes;
@@ -219,11 +385,7 @@ export class XMLAPI {
       // Move up to parent
       if (currentOld.parent) {
         currentOld = currentOld.parent;
-        // The parent structure in CST is reused (mutated), so new parent is same object
-        // (unless we are traversing up past the point of attachment, but here we start at attachment).
-        // If oldNode was detached, oldNode.parent is the container.
-        // newNode.parent is also set to that container.
-        currentNew = currentOld;
+        currentNew = currentOld; // Parent is reused/mutated
       } else {
         break;
       }
