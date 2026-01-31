@@ -27,6 +27,10 @@ describe("Integration Test", () => {
         const titles = ast.find("title");
         expect(titles.length).toBeGreaterThan(0);
         expect(titles[0].text()).toBe("りんごの選び方");
+
+        const headers = ast.find("h2");
+        expect(headers.length).toBeGreaterThan(0);
+        expect(headers[0].text()).toContain("はじめに");
       }
     }
   });

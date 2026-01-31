@@ -2,6 +2,7 @@ import { grammar } from "./xml-grammar";
 import { Parser } from "./parser";
 import { convert } from "./xml-converter";
 import { AST } from "./xml-ast";
+import { CST } from "./xml-cst";
 
 describe("XML Converter", () => {
   const parser = new Parser(grammar);
@@ -74,5 +75,45 @@ describe("XML Converter", () => {
         expect(ast.text()).toBe("AB");
       }
     }
+  });
+
+  describe("Character Reference Decoding (Edge Cases)", () => {
+    it("should handle large decimal references", () => {
+      // &#128512; -> 😀
+      const xml = "<r>&#128512;</r>";
+      // Parse using standard parser to ensure grammar supports it
+      const cst = parser.parse(xml, "element");
+      expect(cst).not.toBeNull();
+      if (cst) {
+        const ast = convert(cst, xml);
+        if (ast instanceof AST) {
+          expect(ast.text()).toBe("😀");
+        }
+      }
+    });
+
+    it("should handle large hexadecimal references", () => {
+      // &#x1F600; -> 😀
+      const xml = "<r>&#x1F600;</r>";
+      const cst = parser.parse(xml, "element");
+      expect(cst).not.toBeNull();
+      if (cst) {
+        const ast = convert(cst, xml);
+        if (ast instanceof AST) {
+          expect(ast.text()).toBe("😀");
+        }
+      }
+    });
+
+    it("should throw RangeError for invalid code points (manual CST)", () => {
+      // Simulate a parser that allowed an invalid number through (or checking converter robustness)
+      const invalidRef = "&#999999999;"; // Way out of unicode range
+      // Manually construct a CST node that looks like a Reference
+      const node = new CST("sequence", "Reference", 0, invalidRef.length, [
+        new CST("literal", undefined, 0, invalidRef.length),
+      ]);
+
+      expect(() => convert(node, invalidRef)).toThrow(RangeError);
+    });
   });
 });
