@@ -66,7 +66,7 @@ export class XMLAPI {
     if (tx) {
       this.isTransacting = true;
       try {
-        this.update_input(tx.undo.from, tx.undo.to, tx.undo.text);
+        this.updateInput(tx.undo.from, tx.undo.to, tx.undo.text);
       } finally {
         this.isTransacting = false;
       }
@@ -78,7 +78,7 @@ export class XMLAPI {
     if (tx) {
       this.isTransacting = true;
       try {
-        this.update_input(tx.redo.from, tx.redo.to, tx.redo.text);
+        this.updateInput(tx.redo.from, tx.redo.to, tx.redo.text);
       } finally {
         this.isTransacting = false;
       }
@@ -108,9 +108,9 @@ export class XMLAPI {
   /**
    * Updates the input text and refreshes the CST/AST.
    */
-  public update_input(from: number, to: number, value: string): void {
+  public updateInput(from: number, to: number, value: string): void {
     if (from < 0 || to > this.input.length || from > to) {
-      throw new Error("Invalid range for update_input");
+      throw new Error("Invalid range for updateInput");
     }
 
     // Record history if not currently undoing/redoing
@@ -216,7 +216,7 @@ export class XMLAPI {
 
     const patch = this.binder.calcSetAttributePatch(modelNode, key, value);
     if (patch) {
-      this.update_input(patch.start, patch.end, patch.text);
+      this.updateInput(patch.start, patch.end, patch.text);
     }
   }
 
@@ -238,7 +238,7 @@ export class XMLAPI {
 
     const patch = this.binder.calcUpdateTextPatch(modelNode, text);
     if (patch) {
-      this.update_input(patch.start, patch.end, patch.text);
+      this.updateInput(patch.start, patch.end, patch.text);
     }
   }
 
@@ -260,7 +260,7 @@ export class XMLAPI {
 
     const patch = this.binder.calcReplaceNodePatch(modelNode, newXml);
     if (patch) {
-      this.update_input(patch.start, patch.end, patch.text);
+      this.updateInput(patch.start, patch.end, patch.text);
     }
   }
 

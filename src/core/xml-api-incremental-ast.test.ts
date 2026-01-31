@@ -27,7 +27,7 @@ describe("Incremental AST Update", () => {
     const start = xml.indexOf("TextA");
     const end = start + "TextA".length;
     
-    api.update_input(start, end, "Mod");
+    api.updateInput(start, end, "Mod");
     
     expect(api.ast).toBe(rootAst); // Root object preserved
     
@@ -62,7 +62,7 @@ describe("Incremental AST Update", () => {
       const aAst = rootAst.children[0] as AST;
       
       const start = xml.indexOf("Old");
-      api.update_input(start, start+3, "<n>New</n>");
+      api.updateInput(start, start+3, "<n>New</n>");
       
       expect(api.ast).toBe(rootAst);
       expect(api.ast!.children[0]).toBe(aAst);
@@ -78,7 +78,7 @@ describe("Incremental AST Update", () => {
       const rootAst = api.ast!;
       
       // Replace whole string
-      api.update_input(0, xml.length, "<new>B</new>");
+      api.updateInput(0, xml.length, "<new>B</new>");
       
       expect(api.ast).toBe(rootAst);
       expect(api.ast!.tagName).toBe("new");

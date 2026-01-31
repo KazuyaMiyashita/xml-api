@@ -10,11 +10,11 @@ describe("XMLAPI Transaction Management", () => {
     // <root>A</root>
     // 01234567890123
     // A is at 6-7.
-    api.update_input(6, 7, "B");
+    api.updateInput(6, 7, "B");
     expect(api.input).toBe("<root>B</root>");
     
     // Op 2: B -> C
-    api.update_input(6, 7, "C");
+    api.updateInput(6, 7, "C");
     expect(api.input).toBe("<root>C</root>");
     
     // Undo Op 2 -> B
@@ -38,7 +38,7 @@ describe("XMLAPI Transaction Management", () => {
       const api = new XMLAPI("<root/>");
       // <root/> -> <root>Child</root>
       // Replace "/>" (5-7) with ">Child</root>"
-      api.update_input(5, 7, ">Child</root>");
+      api.updateInput(5, 7, ">Child</root>");
       expect(api.ast!.children[0]).toBe("Child");
       
       api.undo();

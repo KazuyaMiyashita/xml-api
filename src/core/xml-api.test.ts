@@ -49,8 +49,8 @@ describe("XMLAPI", () => {
     });
   });
 
-  describe("update_input", () => {
-    // Helper to verify that update_input results match a fresh parse
+  describe("updateInput", () => {
+    // Helper to verify that updateInput results match a fresh parse
     function assertCSTEquals(actual: CST | null, expected: CST | null) {
       if (actual === null || expected === null) {
         expect(actual).toBe(expected);
@@ -85,7 +85,7 @@ describe("XMLAPI", () => {
       const expectedInput =
         originalInput.slice(0, from) + value + originalInput.slice(to);
 
-      api.update_input(from, to, value);
+      api.updateInput(from, to, value);
 
       const freshApi = new XMLAPI(expectedInput, api.grammar, api.converter);
 
@@ -260,9 +260,9 @@ describe("XMLAPI", () => {
 
       it("should throw error for out-of-bounds indices", () => {
         const api = new XMLAPI("<root/>");
-        expect(() => api.update_input(-1, 0, "")).toThrow();
-        expect(() => api.update_input(0, 10, "")).toThrow();
-        expect(() => api.update_input(5, 2, "")).toThrow();
+        expect(() => api.updateInput(-1, 0, "")).toThrow();
+        expect(() => api.updateInput(0, 10, "")).toThrow();
+        expect(() => api.updateInput(5, 2, "")).toThrow();
       });
     });
   });

@@ -44,7 +44,7 @@ try {
       console.log(`Updating "${targetText}" -> "${newText}"...`);
       
       // Perform incremental update
-      api.update_input(startPos, startPos + targetText.length, newText);
+      api.updateInput(startPos, startPos + targetText.length, newText);
       
       // Verify AST update
       const newTitles = api.ast.find("title");

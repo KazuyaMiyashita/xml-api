@@ -39,7 +39,7 @@ describe("Integration Test", () => {
     const startPos = xmlContent.indexOf(targetText);
     const newText = "Mod";
 
-    api.update_input(startPos, startPos + targetText.length, newText);
+    api.updateInput(startPos, startPos + targetText.length, newText);
 
     expect(api.ast).toBe(initialAst); // Differential Update: Identity preserved
     expect(api.ast?.find("title")[0].text()).toBe(newText);
