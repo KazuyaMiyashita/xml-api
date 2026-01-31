@@ -5,7 +5,7 @@ const config: Config = {
     "^.+\\.tsx?$": "ts-jest",
   },
 
-  testMatch: ["<rootDir>/src/**/*.test.ts"],
+  testMatch: ["<rootDir>/src/**/*.test.ts", "<rootDir>/src/**/*.spec.ts", "<rootDir>/demo/**/*.test.ts"],
 
   testPathIgnorePatterns: ["/node_modules/", "<rootDir>/worktrees/"],
 };

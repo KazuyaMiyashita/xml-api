@@ -35,8 +35,9 @@ function init() {
   const observer: DOMObserver = {
     onAttributeChange: (element, name, value) => {
       const model = element.getModel();
+      const currentBinder = (api as any).binder; // Access current binder dynamically
       // We assume model is ModelElement because Element wraps ModelElement
-      const patch = binder.calcSetAttributePatch(model as any, name, value || ""); 
+      const patch = currentBinder.calcSetAttributePatch(model as any, name, value || ""); 
       // Note: calcSetAttributePatch expects string value. removeAttribute logic might need update in binder or here.
       // Current binder doesn't support removeAttribute patch calculation explicitly?
       // Let's check binder... it returns null if not found for update, but for remove?
@@ -59,17 +60,30 @@ function init() {
     },
     onTextChange: (node, text) => {
       const model = node.getModel();
-       // For Text nodes, we need parent element to calculate patch in current Binder implementation?
-       // Binder has calcUpdateTextPatch(element, text). 
-       // It replaces content of element.
-       // Does it support individual text node updates?
-       // calcUpdateTextPatch takes ModelElement.
-       
+      const currentBinder = (api as any).binder; // Access current binder dynamically
+      
+      // If we are updating a Text Node specifically (which has a model and potentially a CST node),
+      // we should use calcReplaceNodePatch to update JUST that node, preserving siblings.
+      // calcUpdateTextPatch(parent, text) replaces the entire content of the parent.
+      
+      if (node.nodeType === node.TEXT_NODE && model.cst) {
+          // Simple escape for XML text content
+          const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const patch = currentBinder.calcReplaceNodePatch(model, escaped);
+          if (patch) {
+            api.updateInput(patch.start, patch.end, patch.text);
+            sourceEditor.value = api.input;
+            updateStatus();
+            return;
+          }
+      }
+
+       // Fallback for Element text update (which replaces content) or if no CST
        if (model.parent) {
          // This assumes the element has only one text node or we replace all content?
          // Binder.calcUpdateTextPatch replaces *content* of element.
          // So it matches textContent semantic.
-         const patch = binder.calcUpdateTextPatch(model.parent, text);
+         const patch = currentBinder.calcUpdateTextPatch(model.parent, text);
          if (patch) {
            api.updateInput(patch.start, patch.end, patch.text);
            sourceEditor.value = api.input;
@@ -233,7 +247,21 @@ function renderProps(node: Node) {
     const textInput = document.createElement("input");
     textInput.value = el.textContent || "";
     textInput.onchange = () => {
-      el.textContent = textInput.value;
+      // Manually trigger update because Element.textContent setter doesn't notify observer
+      // and we want to ensure source synchronization.
+      const val = textInput.value;
+      const currentBinder = (api as any).binder;
+      // Use calcUpdateTextPatch which replaces element content
+      const patch = currentBinder.calcUpdateTextPatch(model, val);
+      
+      if (patch) {
+         api.updateInput(patch.start, patch.end, patch.text);
+         sourceEditor.value = api.input;
+         updateStatus();
+         renderTree(); // Refresh view
+      } else {
+         el.textContent = val;
+      }
     };
     propEditor.appendChild(textInput);
 

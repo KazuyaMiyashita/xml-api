@@ -116,6 +116,16 @@ graph TD
 5.  XMLSchema: A definition of validation rules specific to the application domain.
 6.  Formatter: Handles the conversion of AST back to XML string. It prioritizes fidelity by preserving existing whitespace and comments by default, but also supports forced re-formatting with customizable indentation and newline styles.
 
+## Key API Specifications
+
+### `XMLAPI.updateInput(from, to, value)`
+
+Updates the input text and refreshes the CST/AST.
+
+*   `updateInput` is defined only when `from <= to` and both indices are within the range of the original `input` string.
+*   The state of the `XMLAPI` instance after calling `updateInput(from, to, value)` **MUST** be identical to the state of a `new XMLAPI(input.slice(0, from) + value + input.slice(to))` instance.
+*   The implementation **SHOULD** perform incremental updates by re-parsing only the affected sub-tree and avoiding a full re-parse unless structural changes necessitate it, ensuring the operation remains inexpensive.
+
 ## Validation Scenarios
 
 This section describes how the architecture fulfills the requirements through specific use cases.
