@@ -1,9 +1,9 @@
-import { grammar } from "./xml-grammar";
-import { Parser } from "./parser";
-import { convert } from "./xml-converter";
-import { AST } from "./xml-ast";
+import { grammar } from "./cst/xml-grammar";
+import { Parser } from "./cst/parser";
+import { convert } from "./model/xml-binder";
+import { AST } from "./ast/xml-ast";
 import { XMLAPI } from "./xml-api";
-import { Formatter } from "./formatter";
+import { Formatter } from "./model/formatter";
 import * as fs from "fs";
 import * as path from "path";
 

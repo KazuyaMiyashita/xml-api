@@ -1,9 +1,9 @@
 import { XMLAPI } from "./xml-api";
-import { AST } from "./xml-ast";
-import { grammar as minGrammar } from "./minimum-grammar";
-import { convert as minConvert } from "./minimum-converter";
-import { GrammarBuilder, ref, opt, seq, lit, plus, reg } from "./grammar";
-import { CST } from "./xml-cst";
+import { AST } from "./ast/xml-ast";
+import { grammar as minGrammar } from "../experiments/minimum-grammar";
+import { convert as minConvert } from "../experiments/minimum-converter";
+import { GrammarBuilder, ref, opt, seq, lit, plus, reg } from "./cst/grammar";
+import { CST } from "./cst/xml-cst";
 
 describe("XMLAPI", () => {
   describe("Initialization & Basic Parsing", () => {

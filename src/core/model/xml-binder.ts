@@ -1,5 +1,5 @@
-import { CST } from "./xml-cst";
-import { AST } from "./xml-ast";
+import { CST } from "../cst/xml-cst";
+import { AST } from "../ast/xml-ast";
 
 export function convert(node: CST, input: string): AST | string | null {
   // 1. Handle known rule names

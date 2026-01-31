@@ -1,5 +1,5 @@
 import { XMLAPI } from "./xml-api";
-import { AST } from "./xml-ast";
+import { AST } from "./ast/xml-ast";
 
 describe("Incremental AST Update", () => {
   it("should preserve AST object identity for unaffected ancestors", () => {

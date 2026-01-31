@@ -5,7 +5,7 @@ This document outlines the implementation plan for the three-layer architecture 
 ## Phase 1: Project Restructuring & Sandbox Isolation
 Establish a structure that separates the stable core from experimental changes to enable safe large-scale refactoring.
 
-- [ ] Step 1: Create Core Structure
+- [x] Step 1: Create Core Structure
     - Create `src/core/` and its subdirectories: `cst/`, `model/`, `ast/`.
     - Move stable code into `src/core/`:
         - `src/cst/`: `xml-cst.ts`, `parser.ts`, `grammar.ts`, `xml-grammar.ts`
@@ -13,17 +13,17 @@ Establish a structure that separates the stable core from experimental changes t
         - `src/ast/`: `xml-ast.ts`
         - `src/core/`: `xml-api.ts` (update imports)
     - Update `src/main.ts` to import from `src/core/`.
-- [ ] Step 2: Isolate Experiments
+- [x] Step 2: Isolate Experiments
     - Create `src/experiments/`.
     - Move `minimum-*.ts` files to `src/experiments/`.
     - Crucial Ensure experimental files import *relative* paths or copied modules, so they don't break when core changes.
-- [ ] Step 3: Configure Testing Strategy
+- [x] Step 3: Configure Testing Strategy
     - Update `jest.config.ts` (or create separate configs) to support split execution.
     - Add scripts to `package.json`:
         - `"test"`: Runs tests in `src/core/` (Must always pass).
         - `"test:wip"`: Runs tests in `src/experiments/`.
         - `"test:all"`: Runs all tests.
-- [ ] Step 4: Verification
+- [x] Step 4: Verification
     - Ensure `pnpm test` passes for the relocated core files.
     - Ensure `pnpm test:wip` passes for the experimental files.
 
@@ -31,14 +31,14 @@ Establish a structure that separates the stable core from experimental changes t
 Implement the XMLAPIModel and its controlling components, XMLBinder and XMLSchema.
 
 - [ ] XMLSchema Definition:
-    - Implement src/model/xml-schema.ts.
+    - Implement src/core/model/xml-schema.ts.
     - Define classes for validating element structure and attributes.
 - [ ] XMLAPIModel Implementation:
-    - Implement src/model/xml-api-model.ts.
+    - Implement src/core/model/xml-api-model.ts.
     - Define data structures for nodes and elements.
     - Implement storage for persistent identifiers and formatting information.
 - [ ] XMLBinder Implementation:
-    - Implement src/model/xml-binder.ts.
+    - Implement src/core/model/xml-binder.ts.
     - Implement hydration logic to build the model from the CST.
     - Implement projection logic to generate the AST from the model.
 - [ ] Mediator Integration:

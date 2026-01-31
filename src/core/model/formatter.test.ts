@@ -1,5 +1,5 @@
 import { Formatter } from "./formatter";
-import { AST } from "./xml-ast";
+import { AST } from "../ast/xml-ast";
 
 describe("Formatter", () => {
   const formatter = new Formatter({ indent: "  ", newline: "\n" });

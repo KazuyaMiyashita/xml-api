@@ -1,9 +1,9 @@
-import { CST } from "./xml-cst";
-import { AST } from "./xml-ast";
-import { Grammar } from "./grammar";
-import { Parser } from "./parser";
-import { grammar as defaultGrammar } from "./xml-grammar";
-import { convert as defaultConverter } from "./xml-converter";
+import { CST } from "./cst/xml-cst";
+import { AST } from "./ast/xml-ast";
+import { Grammar } from "./cst/grammar";
+import { Parser } from "./cst/parser";
+import { grammar as defaultGrammar } from "./cst/xml-grammar";
+import { convert as defaultConverter } from "./model/xml-binder";
 
 export type Converter = (node: CST, input: string) => AST | string | null;
 

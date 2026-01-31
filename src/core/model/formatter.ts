@@ -1,4 +1,4 @@
-import { AST } from "./xml-ast";
+import { AST } from "../ast/xml-ast";
 
 export interface FormatterOptions {
   indent?: string; // e.g. "  ", "\t"

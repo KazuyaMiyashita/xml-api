@@ -1,4 +1,4 @@
-import { CST } from "./xml-cst";
+import { CST } from "../cst/xml-cst";
 
 export class AST {
   /** Reference to the CST node that generated this AST node. */

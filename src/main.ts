@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-import { XMLAPI } from "./xml-api";
-import { Formatter } from "./formatter";
+import { XMLAPI } from "./core/xml-api";
+import { Formatter } from "./core/model/formatter";
 
 try {
   const xmlPath = path.join(__dirname, "sample_01.xml");
