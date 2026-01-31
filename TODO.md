@@ -49,9 +49,9 @@ Proceed with the implementation based on the decision made in Phase 0.
 - [ ] **Helper Utilities**: Add utilities to handle "Format Preservation" which might be lost by native DOM methods.
 
 ### Path B: Custom DOM Wrapper (If Option B is selected)
-- [ ] **Interface Implementation**: Formally implement `Node`, `Element`, `Document`, `CharacterData` interfaces in `src/core/ast/`.
-- [ ] **Tree Traversal**: Implement performant getters for `childNodes`, `firstChild`, etc., mapping directly to `XMLAPIModel` structure.
-- [ ] **Query Engine**: Implement `querySelector`, `querySelectorAll` and basic `XPath` support within the custom AST.
+- [x] **Interface Implementation**: Formally implement `Node`, `Element`, `Document`, `CharacterData` interfaces in `src/core/ast/`.
+- [x] **Tree Traversal**: Implement performant getters for `childNodes`, `firstChild`, etc., mapping directly to `XMLAPIModel` structure.
+- [x] **Query Engine**: Implement `querySelector`, `querySelectorAll` and basic `XPath` support within the custom AST.
 
 ## Phase 2: Core Adaptation & Namespace Management
 
