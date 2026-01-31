@@ -78,7 +78,7 @@ Ensure system stability and data integrity.
 ## Phase 6: Refinement & Integration
 Improve developer experience and ensure comprehensive integration testing.
 
-- [ ] Phase 6-1: Enhanced `replaceNode` API
+- [x] Phase 6-1: Enhanced `replaceNode` API
     - Extend `XMLAPI.replaceNode` to accept `AST` object directly.
     - Move `src/core/integration.test.ts` to `src/integration.test.ts`.
     - Update `src/integration.test.ts` to include the scenario from `main.ts` (using `AST` construction).
