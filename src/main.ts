@@ -4,7 +4,7 @@ import { XMLAPI } from "./core/xml-api";
 import { Formatter } from "./core/model/formatter";
 
 try {
-  const xmlPath = path.join(__dirname, "sample_01.xml");
+  const xmlPath = path.join(__dirname, "core/sample_01.xml");
   console.log(`Reading XML file: ${xmlPath}`);
   const xmlContent = fs.readFileSync(xmlPath, "utf8");
 
