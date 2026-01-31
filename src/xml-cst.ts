@@ -64,7 +64,7 @@ export class CST {
       if (this.start >= pos) {
         this.start += delta;
       }
-      if (this.end >= pos) {
+      if (this.end > pos) {
         this.end += delta;
       }
     } else {

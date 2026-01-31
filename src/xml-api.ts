@@ -80,24 +80,36 @@ export class XMLAPI {
     this.input = oldInput.slice(0, from) + value + oldInput.slice(to);
 
     if (this.cst) {
-      // 1. Shift existing positions
-      this.cst.shift(from, delta);
-
-      // 2. Try incremental re-parse
-      // We try to update the tree in-place.
-      // If we fail to update even the root, we fall back to a full re-parse.
-      const success = this.tryIncrementalUpdate(from, newEnd);
-      if (!success) {
+      // 1. Try incremental re-parse without shifting yet
+      // We pass 'to' (old end) because cst is still in old coordinates.
+      const incrementalResult = this.tryIncrementalUpdate(from, to, delta);
+      if (incrementalResult) {
+        // Incremental update successful.
+        // CST is already shifted and patched in tryIncrementalUpdate.
+        // Now try to update AST incrementally.
+        this.updateASTIncremental(incrementalResult.oldNode, incrementalResult.newNode);
+        
+        // If the update resulted in a non-well-formed tree, null out AST to be consistent with full parse.
+        if (this.cst && !this.cst.wellFormed) {
+          this.ast = null;
+        }
+      } else {
+        // Fallback: Full re-parse
+        // (Old CST is discarded, so we don't need to shift it)
         this.cst = this.parse();
+        if (this.cst && this.cst.wellFormed) {
+          this.ast = this.generateAST(this.cst);
+        } else {
+          this.ast = null;
+        }
       }
     } else {
       this.cst = this.parse();
-    }
-
-    if (this.cst && this.cst.wellFormed) {
-      this.ast = this.generateAST(this.cst);
-    } else {
-      this.ast = null;
+      if (this.cst && this.cst.wellFormed) {
+        this.ast = this.generateAST(this.cst);
+      } else {
+        this.ast = null;
+      }
     }
   }
 
@@ -105,18 +117,25 @@ export class XMLAPI {
    * Attempts to update the CST incrementally by re-parsing only the affected part of the tree.
    *
    * Strategy:
-   * 1. Find the deepest node that fully contains the changed range.
+   * 1. Find the deepest node that fully contains the changed range (using old coordinates).
    * 2. Traverse up from that node to find a "stable" ancestor (one that represents a named rule).
    * 3. Attempt to re-parse that ancestor's rule with the new input.
-   * 4. If parsing succeeds and the new node length matches the old node's shifted length (preserving structure),
-   *    replace the old node with the new one.
+   * 4. If parsing succeeds and the new node length matches the expected length (old length + delta),
+   *    we commit the change: shift the tree and replace the node.
    *
-   * @returns true if the incremental update was successful, false otherwise.
+   * @param from Start offset of the change (old coordinate).
+   * @param to End offset of the change (old coordinate).
+   * @param delta Change in length (newLength - oldLength).
+   * @returns object with old and new nodes if successful, null otherwise.
    */
-  private tryIncrementalUpdate(from: number, to: number): boolean {
-    if (!this.cst) return false;
+  private tryIncrementalUpdate(
+    from: number,
+    to: number,
+    delta: number,
+  ): { oldNode: CST; newNode: CST } | null {
+    if (!this.cst) return null;
 
-    // Start search from the smallest node touching the change
+    // Start search from the smallest node touching the change (in old coordinates)
     let target: CST | null = this.findNodeAt(from, to);
 
     // Iterate up the tree until we find a node that can successfully re-parse
@@ -124,42 +143,111 @@ export class XMLAPI {
     while (target) {
       // We can only re-parse named nodes (rules)
       if (target.name) {
-        // If target is root, we must re-parse from 0 to cover potential prefix changes.
-        // Otherwise, use the target's (potentially shifted) start position.
+        // The node's start position is stable because target covers [from, to).
+        // So target.start <= from. The change happens at or after target.start.
+        // Thus, target.start in new input is same as old input.
         const parseStart = target.parent ? target.start : 0;
 
         const result = this.parser.parseAt(this.input, parseStart, target.name);
 
         // Check if parse was successful AND the new node's length matches the
-        // expected length of the target node (which has been shifted).
-        // If length matches, it means the change is contained within this node's boundaries.
-        if (result && result.end === target.end) {
-          // Success! Replace target with result.node
+        // expected length (old length + delta).
+        const expectedEnd = target.end + delta;
+
+        if (result && result.end === expectedEnd) {
+          // Success!
           if (target.parent) {
+            // Commit the shift now that we know we are keeping the tree.
+            this.cst.shift(from, delta);
+
+            // target's coordinates are now updated by shift.
+            // Replace target with result.node
             const index = target.parent.children.indexOf(target);
             if (index !== -1) {
               target.parent.children[index] = result.node;
               result.node.parent = target.parent;
               this.updateAncestorsWellFormed(result.node);
-              return true;
+              return { oldNode: target, newNode: result.node };
             }
           } else {
-            // We replaced the root node
+            // We replaced the root node.
+            // No need to shift the old tree as we are replacing it entirely.
             this.cst = result.node;
             // Root has no ancestors to update
-            return true;
+            return { oldNode: target, newNode: result.node };
           }
         }
       }
 
       // If we couldn't parse or boundaries didn't match, try the parent.
-      // This effectively expands the scope of re-parsing.
       target = target.parent;
     }
 
     // If we reached here, even re-parsing the root failed (or matched wrong length).
-    return false;
+    return null;
   }
+
+  private updateASTIncremental(oldNode: CST, newNode: CST): void {
+    if (!this.ast) {
+      if (this.cst && this.cst.wellFormed) {
+        this.ast = this.generateAST(this.cst);
+      }
+      return;
+    }
+
+    let currentOld: CST | null = oldNode;
+    let currentNew: CST | null = newNode;
+
+    while (currentOld) {
+      const astNode = this.findASTNode(this.ast, currentOld);
+      if (astNode && currentNew) {
+        // Re-convert the new CST node
+        const newAST = this.converter(currentNew, this.input);
+
+        // We can only perform in-place update if both are AST objects (Elements).
+        // If the type changed (Element <-> Text), we can't easily update in-place
+        // without knowing the parent AST and index.
+        if (newAST instanceof AST) {
+          astNode.tagName = newAST.tagName;
+          astNode.attributes = newAST.attributes;
+          astNode.children = newAST.children;
+          astNode.cst = newAST.cst;
+          return;
+        }
+      }
+
+      // Move up to parent
+      if (currentOld.parent) {
+        currentOld = currentOld.parent;
+        // The parent structure in CST is reused (mutated), so new parent is same object
+        // (unless we are traversing up past the point of attachment, but here we start at attachment).
+        // If oldNode was detached, oldNode.parent is the container.
+        // newNode.parent is also set to that container.
+        currentNew = currentOld;
+      } else {
+        break;
+      }
+    }
+
+    // Fallback: full regeneration
+    if (this.cst && this.cst.wellFormed) {
+      this.ast = this.generateAST(this.cst);
+    } else {
+      this.ast = null;
+    }
+  }
+
+  private findASTNode(root: AST, cstNode: CST): AST | null {
+    if (root.cst === cstNode) return root;
+    for (const child of root.children) {
+      if (child instanceof AST) {
+        const found = this.findASTNode(child, cstNode);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
 
   private findNodeAt(from: number, to: number): CST | null {
     if (!this.cst) return null;

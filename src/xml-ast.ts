@@ -1,4 +1,9 @@
+import { CST } from "./xml-cst";
+
 export class AST {
+  /** Reference to the CST node that generated this AST node. */
+  public cst: CST | null = null;
+
   constructor(
     public tagName: string,
     public attributes: { [key: string]: string } = {},
