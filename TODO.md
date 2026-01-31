@@ -75,6 +75,26 @@ Ensure system stability and data integrity.
 - [x] Error Recovery:
     - [x] Implement safeguards against invalid XML generation. (Handled via wellFormed checks and AST invalidation, plus Undo capability)
 
+## Phase 6: Refinement & Integration
+Improve developer experience and ensure comprehensive integration testing.
+
+- [ ] Phase 6-1: Enhanced `replaceNode` API
+    - Extend `XMLAPI.replaceNode` to accept `AST` object directly.
+    - Move `src/core/integration.test.ts` to `src/integration.test.ts`.
+    - Update `src/integration.test.ts` to include the scenario from `main.ts` (using `AST` construction).
+- [ ] Phase 6-2: API Migration
+    - Update all usages of `replaceNode` to pass `AST` objects.
+    - Remove the string-based overload of `replaceNode` (or deprecate it/make it internal if strictly needed, but goal is removal).
+
+## Phase 7: Advanced Formatting
+Ensure the Formatter can perfectly reconstruct the source and support customization.
+
+- [ ] Phase 7-1: Fidelity & Default Configuration
+    - Ensure `Formatter` with default settings produces output identical to `sample_01.xml` when re-serializing the parsed AST.
+- [ ] Phase 7-2: Formatting Options
+    - Implement support for changing indentation (tab vs space, width).
+    - Implement support for newline style.
+
 ## Completed Tasks
 - [x] Performance Optimization: Delayed coordinate update and atomic transactions.
 - [x] Architecture Evolution: Prototype of the Enhanced AST.
