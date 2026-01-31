@@ -1,5 +1,5 @@
-import { grammar } from "./xml-grammar";
 import { Parser } from "./parser";
+import { grammar } from "./xml-grammar";
 
 describe("XML Grammar", () => {
   const parser = new Parser(grammar);

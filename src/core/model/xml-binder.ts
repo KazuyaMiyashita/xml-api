@@ -1,12 +1,12 @@
-import { CST } from "../cst/xml-cst";
-import { AST, ASTComment, ASTCDATA } from "../ast/xml-ast";
+import { AST, ASTCDATA, ASTComment } from "../ast/xml-ast";
+import type { CST } from "../cst/xml-cst";
 import {
-  ModelNode,
-  ModelElement,
-  ModelText,
-  ModelComment,
   ModelCDATA,
+  ModelComment,
+  ModelElement,
+  type ModelNode,
   ModelNodeType,
+  ModelText,
 } from "./xml-api-model";
 
 export class XMLBinder {
@@ -14,7 +14,16 @@ export class XMLBinder {
 
   public isHydratable(name: string | undefined): boolean {
     if (!name) return false;
-    return ["element", "document", "CharData", "Reference", "CharRef", "EntityRef", "CDSect", "Comment"].includes(name);
+    return [
+      "element",
+      "document",
+      "CharData",
+      "Reference",
+      "CharRef",
+      "EntityRef",
+      "CDSect",
+      "Comment",
+    ].includes(name);
   }
 
   public hydrate(node: CST): ModelNode | null {
@@ -27,8 +36,7 @@ export class XMLBinder {
       const text = node.getText(this.input);
       if (text.startsWith("&#")) {
         result = new ModelText(decodeCharRef(node, this.input));
-      }
-      else {
+      } else {
         result = new ModelText(text);
       }
     } else if (node.name === "CharRef") {
@@ -39,15 +47,14 @@ export class XMLBinder {
       const structural = node.unwrap();
       if (structural.children.length === 3) {
         result = new ModelCDATA(structural.children[1].getText(this.input));
-      }
-      else {
+      } else {
         result = new ModelCDATA("");
       }
     } else if (node.name === "Comment") {
-       const text = node.getText(this.input);
-       // Remove <!-- and -->
-       const content = text.substring(4, text.length - 3);
-       result = new ModelComment(content);
+      const text = node.getText(this.input);
+      // Remove <!-- and -->
+      const content = text.substring(4, text.length - 3);
+      result = new ModelComment(content);
     } else if (node.name === "PI") {
       result = null;
     } else if (node.name === "element" || node.name === "document") {
@@ -71,7 +78,7 @@ export class XMLBinder {
 
         const elem = this.parseTag(stag);
         // elem.cst will be set at the end
-        
+
         const contentStructural = content.unwrap();
         // content rule: seq(opt(CharData), rep(seq(alt(...), opt(CharData))))
 
@@ -132,7 +139,7 @@ export class XMLBinder {
         result.cst = node;
       }
     }
-    
+
     return result;
   }
 
@@ -146,115 +153,112 @@ export class XMLBinder {
     // We then compare this new tree with currentModel.
     // If they match in structure/identity-keys, we update currentModel and return it.
     // If not, we return the new model.
-    
+
     const newModel = this.hydrate(newCst);
     if (!newModel) {
-        // If hydration failed (e.g. comment), but we had a model, return null?
-        // Or if the node disappeared.
-        // For now, assume strict mapping.
-        // But hydrate returns null for Comments/PIs.
-        // If currentModel was something else, it's a replacement.
-        return newModel as any; // Should handle null better in caller?
+      // If hydration failed (e.g. comment), but we had a model, return null?
+      // Or if the node disappeared.
+      // For now, assume strict mapping.
+      // But hydrate returns null for Comments/PIs.
+      // If currentModel was something else, it's a replacement.
+      return newModel as any; // Should handle null better in caller?
     }
 
     if (this.canReconcile(currentModel, newModel)) {
-        this.applyReconciliation(currentModel, newModel);
-        return currentModel;
+      this.applyReconciliation(currentModel, newModel);
+      return currentModel;
     }
 
     return newModel;
   }
 
   private canReconcile(a: ModelNode, b: ModelNode): boolean {
-      if (a.getType() !== b.getType()) return false;
-      if (a.getType() === ModelNodeType.Element) {
-          return (a as ModelElement).tagName === (b as ModelElement).tagName;
-      }
-      // Text nodes can always be reconciled (updated)
-      return true;
+    if (a.getType() !== b.getType()) return false;
+    if (a.getType() === ModelNodeType.Element) {
+      return (a as ModelElement).tagName === (b as ModelElement).tagName;
+    }
+    // Text nodes can always be reconciled (updated)
+    return true;
   }
 
   private applyReconciliation(target: ModelNode, source: ModelNode): void {
-      target.cst = source.cst; // Update CST reference
+    target.cst = source.cst; // Update CST reference
 
-      if (target.getType() === ModelNodeType.Text) {
-          (target as ModelText).text = (source as ModelText).text;
-      }
-      else if (target.getType() === ModelNodeType.Comment) {
-          (target as ModelComment).content = (source as ModelComment).content;
-      }
-      else if (target.getType() === ModelNodeType.CDATA) {
-          (target as ModelCDATA).content = (source as ModelCDATA).content;
-      }
-      else {
-          const t = target as ModelElement;
-          const s = source as ModelElement;
+    if (target.getType() === ModelNodeType.Text) {
+      (target as ModelText).text = (source as ModelText).text;
+    } else if (target.getType() === ModelNodeType.Comment) {
+      (target as ModelComment).content = (source as ModelComment).content;
+    } else if (target.getType() === ModelNodeType.CDATA) {
+      (target as ModelCDATA).content = (source as ModelCDATA).content;
+    } else {
+      const t = target as ModelElement;
+      const s = source as ModelElement;
 
-          // Update Attributes
-          t.attributes = s.attributes;
+      // Update Attributes
+      t.attributes = s.attributes;
 
-          // Reconcile Children with Key-based Matching
-          const newChildren: ModelNode[] = [];
-          
-          // 1. Map existing children by ID
-          const keyedChildren = new Map<string, ModelElement>();
-          const nonKeyedChildren: ModelNode[] = [];
+      // Reconcile Children with Key-based Matching
+      const newChildren: ModelNode[] = [];
 
-          for (const child of t.children) {
-              if (child.getType() === ModelNodeType.Element) {
-                  const el = child as ModelElement;
-                  const id = el.attributes.get("id");
-                  if (id) {
-                      keyedChildren.set(id, el);
-                  } else {
-                      nonKeyedChildren.push(child);
-                  }
-              } else {
-                  nonKeyedChildren.push(child);
-              }
+      // 1. Map existing children by ID
+      const keyedChildren = new Map<string, ModelElement>();
+      const nonKeyedChildren: ModelNode[] = [];
+
+      for (const child of t.children) {
+        if (child.getType() === ModelNodeType.Element) {
+          const el = child as ModelElement;
+          const id = el.attributes.get("id");
+          if (id) {
+            keyedChildren.set(id, el);
+          } else {
+            nonKeyedChildren.push(child);
           }
-
-          // 2. Iterate source children and try to match
-          for (const sChild of s.children) {
-              let matchedNode: ModelNode | undefined;
-
-              // Try Keyed Match
-              if (sChild.getType() === ModelNodeType.Element) {
-                  const sEl = sChild as ModelElement;
-                  const id = sEl.attributes.get("id");
-                  if (id && keyedChildren.has(id)) {
-                      matchedNode = keyedChildren.get(id);
-                      keyedChildren.delete(id); 
-                  }
-              }
-
-              // Try Non-Keyed Match (First compatible)
-              if (!matchedNode) {
-                  for (let i = 0; i < nonKeyedChildren.length; i++) {
-                      const candidate = nonKeyedChildren[i];
-                      if (this.canReconcile(candidate, sChild)) {
-                          matchedNode = candidate;
-                          nonKeyedChildren.splice(i, 1);
-                          break;
-                      }
-                  }
-              }
-
-              if (matchedNode) {
-                  // Found a match (keyed or non-keyed)
-                  // Use CST from new node to update existing node
-                  const reconciled = this.reconcile(matchedNode, sChild.cst!); 
-                  reconciled.parent = t;
-                  newChildren.push(reconciled);
-              } else {
-                  // No match found, use new node
-                  sChild.parent = t;
-                  newChildren.push(sChild);
-              }
-          }
-          
-          t.children = newChildren;
+        } else {
+          nonKeyedChildren.push(child);
+        }
       }
+
+      // 2. Iterate source children and try to match
+      for (const sChild of s.children) {
+        let matchedNode: ModelNode | undefined;
+
+        // Try Keyed Match
+        if (sChild.getType() === ModelNodeType.Element) {
+          const sEl = sChild as ModelElement;
+          const id = sEl.attributes.get("id");
+          if (id && keyedChildren.has(id)) {
+            matchedNode = keyedChildren.get(id);
+            keyedChildren.delete(id);
+          }
+        }
+
+        // Try Non-Keyed Match (First compatible)
+        if (!matchedNode) {
+          for (let i = 0; i < nonKeyedChildren.length; i++) {
+            const candidate = nonKeyedChildren[i];
+            if (this.canReconcile(candidate, sChild)) {
+              matchedNode = candidate;
+              nonKeyedChildren.splice(i, 1);
+              break;
+            }
+          }
+        }
+
+        if (matchedNode) {
+          // Found a match (keyed or non-keyed)
+          // Use CST from new node to update existing node
+          const reconciled = this.reconcile(matchedNode, sChild.cst!);
+          reconciled.parent = t;
+          newChildren.push(reconciled);
+        } else {
+          // No match found, use new node
+          sChild.parent = t;
+          newChildren.push(sChild);
+        }
+      }
+
+      t.children = newChildren;
+    }
   }
 
   public project(model: ModelNode): AST | string | ASTComment | ASTCDATA {
@@ -274,7 +278,7 @@ export class XMLBinder {
 
     const el = model as ModelElement;
     const ast = new AST(el.tagName);
-    
+
     // Copy attributes
     for (const [key, value] of el.attributes) {
       ast.attributes[key] = value;
@@ -303,7 +307,10 @@ export class XMLBinder {
 
     // Identify tag node (STag or EmptyElemTag)
     // Case 1: element ::= STag content ETag
-    if (structural.children.length === 3 && structural.children[0].name === "STag") {
+    if (
+      structural.children.length === 3 &&
+      structural.children[0].name === "STag"
+    ) {
       tagNode = structural.children[0];
     }
     // Case 2: element ::= EmptyElemTag
@@ -312,24 +319,28 @@ export class XMLBinder {
     }
     // Case 3: Wrapper or other structure (try to find tag in children)
     else {
-        for (const child of structural.children) {
-            if (child.name === "STag" || child.name === "EmptyElemTag") {
-                tagNode = child;
-                break;
-            }
+      for (const child of structural.children) {
+        if (child.name === "STag" || child.name === "EmptyElemTag") {
+          tagNode = child;
+          break;
         }
-        // If structural is strictly EmptyElemTag but unwrap failed to show name? (Unlikely)
-        if (!tagNode && structural.children.length >= 2 && structural.children[0].getText(this.input) === "<") {
-             // Fallback: assume it matches EmptyElemTag structure directly
-             tagNode = structural;
-        }
+      }
+      // If structural is strictly EmptyElemTag but unwrap failed to show name? (Unlikely)
+      if (
+        !tagNode &&
+        structural.children.length >= 2 &&
+        structural.children[0].getText(this.input) === "<"
+      ) {
+        // Fallback: assume it matches EmptyElemTag structure directly
+        tagNode = structural;
+      }
     }
 
     if (!tagNode) return null;
 
     const tagStructural = tagNode.unwrap();
     // Expected structure: < Name (S Attribute)* S? >  (Length 5)
-    
+
     // Robust access to attributes
     // Index 2 is rep(seq(S, Attribute))
     const attrRep = tagStructural.children[2];
@@ -349,8 +360,8 @@ export class XMLBinder {
             const oldText = attValueNode.getText(this.input);
             const quote = oldText[0];
             // Preserve quote style if possible
-            const newQuote = (quote === "'" || quote === '"') ? quote : '"';
-            
+            const newQuote = quote === "'" || quote === '"' ? quote : '"';
+
             return {
               start: attValueNode.start,
               end: attValueNode.end,
@@ -366,19 +377,19 @@ export class XMLBinder {
     // The closing sequence starts after the attributes.
     // We can insert at the end of attrRep?
     // Or just look at the end of the tag and back up.
-    
+
     const len = tagStructural.children.length;
     const closing = tagStructural.children[len - 1]; // > or />
-    const optS = tagStructural.children[len - 2]; // S?
+    const _optS = tagStructural.children[len - 2]; // S?
 
     // Insert before closing bracket.
     // If optS is present (has children or length > 0), we can insert before or after it?
     // If we insert ` id="val"`, we provide the space.
     // So inserting at `closing.start` is safe.
-    
+
     // Special case: If EmptyElemTag ends with `/>` (start is 2 chars before end).
     // closing.start points to `/`.
-    
+
     return {
       start: closing.start,
       end: closing.start,
@@ -410,17 +421,21 @@ export class XMLBinder {
     // Case 2: EmptyElemTag
     // <Name ... /> -> <Name ... >text</Name>
     // We need to find "/>" at the end and replace it with ">text</Name>"
-    if (structural.name === "EmptyElemTag" || (structural.children.length >= 2 && structural.children[0].getText(this.input) === "<")) {
-        const len = structural.children.length;
-        const closing = structural.children[len - 1]; // "/>"
-        
-        if (closing.getText(this.input) === "/>") {
-            return {
-                start: closing.start,
-                end: closing.end,
-                text: `>${escapeText(text)}</${model.tagName}>`
-            };
-        }
+    if (
+      structural.name === "EmptyElemTag" ||
+      (structural.children.length >= 2 &&
+        structural.children[0].getText(this.input) === "<")
+    ) {
+      const len = structural.children.length;
+      const closing = structural.children[len - 1]; // "/>"
+
+      if (closing.getText(this.input) === "/>") {
+        return {
+          start: closing.start,
+          end: closing.end,
+          text: `>${escapeText(text)}</${model.tagName}>`,
+        };
+      }
     }
 
     return null;
@@ -470,11 +485,11 @@ export class XMLBinder {
           valText += modelNode.text;
         } else if (modelNode) {
           // Fallback if somehow it returned an Element (unlikely in AttValue)
-           // But wait, hydrate returns ModelNode.
-           // If it's a reference, it returns ModelText.
-           // If it's a literal/regex, it returns ModelText.
-           // So this should be fine.
-           // However, if hydrate returns null, we skip.
+          // But wait, hydrate returns ModelNode.
+          // If it's a reference, it returns ModelText.
+          // If it's a literal/regex, it returns ModelText.
+          // So this should be fine.
+          // However, if hydrate returns null, we skip.
         }
       }
 
@@ -498,20 +513,20 @@ function decodeCharRef(node: CST, input: string): string {
 
 // Keep backward compatibility for tests that use convert() directly?
 // Or we should update them.
-// The task is "Implement src/core/model/xml-binder.ts". 
+// The task is "Implement src/core/model/xml-binder.ts".
 // I am replacing it. Tests will break. I will fix tests.
-export function convert(node: CST, input: string): AST | string | ASTComment | null {
-    const binder = new XMLBinder(input);
-    const model = binder.hydrate(node);
-    if (!model) return null;
-    return binder.project(model);
+export function convert(
+  node: CST,
+  input: string,
+): AST | string | ASTComment | null {
+  const binder = new XMLBinder(input);
+  const model = binder.hydrate(node);
+  if (!model) return null;
+  return binder.project(model);
 }
 
 function escapeText(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function escapeAttributeValue(str: string): string {

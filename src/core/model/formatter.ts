@@ -1,4 +1,4 @@
-import { AST, ASTComment, ASTCDATA, ASTNode } from "../ast/xml-ast";
+import { type AST, ASTCDATA, ASTComment, type ASTNode } from "../ast/xml-ast";
 
 export interface FormatterOptions {
   indent?: string; // e.g. "  ", "\t"
@@ -47,23 +47,33 @@ export class Formatter {
 
     if (isInline || hasFormatting) {
       for (const child of children) {
-        if (this.force && typeof child === "string" && child.includes("\n") && child.trim().length === 0) {
-            continue;
+        if (
+          this.force &&
+          typeof child === "string" &&
+          child.includes("\n") &&
+          child.trim().length === 0
+        ) {
+          continue;
         }
         result += this.formatNode(child, level + 1);
       }
       result += `</${tagName}>`;
     } else {
       for (const child of children) {
-        if (this.force && typeof child === "string" && child.includes("\n") && child.trim().length === 0) {
-            continue;
+        if (
+          this.force &&
+          typeof child === "string" &&
+          child.includes("\n") &&
+          child.trim().length === 0
+        ) {
+          continue;
         }
         result +=
           this.newline +
           this.getIndent(level + 1) +
           this.formatNode(child, level + 1);
       }
-      result += this.newline + this.getIndent(level) + `</${tagName}>`;
+      result += `${this.newline + this.getIndent(level)}</${tagName}>`;
     }
 
     return result;
@@ -80,25 +90,29 @@ export class Formatter {
     );
   }
 
-  private isInline(children: (AST | string | ASTComment | ASTCDATA)[]): boolean {
+  private isInline(
+    children: (AST | string | ASTComment | ASTCDATA)[],
+  ): boolean {
     for (const theChild of children) {
       if (typeof theChild === "string") {
         // If there is any non-whitespace text, treat as inline.
         if (theChild.trim().length > 0) return true;
       }
       if (theChild instanceof ASTCDATA) {
-          return true;
+        return true;
       }
     }
     return false;
   }
 
-  private hasFormatting(children: (AST | string | ASTComment | ASTCDATA)[]): boolean {
+  private hasFormatting(
+    children: (AST | string | ASTComment | ASTCDATA)[],
+  ): boolean {
     for (const theChild of children) {
       if (typeof theChild === "string") {
         // If it contains a newline and is otherwise whitespace, it's likely formatting.
         if (theChild.includes("\n") && theChild.trim().length === 0) {
-            return true;
+          return true;
         }
       }
     }

@@ -1,7 +1,7 @@
-import { XMLBinder } from "./xml-binder";
 import { Parser } from "../cst/parser";
 import { grammar } from "../cst/xml-grammar";
-import { ModelElement } from "./xml-api-model";
+import type { ModelElement } from "./xml-api-model";
+import { XMLBinder } from "./xml-binder";
 
 describe("XMLBinder Key-based Reconciliation", () => {
   const parser = new Parser(grammar);
@@ -25,12 +25,14 @@ describe("XMLBinder Key-based Reconciliation", () => {
     //   <item> (element)
     //   \n (text)
     // </list>
-    
+
     // Let's filter elements for easier access in test
-    const elements = model.children.filter(c => c.getType() === "Element") as ModelElement[];
+    const elements = model.children.filter(
+      (c) => c.getType() === "Element",
+    ) as ModelElement[];
     const itemA = elements[0];
     const itemB = elements[1];
-    
+
     expect(itemA.attributes.get("id")).toBe("A");
     expect(itemB.attributes.get("id")).toBe("B");
 
@@ -47,7 +49,9 @@ describe("XMLBinder Key-based Reconciliation", () => {
     // Reconcile
     binder2.reconcile(model, cst2);
 
-    const newElements = model.children.filter(c => c.getType() === "Element") as ModelElement[];
+    const newElements = model.children.filter(
+      (c) => c.getType() === "Element",
+    ) as ModelElement[];
     const newItemC = newElements[0];
     const newItemA = newElements[1];
     const newItemB = newElements[2];

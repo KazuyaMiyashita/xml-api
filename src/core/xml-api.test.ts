@@ -1,9 +1,9 @@
-import { XMLAPI } from "./xml-api";
-import { AST } from "./ast/xml-ast";
-import { grammar as minGrammar } from "../experiments/minimum-grammar";
 import { convert as minConvert } from "../experiments/minimum-converter";
-import { GrammarBuilder, ref, opt, seq, lit, plus, reg } from "./cst/grammar";
-import { CST } from "./cst/xml-cst";
+import { grammar as minGrammar } from "../experiments/minimum-grammar";
+import { AST } from "./ast/xml-ast";
+import { GrammarBuilder, lit, opt, plus, ref, reg, seq } from "./cst/grammar";
+import type { CST } from "./cst/xml-cst";
+import { XMLAPI } from "./xml-api";
 
 describe("XMLAPI", () => {
   describe("Initialization & Basic Parsing", () => {
@@ -111,7 +111,7 @@ describe("XMLAPI", () => {
         verifyUpdate(api, 12, 15, "newval");
 
         if (api.ast) {
-          expect(api.ast.attributes["attr"]).toBe("newval");
+          expect(api.ast.attributes.attr).toBe("newval");
         }
       });
 
@@ -148,7 +148,7 @@ describe("XMLAPI", () => {
         if (api.ast) {
           const aNode = api.ast.children[0];
           if (aNode instanceof AST) {
-            expect(aNode.attributes["foo"]).toBe("bar");
+            expect(aNode.attributes.foo).toBe("bar");
           } else {
             throw new Error("Expected AST node");
           }

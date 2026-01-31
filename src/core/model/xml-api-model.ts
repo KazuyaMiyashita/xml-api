@@ -1,5 +1,5 @@
-import { randomUUID } from "crypto";
-import { CST } from "../cst/xml-cst";
+import { randomUUID } from "node:crypto";
+import type { CST } from "../cst/xml-cst";
 
 export type NodeId = string;
 

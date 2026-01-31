@@ -1,15 +1,15 @@
 import {
+  alt,
   GrammarBuilder,
   lit,
-  reg,
-  seq,
-  alt,
-  rep,
-  plus,
   opt,
+  plus,
   ref,
+  reg,
+  rep,
+  seq,
 } from "../core/cst/grammar";
-import { CST } from "../core/cst/xml-cst";
+import type { CST } from "../core/cst/xml-cst";
 
 const g = new GrammarBuilder();
 

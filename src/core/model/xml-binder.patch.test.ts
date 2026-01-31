@@ -1,7 +1,7 @@
-import { XMLBinder } from "./xml-binder";
 import { Parser } from "../cst/parser";
 import { grammar } from "../cst/xml-grammar";
-import { ModelElement } from "./xml-api-model";
+import type { ModelElement } from "./xml-api-model";
+import { XMLBinder } from "./xml-binder";
 
 describe("XMLBinder Patch Generation", () => {
   const parser = new Parser(grammar);
@@ -18,12 +18,12 @@ describe("XMLBinder Patch Generation", () => {
     // 012345678901234
     // id="1"
     // AttValue is "1".
-    
+
     // Check if patch replaces the whole AttValue or just content.
     // If implementation replaces AttValue, text should be '"2"'.
     // If original was "1", new is "2".
     // Expectation: replace including quotes.
-    
+
     // "1" is at index 9. length 3.
     expect(patch).toEqual({
       start: 9,
@@ -45,29 +45,29 @@ describe("XMLBinder Patch Generation", () => {
     // <root (0-5)
     // /> (5-7)
     // Insert before /> at 5.
-    
+
     expect(patch).toEqual({
       start: 5,
       end: 5,
       text: ' id="1"',
     });
   });
-  
+
   it("should generate patch to insert new attribute in STag", () => {
-      const input = "<root></root>";
-      const binder = new XMLBinder(input);
-      const cst = parser.parse(input, "element");
-      const model = binder.hydrate(cst!) as ModelElement;
-      
-      const patch = binder.calcSetAttributePatch(model, "id", "1");
-      // <root>
-      // 012345
-      // > is at 5.
-      
-      expect(patch).toEqual({
-          start: 5,
-          end: 5,
-          text: ' id="1"'
-      });
+    const input = "<root></root>";
+    const binder = new XMLBinder(input);
+    const cst = parser.parse(input, "element");
+    const model = binder.hydrate(cst!) as ModelElement;
+
+    const patch = binder.calcSetAttributePatch(model, "id", "1");
+    // <root>
+    // 012345
+    // > is at 5.
+
+    expect(patch).toEqual({
+      start: 5,
+      end: 5,
+      text: ' id="1"',
+    });
   });
 });

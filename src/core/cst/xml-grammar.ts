@@ -1,16 +1,16 @@
 import {
+  alt,
+  exc,
   GrammarBuilder,
   lit,
-  reg,
-  seq,
-  alt,
-  rep,
-  plus,
   opt,
-  exc,
+  plus,
   ref,
+  reg,
+  rep,
+  seq,
 } from "./grammar";
-import { CST } from "./xml-cst";
+import type { CST } from "./xml-cst";
 
 const g = new GrammarBuilder();
 
@@ -139,7 +139,7 @@ g.rule(
 
 // [13] PubidChar ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
 // cf: https://www.w3.org/TR/xml/#NT-PubidChar
-g.rule("PubidChar", reg("[\\x20\\r\\na-zA-Z0-9\-&#039;()+,./:=?;!*#@$_%]"));
+g.rule("PubidChar", reg("[\\x20\\r\\na-zA-Z0-9-&#039;()+,./:=?;!*#@$_%]"));
 
 // [14] CharData ::= [^<&]* - ([^<&]* ']]>' [^<&]*)
 // cf: https://www.w3.org/TR/xml/#NT-CharData
@@ -658,7 +658,7 @@ g.rule(
 
 // [65] Ignore ::= Char* - (Char* ('<![' | ']]>') Char*)
 // cf: https://www.w3.org/TR/xml/#NT-Ignore
-g.rule("Ignore", rep(exc(ref("Char"), reg("(<!\[|]]\\x3E)"))));
+g.rule("Ignore", rep(exc(ref("Char"), reg("(<![|]]\\x3E)"))));
 
 // [66] CharRef ::= '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
 // cf: https://www.w3.org/TR/xml/#NT-CharRef

@@ -1,13 +1,13 @@
 import {
+  alt,
+  exc,
   GrammarBuilder,
   lit,
-  reg,
-  seq,
-  alt,
-  rep,
-  plus,
   opt,
-  exc,
+  plus,
+  reg,
+  rep,
+  seq,
 } from "./grammar";
 import { Parser } from "./parser";
 
@@ -171,7 +171,7 @@ describe("Parser Combinators", () => {
       gb.rule("root", lit("test"));
 
       // Add a validator that always fails
-      gb.verifyRule("root", (node, input) => false);
+      gb.verifyRule("root", (_node, _input) => false);
 
       const parser = new Parser(gb.build());
       const result = parser.parse("test");
