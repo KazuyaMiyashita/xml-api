@@ -1,14 +1,18 @@
-import { CST } from "./cst/xml-cst";
-import { AST, ASTComment, ASTCDATA, ASTNode } from "./ast/xml-ast";
-import { Grammar } from "./cst/grammar";
+import {
+  AST,
+  type ASTCDATA,
+  type ASTComment,
+  type ASTNode,
+} from "./ast/xml-ast";
+import type { Grammar } from "./cst/grammar";
 import { Parser } from "./cst/parser";
+import type { CST } from "./cst/xml-cst";
 import { grammar as defaultGrammar } from "./cst/xml-grammar";
-import { convert as defaultConverter } from "./model/xml-binder";
-import { XMLBinder } from "./model/xml-binder";
-import { ModelElement, ModelNode } from "./model/xml-api-model";
-import { EventEmitter, EventHandler, ChangeEvent } from "./xml-api-events";
-import { HistoryManager, Transaction } from "./history-manager";
+import { HistoryManager } from "./history-manager";
 import { Formatter } from "./model/formatter";
+import { ModelElement, type ModelNode } from "./model/xml-api-model";
+import { convert as defaultConverter, XMLBinder } from "./model/xml-binder";
+import { EventEmitter, type EventHandler } from "./xml-api-events";
 
 export type Converter = (
   node: CST,
@@ -32,7 +36,6 @@ export class XMLAPI {
   private events: EventEmitter = new EventEmitter();
   private history: HistoryManager = new HistoryManager();
   private isTransacting: boolean = false;
-  private formatter: Formatter = new Formatter();
 
   constructor(
     input: string,
@@ -45,7 +48,7 @@ export class XMLAPI {
     this.converter = converter;
 
     this.cst = this.parse();
-    if (this.cst && this.cst.wellFormed) {
+    if (this.cst?.wellFormed) {
       if (converter === defaultConverter) {
         // Use the new Binder-based architecture
         this.binder = new XMLBinder(input);
@@ -130,7 +133,7 @@ export class XMLAPI {
 
     const delta = value.length - (to - from);
     const oldInput = this.input;
-    const newEnd = from + value.length;
+    const _newEnd = from + value.length;
     this.input = oldInput.slice(0, from) + value + oldInput.slice(to);
 
     // Update binder input if it exists
@@ -170,12 +173,12 @@ export class XMLAPI {
         // Fallback: Full re-parse
         // (Old CST is discarded, so we don't need to shift it)
         this.cst = this.parse();
-        if (this.cst && this.cst.wellFormed) {
+        if (this.cst?.wellFormed) {
           if (this.converter === defaultConverter) {
-            const modelNode = this.binder!.hydrate(this.cst);
+            const modelNode = this.binder?.hydrate(this.cst);
             if (modelNode instanceof ModelElement) {
               this.model = modelNode;
-              const proj = this.binder!.project(this.model);
+              const proj = this.binder?.project(this.model);
               this.ast = proj instanceof AST ? proj : null;
             }
           } else {
@@ -189,12 +192,12 @@ export class XMLAPI {
       }
     } else {
       this.cst = this.parse();
-      if (this.cst && this.cst.wellFormed) {
+      if (this.cst?.wellFormed) {
         if (this.converter === defaultConverter) {
-          const modelNode = this.binder!.hydrate(this.cst);
+          const modelNode = this.binder?.hydrate(this.cst);
           if (modelNode instanceof ModelElement) {
             this.model = modelNode;
-            const proj = this.binder!.project(this.model);
+            const proj = this.binder?.project(this.model);
             this.ast = proj instanceof AST ? proj : null;
           }
         } else {
@@ -280,7 +283,7 @@ export class XMLAPI {
     if (modelNode.cst) {
       currentIndent = this.detectIndent(modelNode.cst);
 
-      if (modelNode.parent && modelNode.parent.cst) {
+      if (modelNode.parent?.cst) {
         const parentIndent = this.detectIndent(modelNode.parent.cst);
         if (currentIndent.startsWith(parentIndent)) {
           const diff = currentIndent.slice(parentIndent.length);
@@ -502,7 +505,7 @@ export class XMLAPI {
     }
 
     // Fallback: full regeneration
-    if (this.cst && this.cst.wellFormed) {
+    if (this.cst?.wellFormed) {
       const modelNode = this.binder.hydrate(this.cst);
       if (modelNode instanceof ModelElement) {
         this.model = modelNode;
@@ -554,7 +557,7 @@ export class XMLAPI {
 
   private updateASTIncremental(oldNode: CST, newNode: CST): void {
     if (!this.ast) {
-      if (this.cst && this.cst.wellFormed) {
+      if (this.cst?.wellFormed) {
         this.ast = this.generateAST(this.cst);
       }
       return;
@@ -594,7 +597,7 @@ export class XMLAPI {
     }
 
     // Fallback: full regeneration
-    if (this.cst && this.cst.wellFormed) {
+    if (this.cst?.wellFormed) {
       this.ast = this.generateAST(this.cst);
     } else {
       this.ast = null;

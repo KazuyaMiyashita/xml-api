@@ -1,5 +1,5 @@
+import type { Expression, Grammar } from "./grammar";
 import { CST } from "./xml-cst";
-import { Grammar, Expression, Validator } from "./grammar";
 
 interface Context {
   input: string;

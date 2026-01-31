@@ -1,7 +1,7 @@
-import * as fs from "fs";
-import * as path from "path";
-import { XMLAPI } from "../core/xml-api";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { Formatter } from "../core/model/formatter";
+import { XMLAPI } from "../core/xml-api";
 
 const xmlPath = path.join(__dirname, "../core/sample_01.xml");
 const xmlContent = fs.readFileSync(xmlPath, "utf8");

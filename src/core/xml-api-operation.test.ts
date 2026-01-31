@@ -1,5 +1,5 @@
-import { XMLAPI } from "./xml-api";
 import { AST } from "./ast/xml-ast";
+import { XMLAPI } from "./xml-api";
 
 describe("XMLAPI Operations", () => {
   it("should set attribute on existing element", () => {
@@ -17,7 +17,7 @@ describe("XMLAPI Operations", () => {
   it("should add new attribute to element", () => {
     const xml = "<root><item /></root>";
     const api = new XMLAPI(xml);
-    const item = api.ast!.find("item")[0];
+    const item = api.ast!.find("item")[0]!;
 
     api.setAttribute(item, "new", "value");
 
@@ -28,7 +28,7 @@ describe("XMLAPI Operations", () => {
   it("should update text content of element", () => {
     const xml = "<root><title>Old</title></root>";
     const api = new XMLAPI(xml);
-    const title = api.ast!.find("title")[0];
+    const title = api.ast!.find("title")[0]!;
 
     api.updateText(title, "New Title");
 
@@ -39,7 +39,7 @@ describe("XMLAPI Operations", () => {
   it("should replace entire node", () => {
     const xml = "<root><old>content</old></root>";
     const api = new XMLAPI(xml);
-    const oldNode = api.ast!.find("old")[0];
+    const oldNode = api.ast!.find("old")[0]!;
 
     const newNode = new AST("new", {}, ["replaced"]);
     api.replaceNode(oldNode, newNode);

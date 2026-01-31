@@ -1,4 +1,4 @@
-import { CST } from "../cst/xml-cst";
+import type { CST } from "../cst/xml-cst";
 
 export class ASTComment {
   public cst: CST | null = null;

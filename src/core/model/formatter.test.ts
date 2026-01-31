@@ -1,6 +1,6 @@
-import { Formatter } from "./formatter";
 import { AST, ASTComment } from "../ast/xml-ast";
 import { XMLAPI } from "../xml-api";
+import { Formatter } from "./formatter";
 
 describe("Formatter", () => {
   const formatter = new Formatter({ indent: "  ", newline: "\n" });

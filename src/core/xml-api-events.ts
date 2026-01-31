@@ -1,4 +1,4 @@
-import { ModelNode, ModelElement } from "./model/xml-api-model";
+import type { ModelNode } from "./model/xml-api-model";
 
 export type ChangeType = "structure" | "attribute" | "text" | "full";
 

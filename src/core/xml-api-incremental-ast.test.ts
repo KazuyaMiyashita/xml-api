@@ -1,5 +1,5 @@
-import { XMLAPI } from "./xml-api";
 import { AST } from "./ast/xml-ast";
+import { XMLAPI } from "./xml-api";
 
 describe("Incremental AST Update", () => {
   it("should preserve AST object identity for unaffected ancestors", () => {
@@ -65,9 +65,9 @@ describe("Incremental AST Update", () => {
     api.updateInput(start, start + 3, "<n>New</n>");
 
     expect(api.ast).toBe(rootAst);
-    expect(api.ast!.children[0]).toBe(aAst);
+    expect(api.ast?.children[0]).toBe(aAst);
 
-    const newA = api.ast!.children[0] as AST;
+    const newA = api.ast?.children[0] as AST;
     expect(newA.children[0]).toBeInstanceOf(AST);
     expect((newA.children[0] as AST).tagName).toBe("n");
   });
@@ -81,6 +81,6 @@ describe("Incremental AST Update", () => {
     api.updateInput(0, xml.length, "<new>B</new>");
 
     expect(api.ast).toBe(rootAst);
-    expect(api.ast!.tagName).toBe("new");
+    expect(api.ast?.tagName).toBe("new");
   });
 });

@@ -1,7 +1,7 @@
-import { grammar } from "./minimum-grammar";
+import { AST } from "../core/ast/xml-ast";
 import { Parser } from "../core/cst/parser";
 import { convert } from "./minimum-converter";
-import { AST } from "../core/ast/xml-ast";
+import { grammar } from "./minimum-grammar";
 
 describe("Minimum Converter", () => {
   const parser = new Parser(grammar);

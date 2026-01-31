@@ -1,4 +1,4 @@
-import { AST, ASTComment, ASTCDATA, ASTNode } from "../ast/xml-ast";
+import { type AST, ASTCDATA, ASTComment, type ASTNode } from "../ast/xml-ast";
 
 export interface FormatterOptions {
   indent?: string; // e.g. "  ", "\t"
@@ -73,7 +73,7 @@ export class Formatter {
           this.getIndent(level + 1) +
           this.formatNode(child, level + 1);
       }
-      result += this.newline + this.getIndent(level) + `</${tagName}>`;
+      result += `${this.newline + this.getIndent(level)}</${tagName}>`;
     }
 
     return result;

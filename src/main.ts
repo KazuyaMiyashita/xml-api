@@ -1,8 +1,8 @@
-import * as fs from "fs";
-import * as path from "path";
-import { XMLAPI } from "./core/xml-api";
-import { Formatter } from "./core/model/formatter";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { AST, ASTCDATA, ASTComment } from "./core/ast/xml-ast";
+import { Formatter } from "./core/model/formatter";
+import { XMLAPI } from "./core/xml-api";
 
 try {
   const xmlPath = path.join(__dirname, "core/sample_01.xml");
@@ -35,7 +35,7 @@ try {
     console.log("\n[Incremental Update Demo]");
     // Find the position of the first title content to replace it
     // Original: <title>りんごの選び方</title>
-    const firstTitle = titles[0];
+    const _firstTitle = titles[0];
     // We want to replace the text content.
     // For simplicity in this demo, we'll search string index,
     // but in a real app we'd use cst information or selection.
@@ -125,7 +125,7 @@ try {
       // Note: find("section") returns all sections. We need to identify which one was updated.
       // Assuming it's still the first one (reconciliation preserves order usually)
       const updatedSection = api.ast.find("section")[0];
-      if (updatedSection && updatedSection.cst) {
+      if (updatedSection?.cst) {
         console.log("Updated Section Content:");
         console.log(
           api.input.slice(updatedSection.cst.start, updatedSection.cst.end),

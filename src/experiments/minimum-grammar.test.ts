@@ -1,5 +1,5 @@
-import { grammar } from "./minimum-grammar";
 import { Parser } from "../core/cst/parser";
+import { grammar } from "./minimum-grammar";
 
 describe("Minimum Grammar", () => {
   const parser = new Parser(grammar);

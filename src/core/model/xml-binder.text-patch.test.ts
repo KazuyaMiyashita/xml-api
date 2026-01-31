@@ -1,7 +1,7 @@
-import { XMLBinder } from "./xml-binder";
 import { Parser } from "../cst/parser";
 import { grammar } from "../cst/xml-grammar";
-import { ModelElement } from "./xml-api-model";
+import type { ModelElement } from "./xml-api-model";
+import { XMLBinder } from "./xml-binder";
 
 describe("XMLBinder Text Update Patch", () => {
   const parser = new Parser(grammar);

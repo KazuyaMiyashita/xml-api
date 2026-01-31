@@ -1,5 +1,5 @@
-import { XMLAPI } from "./xml-api";
 import { ASTCDATA, ASTComment } from "./ast/xml-ast";
+import { XMLAPI } from "./xml-api";
 
 describe("XMLAPI Extended Support (CDATA & Comment)", () => {
   it("should parse and preserve CDATA sections", () => {
@@ -20,7 +20,7 @@ describe("XMLAPI Extended Support (CDATA & Comment)", () => {
     // But XMLAPI model update should work.
 
     // Actually, let's use replaceNode to insert a new CDATA
-    const root = api.ast!;
+    const _root = api.ast!;
     const newCData = new ASTCDATA("New <Content>");
     api.replaceNode(child as any, newCData as any); // Type assertion until AST types are updated
 

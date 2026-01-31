@@ -1,4 +1,4 @@
-import { CST } from "./xml-cst";
+import type { CST } from "./xml-cst";
 
 /**
  * A function that performs semantic or contextual validation on a parsed CST node.

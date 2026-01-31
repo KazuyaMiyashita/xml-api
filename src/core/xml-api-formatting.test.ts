@@ -1,5 +1,5 @@
-import { XMLAPI } from "./xml-api";
 import { AST } from "./ast/xml-ast";
+import { XMLAPI } from "./xml-api";
 
 describe("XMLAPI Context-Aware Formatting", () => {
   it("should respect surrounding indentation when replacing a node with nested content", () => {
@@ -10,7 +10,7 @@ describe("XMLAPI Context-Aware Formatting", () => {
     </parent>
 </root>`;
     const api = new XMLAPI(input);
-    const child = api.ast!.find("child")[0];
+    const child = api.ast!.find("child")[0]!;
 
     // New content has structure
     const newContent = new AST("child", {}, [
@@ -38,7 +38,7 @@ describe("XMLAPI Context-Aware Formatting", () => {
 	</parent>
 </root>`;
     const api = new XMLAPI(input);
-    const child = api.ast!.find("child")[0];
+    const child = api.ast!.find("child")[0]!;
 
     const newContent = new AST("child", {}, [
       new AST("grandchild", {}, ["Val"]),

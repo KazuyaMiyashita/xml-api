@@ -1,6 +1,6 @@
-import { XMLAPI } from "./xml-api";
 import { AST } from "./ast/xml-ast";
 import { CST } from "./cst/xml-cst";
+import { XMLAPI } from "./xml-api";
 
 describe("AST-CST Mapping", () => {
   it("should attach CST node to AST element", () => {
@@ -10,14 +10,14 @@ describe("AST-CST Mapping", () => {
     expect(api.ast).toBeInstanceOf(AST);
     const rootAst = api.ast!;
     expect(rootAst.cst).toBeInstanceOf(CST);
-    expect(rootAst.cst!.name).toBe("element");
-    expect(rootAst.cst!.getText(api.input)).toBe(xml);
+    expect(rootAst.cst?.name).toBe("element");
+    expect(rootAst.cst?.getText(api.input)).toBe(xml);
 
     const childAst = rootAst.find("child")[0];
     expect(childAst).toBeInstanceOf(AST);
     expect(childAst.cst).toBeInstanceOf(CST);
-    expect(childAst.cst!.name).toBe("element");
-    expect(childAst.cst!.getText(api.input)).toBe("<child>Text</child>");
+    expect(childAst.cst?.name).toBe("element");
+    expect(childAst.cst?.getText(api.input)).toBe("<child>Text</child>");
   });
 
   it("should attach CST node for EmptyElemTag", () => {
@@ -26,8 +26,8 @@ describe("AST-CST Mapping", () => {
 
     const rootAst = api.ast!;
     expect(rootAst.cst).toBeInstanceOf(CST);
-    expect(rootAst.cst!.name).toBe("element");
-    expect(rootAst.cst!.getText(api.input)).toBe("<empty/>");
+    expect(rootAst.cst?.name).toBe("element");
+    expect(rootAst.cst?.getText(api.input)).toBe("<empty/>");
   });
 
   it("should work with minimum-grammar", () => {
@@ -47,12 +47,12 @@ describe("AST-CST Mapping", () => {
     // Our converter logic resolves document->element.
     // Let's check name.
     // If api.cst is document, and rootAst.cst should be element.
-    expect(api.cst!.name).toBe("document");
-    expect(rootAst.cst!.name).toBe("element");
+    expect(api.cst?.name).toBe("document");
+    expect(rootAst.cst?.name).toBe("element");
 
     const childAst = rootAst.children[0] as AST;
     expect(childAst.tagName).toBe("child");
     expect(childAst.cst).toBeInstanceOf(CST);
-    expect(childAst.cst!.name).toBe("element"); // Reference to element
+    expect(childAst.cst?.name).toBe("element"); // Reference to element
   });
 });

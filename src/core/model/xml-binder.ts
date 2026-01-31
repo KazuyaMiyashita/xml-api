@@ -1,12 +1,12 @@
-import { CST } from "../cst/xml-cst";
-import { AST, ASTComment, ASTCDATA } from "../ast/xml-ast";
+import { AST, ASTCDATA, ASTComment } from "../ast/xml-ast";
+import type { CST } from "../cst/xml-cst";
 import {
-  ModelNode,
-  ModelElement,
-  ModelText,
-  ModelComment,
   ModelCDATA,
+  ModelComment,
+  ModelElement,
+  type ModelNode,
   ModelNodeType,
+  ModelText,
 } from "./xml-api-model";
 
 export class XMLBinder {
@@ -380,7 +380,7 @@ export class XMLBinder {
 
     const len = tagStructural.children.length;
     const closing = tagStructural.children[len - 1]; // > or />
-    const optS = tagStructural.children[len - 2]; // S?
+    const _optS = tagStructural.children[len - 2]; // S?
 
     // Insert before closing bracket.
     // If optS is present (has children or length > 0), we can insert before or after it?

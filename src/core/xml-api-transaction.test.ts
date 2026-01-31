@@ -39,10 +39,10 @@ describe("XMLAPI Transaction Management", () => {
     // <root/> -> <root>Child</root>
     // Replace "/>" (5-7) with ">Child</root>"
     api.updateInput(5, 7, ">Child</root>");
-    expect(api.ast!.children[0]).toBe("Child");
+    expect(api.ast?.children[0]).toBe("Child");
 
     api.undo();
     expect(api.input).toBe("<root/>");
-    expect(api.ast!.children.length).toBe(0);
+    expect(api.ast?.children.length).toBe(0);
   });
 });
