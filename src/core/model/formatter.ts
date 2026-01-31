@@ -3,15 +3,18 @@ import { AST, ASTComment } from "../ast/xml-ast";
 export interface FormatterOptions {
   indent?: string; // e.g. "  ", "\t"
   newline?: string; // e.g. "\n"
+  force?: boolean; // If true, re-format even if existing formatting is present
 }
 
 export class Formatter {
   private indent: string;
   private newline: string;
+  private force: boolean;
 
   constructor(options: FormatterOptions = {}) {
     this.indent = options.indent ?? "  ";
     this.newline = options.newline ?? "\n";
+    this.force = options.force ?? false;
   }
 
   public format(node: AST): string {
@@ -35,17 +38,23 @@ export class Formatter {
     }
 
     const isInline = this.isInline(children);
-    const hasFormatting = this.hasFormatting(children);
+    const hasFormatting = this.force ? false : this.hasFormatting(children);
 
     let result = `<${tagName}${attributes}>`;
 
     if (isInline || hasFormatting) {
       for (const child of children) {
+        if (this.force && typeof child === "string" && child.includes("\n") && child.trim().length === 0) {
+            continue;
+        }
         result += this.formatNode(child, level + 1);
       }
       result += `</${tagName}>`;
     } else {
       for (const child of children) {
+        if (this.force && typeof child === "string" && child.includes("\n") && child.trim().length === 0) {
+            continue;
+        }
         result +=
           this.newline +
           this.getIndent(level + 1) +
