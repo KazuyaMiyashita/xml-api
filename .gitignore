@@ -3,3 +3,6 @@ node_modules
 /worktrees/
 .taskrc
 .task
+/dist/
+docs/.vitepress/dist/
+docs/.vitepress/cache/

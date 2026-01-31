@@ -8,9 +8,11 @@
     "test": "jest src/core",
     "test:wip": "jest src/experiments",
     "test:all": "jest",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "format": "biome format --write .",
-    "start": "ts-node src/main.ts",
-    "build:demo": "esbuild demo/app.ts --bundle --outfile=demo/bundle.js --platform=browser --sourcemap"
+    "start": "ts-node src/main.ts"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +28,8 @@
     "jsdom": "^27.4.0",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.27"
   }
 }
