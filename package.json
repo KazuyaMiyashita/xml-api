@@ -6,6 +6,7 @@
   "scripts": {
     "typecheck": "tsc",
     "test": "jest",
+    "format": "biome format --write .",
     "start": "ts-node src/main.ts"
   },
   "keywords": [],
@@ -13,6 +14,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.23.0",
   "devDependencies": {
+    "@biomejs/biome": "2.3.13",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.10",
     "jest": "^30.2.0",

@@ -40,7 +40,7 @@ export class CST {
      * If false, the node was parsed successfully according to the grammar structure
      * but failed a semantic or contextual validation check.
      */
-    public wellFormed: boolean = true
+    public wellFormed: boolean = true,
   ) {
     for (const child of children) {
       child.parent = this;
@@ -81,9 +81,11 @@ export class CST {
    */
   unwrap(): CST {
     let current: CST = this;
-    while (current.children.length === 1 && 
-           current.children[0].start === current.start && 
-           current.children[0].end === current.end) {
+    while (
+      current.children.length === 1 &&
+      current.children[0].start === current.start &&
+      current.children[0].end === current.end
+    ) {
       current = current.children[0];
     }
     return current;
