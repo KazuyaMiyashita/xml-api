@@ -29,30 +29,30 @@ describe("AST-CST Mapping", () => {
     expect(rootAst.cst!.name).toBe("element");
     expect(rootAst.cst!.getText(api.input)).toBe("<empty/>");
   });
-  
+
   it("should work with minimum-grammar", () => {
-     // We need to import minGrammar/minConvert dynamically or from source
-     // but for simplicity let's rely on default behavior or mock if needed.
-     // Actually I can import them.
-     const { grammar: minGrammar } = require("../experiments/minimum-grammar");
-     const { convert: minConvert } = require("../experiments/minimum-converter");
-     
-     const xml = "<root><child/></root>";
-     const api = new XMLAPI(xml, minGrammar, minConvert);
-     
-     const rootAst = api.ast!;
-     expect(rootAst.cst).toBeInstanceOf(CST);
-     // In minimum-grammar, root might be 'document' wrapping 'element', 
-     // or 'element' depending on how it parses. 
-     // Our converter logic resolves document->element.
-     // Let's check name.
-     // If api.cst is document, and rootAst.cst should be element.
-     expect(api.cst!.name).toBe("document");
-     expect(rootAst.cst!.name).toBe("element");
-     
-     const childAst = rootAst.children[0] as AST;
-     expect(childAst.tagName).toBe("child");
-     expect(childAst.cst).toBeInstanceOf(CST);
-     expect(childAst.cst!.name).toBe("element"); // Reference to element
+    // We need to import minGrammar/minConvert dynamically or from source
+    // but for simplicity let's rely on default behavior or mock if needed.
+    // Actually I can import them.
+    const { grammar: minGrammar } = require("../experiments/minimum-grammar");
+    const { convert: minConvert } = require("../experiments/minimum-converter");
+
+    const xml = "<root><child/></root>";
+    const api = new XMLAPI(xml, minGrammar, minConvert);
+
+    const rootAst = api.ast!;
+    expect(rootAst.cst).toBeInstanceOf(CST);
+    // In minimum-grammar, root might be 'document' wrapping 'element',
+    // or 'element' depending on how it parses.
+    // Our converter logic resolves document->element.
+    // Let's check name.
+    // If api.cst is document, and rootAst.cst should be element.
+    expect(api.cst!.name).toBe("document");
+    expect(rootAst.cst!.name).toBe("element");
+
+    const childAst = rootAst.children[0] as AST;
+    expect(childAst.tagName).toBe("child");
+    expect(childAst.cst).toBeInstanceOf(CST);
+    expect(childAst.cst!.name).toBe("element"); // Reference to element
   });
 });

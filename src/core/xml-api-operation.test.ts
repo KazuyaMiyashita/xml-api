@@ -15,7 +15,7 @@ describe("XMLAPI Operations", () => {
   });
 
   it("should add new attribute to element", () => {
-    const xml = '<root><item /></root>';
+    const xml = "<root><item /></root>";
     const api = new XMLAPI(xml);
     const item = api.ast!.find("item")[0];
 

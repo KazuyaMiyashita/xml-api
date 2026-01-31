@@ -19,8 +19,7 @@ describe("Formatter", () => {
     const ast = new AST("root", {}, [
       new AST("child", {}, [new AST("grandchild")]),
     ]);
-    const expected = 
-`<root>
+    const expected = `<root>
   <child>
     <grandchild />
   </child>
@@ -29,39 +28,37 @@ describe("Formatter", () => {
   });
 
   it("should format mixed content as inline", () => {
-    const ast = new AST("p", {}, [
-      "Hello ",
-      new AST("b", {}, ["World"]),
-      "!",
-    ]);
+    const ast = new AST("p", {}, ["Hello ", new AST("b", {}, ["World"]), "!"]);
     const expected = `<p>Hello <b>World</b>!</p>`;
     expect(formatter.format(ast)).toBe(expected);
   });
-  
+
   it("should escape special characters", () => {
-      const ast = new AST("note", { title: 'quoted "text"' }, ["<content> & more"]);
-      // Attribute: quoted "text" -> quoted &quot;text&quot;
-      // Content: <content> & more -> &lt;content&gt; &amp; more
-      const expected = `<note title="quoted &quot;text&quot;">&lt;content&gt; &amp; more</note>`;
-      expect(formatter.format(ast)).toBe(expected);
+    const ast = new AST("note", { title: 'quoted "text"' }, [
+      "<content> & more",
+    ]);
+    // Attribute: quoted "text" -> quoted &quot;text&quot;
+    // Content: <content> & more -> &lt;content&gt; &amp; more
+    const expected = `<note title="quoted &quot;text&quot;">&lt;content&gt; &amp; more</note>`;
+    expect(formatter.format(ast)).toBe(expected);
   });
 
   it("should support comments", () => {
-      const ast = new AST("root", {}, [
-          new ASTComment(" This is a comment "),
-          new AST("child")
-      ]);
-      const expected = `<root>\n  <!-- This is a comment -->\n  <child />\n</root>`;
-      expect(formatter.format(ast)).toBe(expected);
+    const ast = new AST("root", {}, [
+      new ASTComment(" This is a comment "),
+      new AST("child"),
+    ]);
+    const expected = `<root>\n  <!-- This is a comment -->\n  <child />\n</root>`;
+    expect(formatter.format(ast)).toBe(expected);
   });
 
   it("should re-format existing indentation when force is true", () => {
     const original = `<root>\n  <child>\n    <content />\n  </child>\n</root>`;
     const api = new XMLAPI(original);
-    
+
     const formatter4 = new Formatter({ indent: "    ", force: true });
     const output = formatter4.format(api.ast!);
-    
+
     expect(output).toContain("\n    <child>");
     expect(output).toContain("\n        <content />");
   });
@@ -74,4 +71,3 @@ describe("Formatter", () => {
     expect(output).toContain("\r\n");
   });
 });
-

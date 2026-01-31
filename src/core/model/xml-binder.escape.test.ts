@@ -35,36 +35,36 @@ describe("XMLBinder Escape Logic", () => {
     // Ideally: "A &quot;B&quot; &amp; C"
     // But depending on the implementation, " might not be escaped if the attribute is quoted with '.
     // Here we assume standard double quotes behavior for now, or robust escape.
-    
+
     // The binder uses the existing quote if present. Here it is double quote.
-    const expectedValue = 'A &quot;B&quot; &amp; C';
-    
+    const expectedValue = "A &quot;B&quot; &amp; C";
+
     const patch = binder.calcSetAttributePatch(model, "id", rawValue);
-    
+
     // calcSetAttributePatch returns the quoted string if it finds the attribute?
     // Let's check the implementation.
     // It returns { start, end, text: `${newQuote}${value}${newQuote}` }
-    
+
     expect(patch?.text).toBe(`"${expectedValue}"`);
   });
-  
-  it("should handle attribute creation with proper escaping", () => {
-      const input = '<root></root>';
-      const binder = new XMLBinder(input);
-      const cst = parser.parse(input, "element");
-      const model = binder.hydrate(cst!) as ModelElement;
 
-      const rawValue = "New < & > Value";
-      // Attribute values must escape <, &, "
-      // > is valid in attribute values but often escaped for consistency, though not strictly required.
-      // < is strictly required? XML spec says < in AttValue is illegal.
-      // & is strictly required.
-      
-      const expectedValue = 'New &lt; &amp; &gt; Value'; 
-      
-      const patch = binder.calcSetAttributePatch(model, "newAttr", rawValue);
-      
-      // Patch for new attribute is ` key="value"`
-      expect(patch?.text).toBe(` newAttr="${expectedValue}"`);
+  it("should handle attribute creation with proper escaping", () => {
+    const input = "<root></root>";
+    const binder = new XMLBinder(input);
+    const cst = parser.parse(input, "element");
+    const model = binder.hydrate(cst!) as ModelElement;
+
+    const rawValue = "New < & > Value";
+    // Attribute values must escape <, &, "
+    // > is valid in attribute values but often escaped for consistency, though not strictly required.
+    // < is strictly required? XML spec says < in AttValue is illegal.
+    // & is strictly required.
+
+    const expectedValue = "New &lt; &amp; &gt; Value";
+
+    const patch = binder.calcSetAttributePatch(model, "newAttr", rawValue);
+
+    // Patch for new attribute is ` key="value"`
+    expect(patch?.text).toBe(` newAttr="${expectedValue}"`);
   });
 });
