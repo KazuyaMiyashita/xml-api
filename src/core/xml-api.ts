@@ -7,6 +7,7 @@ import { convert as defaultConverter } from "./model/xml-binder";
 import { XMLBinder } from "./model/xml-binder";
 import { ModelElement, ModelNode } from "./model/xml-api-model";
 import { EventEmitter, EventHandler, ChangeEvent } from "./xml-api-events";
+import { HistoryManager, Transaction } from "./history-manager";
 
 export type Converter = (node: CST, input: string) => AST | string | null;
 
@@ -25,6 +26,8 @@ export class XMLAPI {
   
   private binder: XMLBinder | null = null;
   private events: EventEmitter = new EventEmitter();
+  private history: HistoryManager = new HistoryManager();
+  private isTransacting: boolean = false;
 
   constructor(
     input: string,
@@ -58,6 +61,30 @@ export class XMLAPI {
     return this.events.on(handler);
   }
 
+  public undo(): void {
+    const tx = this.history.undo();
+    if (tx) {
+      this.isTransacting = true;
+      try {
+        this.update_input(tx.undo.from, tx.undo.to, tx.undo.text);
+      } finally {
+        this.isTransacting = false;
+      }
+    }
+  }
+
+  public redo(): void {
+    const tx = this.history.redo();
+    if (tx) {
+      this.isTransacting = true;
+      try {
+        this.update_input(tx.redo.from, tx.redo.to, tx.redo.text);
+      } finally {
+        this.isTransacting = false;
+      }
+    }
+  }
+
   /**
    * Parses the input string using the configured grammar.
    */
@@ -80,22 +107,20 @@ export class XMLAPI {
 
   /**
    * Updates the input text and refreshes the CST/AST.
-   *
-   * - `update_input` is defined only when `from <= to` and both indices are within the range of the original `input` string.
-   * - The state of the `XMLAPI` instance after calling `update_input(from, to, value)` **MUST** be identical to the state of a `new XMLAPI(input.slice(0, from) + value + input.slice(to))` instance.
-   * - The implementation **SHOULD** perform incremental updates by re-parsing only the affected sub-tree and avoiding a full re-parse unless structural changes necessitate it, ensuring the operation remains inexpensive.
-   *
-   * NOTE: Currently, it first attempts an efficient incremental update by finding the smallest node covering the change and re-parsing it.
-   * If the re-parsed node's length doesn't match the expected structural boundaries (implying the change affected surrounding nodes),
-   * it expands the search to parent nodes. If even the root re-parse fails to match boundaries, it falls back to a full re-parse.
-   *
-   * @param from Start offset of the change.
-   * @param to End offset of the change.
-   * @param value New text to insert.
    */
   public update_input(from: number, to: number, value: string): void {
     if (from < 0 || to > this.input.length || from > to) {
       throw new Error("Invalid range for update_input");
+    }
+
+    // Record history if not currently undoing/redoing
+    if (!this.isTransacting) {
+      const oldText = this.input.slice(from, to);
+      const newEnd = from + value.length;
+      this.history.push({
+        redo: { from, to, text: value },
+        undo: { from, to: newEnd, text: oldText },
+      });
     }
 
     const delta = value.length - (to - from);
