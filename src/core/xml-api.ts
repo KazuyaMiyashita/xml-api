@@ -8,6 +8,7 @@ import { XMLBinder } from "./model/xml-binder";
 import { ModelElement, ModelNode } from "./model/xml-api-model";
 import { EventEmitter, EventHandler, ChangeEvent } from "./xml-api-events";
 import { HistoryManager, Transaction } from "./history-manager";
+import { Formatter } from "./model/formatter";
 
 export type Converter = (node: CST, input: string) => AST | string | null;
 
@@ -28,6 +29,7 @@ export class XMLAPI {
   private events: EventEmitter = new EventEmitter();
   private history: HistoryManager = new HistoryManager();
   private isTransacting: boolean = false;
+  private formatter: Formatter = new Formatter();
 
   constructor(
     input: string,
@@ -243,9 +245,11 @@ export class XMLAPI {
   }
 
   /**
-   * Replaces an AST node with new XML content.
+   * Replaces an AST node with new content.
+   * @param astNode The AST node to replace.
+   * @param content New content as an XML string or an AST object.
    */
-  public replaceNode(astNode: AST, newXml: string): void {
+  public replaceNode(astNode: AST, content: string | AST): void {
     if (!this.binder || !this.model) {
       throw new Error("Operational API requires standard binder and model.");
     }
@@ -256,6 +260,15 @@ export class XMLAPI {
     const modelNode = this.findModelNodeByCST(this.model, astNode.cst);
     if (!modelNode) {
       throw new Error("Corresponding model node not found.");
+    }
+
+    let newXml: string;
+    if (typeof content === "string") {
+        newXml = content;
+    } else {
+        // Convert AST to string using formatter
+        // TODO: Detect indentation from context if possible, for now use default or configured formatter
+        newXml = this.formatter.format(content);
     }
 
     const patch = this.binder.calcReplaceNodePatch(modelNode, newXml);
@@ -496,6 +509,8 @@ export class XMLAPI {
         const newAST = this.converter(currentNew, this.input);
 
         // We can only perform in-place update if both are AST objects (Elements).
+        // If the type changed (Element <-> Text), we can't easily update in-place
+        // without knowing the parent AST and index.
         if (newAST instanceof AST) {
           astNode.tagName = newAST.tagName;
           astNode.attributes = newAST.attributes;
