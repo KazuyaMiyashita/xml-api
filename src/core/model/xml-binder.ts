@@ -1,9 +1,10 @@
 import { CST } from "../cst/xml-cst";
-import { AST } from "../ast/xml-ast";
+import { AST, ASTComment } from "../ast/xml-ast";
 import {
   ModelNode,
   ModelElement,
   ModelText,
+  ModelComment,
   ModelNodeType,
 } from "./xml-api-model";
 
@@ -12,7 +13,7 @@ export class XMLBinder {
 
   public isHydratable(name: string | undefined): boolean {
     if (!name) return false;
-    return ["element", "document", "CharData", "Reference", "CharRef", "EntityRef", "CDSect"].includes(name);
+    return ["element", "document", "CharData", "Reference", "CharRef", "EntityRef", "CDSect", "Comment"].includes(name);
   }
 
   public hydrate(node: CST): ModelNode | null {
@@ -25,7 +26,8 @@ export class XMLBinder {
       const text = node.getText(this.input);
       if (text.startsWith("&#")) {
         result = new ModelText(decodeCharRef(node, this.input));
-      } else {
+      }
+      else {
         result = new ModelText(text);
       }
     } else if (node.name === "CharRef") {
@@ -36,10 +38,16 @@ export class XMLBinder {
       const structural = node.unwrap();
       if (structural.children.length === 3) {
         result = new ModelText(structural.children[1].getText(this.input));
-      } else {
+      }
+      else {
         result = new ModelText("");
       }
-    } else if (node.name === "PI" || node.name === "Comment") {
+    } else if (node.name === "Comment") {
+       const text = node.getText(this.input);
+       // Remove <!-- and -->
+       const content = text.substring(4, text.length - 3);
+       result = new ModelComment(content);
+    } else if (node.name === "PI") {
       result = null;
     } else if (node.name === "element" || node.name === "document") {
       const structural = node.unwrap();
@@ -170,7 +178,8 @@ export class XMLBinder {
 
       if (target.getType() === ModelNodeType.Text) {
           (target as ModelText).text = (source as ModelText).text;
-      } else {
+      }
+      else {
           const t = target as ModelElement;
           const s = source as ModelElement;
 
@@ -208,9 +217,12 @@ export class XMLBinder {
       }
   }
 
-  public project(model: ModelNode): AST | string {
+  public project(model: ModelNode): AST | string | ASTComment {
     if (model.getType() === ModelNodeType.Text) {
       return (model as ModelText).text;
+    }
+    if (model.getType() === ModelNodeType.Comment) {
+      return new ASTComment((model as ModelComment).content);
     }
 
     const el = model as ModelElement;
@@ -441,7 +453,7 @@ function decodeCharRef(node: CST, input: string): string {
 // Or we should update them.
 // The task is "Implement src/core/model/xml-binder.ts". 
 // I am replacing it. Tests will break. I will fix tests.
-export function convert(node: CST, input: string): AST | string | null {
+export function convert(node: CST, input: string): AST | string | ASTComment | null {
     const binder = new XMLBinder(input);
     const model = binder.hydrate(node);
     if (!model) return null;
