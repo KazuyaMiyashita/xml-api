@@ -262,14 +262,54 @@ export class XMLAPI {
       throw new Error("Corresponding model node not found.");
     }
 
-    // Convert AST to string using formatter
-    // TODO: Detect indentation from context if possible, for now use default or configured formatter
-    const newXml = this.formatter.format(content);
+    // Detect indentation
+    let indentUnit = "  "; // Default
+    let currentIndent = "";
+    if (modelNode.cst) {
+        currentIndent = this.detectIndent(modelNode.cst);
+        
+        if (modelNode.parent && modelNode.parent.cst) {
+            const parentIndent = this.detectIndent(modelNode.parent.cst);
+            if (currentIndent.startsWith(parentIndent)) {
+                const diff = currentIndent.slice(parentIndent.length);
+                if (diff.length > 0 && !diff.includes('\n')) {
+                    indentUnit = diff;
+                }
+            }
+        }
+    }
+
+    // Convert AST to string using formatter with detected indent
+    const formatter = new Formatter({ indent: indentUnit });
+    let newXml = formatter.format(content);
+
+    // Apply base indent to all lines except the first one
+    if (currentIndent && newXml.includes('\n')) {
+        newXml = newXml.split('\n').map((line, index) => {
+            if (index === 0) return line;
+            return currentIndent + line;
+        }).join('\n');
+    }
 
     const patch = this.binder.calcReplaceNodePatch(modelNode, newXml);
     if (patch) {
       this.updateInput(patch.start, patch.end, patch.text);
     }
+  }
+
+  private detectIndent(node: CST): string {
+    const input = this.input;
+    let i = node.start - 1;
+    while (i >= 0) {
+      if (input[i] === '\n') {
+        return input.slice(i + 1, node.start);
+      }
+      if (input[i] !== ' ' && input[i] !== '\t') {
+        return "";
+      }
+      i--;
+    }
+    return "";
   }
 
   private findModelNodeByCST(root: ModelNode, cst: CST): ModelNode | null {

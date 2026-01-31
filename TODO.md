@@ -95,15 +95,6 @@ Ensure the Formatter can perfectly reconstruct the source and support customizat
     - [x] Implement support for changing indentation (tab vs space, width).
     - [x] Implement support for newline style.
 
-## Phase 10: Context-Aware Formatting
-Enhance the formatter to respect the surrounding code style when inserting new nodes.
-
-- [ ] Indentation Detection:
-    - Implement logic to detect the indentation level of the parent node or siblings.
-- [ ] Contextual Formatting:
-    - Update `Formatter.format` (or add a new method) to accept a base indentation level.
-    - Update `XMLAPI.replaceNode` to use the detected indentation.
-
 ## Phase 11: Extended Feature Support
 Add support for editing less common XML constructs.
 
@@ -111,6 +102,7 @@ Add support for editing less common XML constructs.
     - Add explicit API methods for creating/updating CDATA sections and Comments via `XMLAPI`.
 
 ## Completed Tasks
+- [x] Context-Aware Formatting: Automatic indentation detection and preservation.
 - [x] Key-based Reconciliation: ID-based matching and heuristic list reconciliation.
 - [x] Escape logic for Text Updates and Attribute Updates.
 - [x] Performance Optimization: Delayed coordinate update and atomic transactions.
