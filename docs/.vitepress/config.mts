@@ -42,6 +42,13 @@ export default withMermaid(
               { text: "Full Fidelity", link: "/guide/fidelity" },
             ],
           },
+          {
+            text: "Advanced",
+            items: [
+              { text: "Transactions", link: "/guide/advanced/transaction" },
+              { text: "Collaboration", link: "/guide/advanced/collaboration" },
+            ],
+          },
         ],
         "/architecture/": [
           {

@@ -4,12 +4,23 @@ This section provides a deeper dive into the architecture of the XML synchroniza
 
 ## Architecture Overview
 
-The system consists of three main layers, orchestrated by the central **XMLAPI**.
+The system architecture is centered around the **SyncEngine**, which manages state transitions via Transactions.
 
 | Layer | Role | Characteristics |
 | :--- | :--- | :--- |
-| **CST** (Concrete Syntax Tree) | Physical Layer | Exact source structure, validation, incremental parsing. |
-| **Model & DOM** | Application Layer | Source of Truth, persistent IDs, DOM API, change observation. |
+| **SyncEngine** | Core Logic | Transaction processing, History, Event dispatching. |
+| **CST** | Physical Layer | Exact source structure, validation, incremental parsing. |
+| **Model & DOM** | Application Layer | Source of Truth, persistent IDs, DOM API. |
+
+## Transaction Architecture
+
+`xml-api` employs a transactional state management model inspired by modern editors.
+
+- **EditorState**: An immutable object representing the state of the editor at a single point in time. It holds the `source`, `model`, and `cst`.
+- **Transaction**: Represents a unit of change. It encapsulates text patches and metadata.
+- **SyncEngine**: The processor that takes a `Transaction`, applies it to the current state, performs parsing and reconciliation, and produces a new `EditorState`.
+
+This ensures that all updates are atomic, predictable, and historically trackable.
 
 ## Layers in Depth
 
