@@ -11,7 +11,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: View API
-      link: /api/xml-api
+      link: /api/reference/README
 
 features:
   - title: Intuitive Operation

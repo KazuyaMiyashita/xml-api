@@ -7,16 +7,60 @@ import {
   ModelText,
 } from "../model/xml-api-model";
 
+/**
+ * Observer interface to listen for changes in the DOM-like structure.
+ * This is crucial for synchronizing the visual representation or application model
+ * back to the source code via the XMLAPI.
+ *
+ * @example
+ * ```typescript
+ * const doc = new Document();
+ * doc.setObserver({
+ *   onAttributeChange: (element, name, value) => {
+ *     console.log(`Attribute ${name} changed to ${value}`);
+ *     // Sync with XMLAPI...
+ *   },
+ *   // ...
+ * });
+ * ```
+ */
 export interface DOMObserver {
+  /**
+   * Called when an attribute is added, changed, or removed.
+   * @param element The target element.
+   * @param name Attribute name.
+   * @param value New value, or null if removed.
+   */
   onAttributeChange(element: Element, name: string, value: string | null): void;
+
+  /**
+   * Called when the text content of a node changes.
+   * @param node The target CharacterData node (Text, Comment, CDATA).
+   * @param text The new text content.
+   */
   onTextChange(node: CharacterData, text: string): void;
+
+  /**
+   * Called when a child node is added.
+   * @param parent The parent node.
+   * @param child The added child node.
+   * @param index The index at which the child was added.
+   */
   onChildAdded(parent: Node, child: Node, index: number): void;
+
+  /**
+   * Called when a child node is removed.
+   * @param parent The parent node.
+   * @param child The removed child node.
+   * @param index The index from which the child was removed.
+   */
   onChildRemoved(parent: Node, child: Node, index: number): void;
 }
 
 /**
  * Base class for all DOM nodes.
- * Implements a subset of the W3C Node interface.
+ * Implements a subset of the W3C Node interface to allow applications
+ * to interact with the XML model using familiar methods.
  */
 export abstract class Node {
   public readonly ELEMENT_NODE = 1;
@@ -33,11 +77,17 @@ export abstract class Node {
   abstract get nodeType(): number;
   abstract get nodeName(): string;
 
+  /**
+   * Returns the parent of this node.
+   */
   get parentNode(): Node | null {
     if (!this.model.parent) return null;
     return createWrapper(this.model.parent, this.ownerDocument);
   }
 
+  /**
+   * Returns a NodeList containing all children of this node.
+   */
   get childNodes(): NodeList {
     if (this.model instanceof ModelElement) {
       return new NodeList(
@@ -115,6 +165,10 @@ export abstract class Node {
     }
   }
 
+  /**
+   * Adds a node to the end of the list of children of a specified parent node.
+   * @param newChild The node to append.
+   */
   appendChild<T extends Node>(newChild: T): T {
     if (this.model instanceof ModelElement) {
       this.model.addChild(newChild.getModel());
@@ -144,6 +198,9 @@ export class NodeList extends Array<Node> {
   }
 }
 
+/**
+ * Base class for Text, Comment, and CDATASection nodes.
+ */
 export abstract class CharacterData extends Node {
   get data(): string {
     return this.textContent || "";
@@ -188,6 +245,9 @@ export class CDATASection extends CharacterData {
   }
 }
 
+/**
+ * Represents an element in the XML document.
+ */
 export class Element extends Node {
   constructor(
     protected override model: ModelElement,
@@ -263,6 +323,9 @@ export class Element extends Node {
   }
 }
 
+/**
+ * Represents the entire XML document.
+ */
 export class Document extends Node {
   private _documentElement: Element | null = null;
   private observer: DOMObserver | null = null;
@@ -275,6 +338,9 @@ export class Document extends Node {
     this.ownerDocument = this; // Document owns itself
   }
   
+  /**
+   * Sets the observer to listen for DOM changes.
+   */
   setObserver(observer: DOMObserver) {
     this.observer = observer;
   }

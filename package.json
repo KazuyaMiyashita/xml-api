@@ -16,6 +16,7 @@
     "test:all": "jest",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
+    "docs:gen-api": "typedoc",
     "docs:preview": "vitepress preview docs",
     "format": "biome format --write ."
   },
@@ -39,6 +40,8 @@
     "mermaid": "^11.12.2",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
+    "typedoc": "^0.28.16",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.9.3",
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17",

@@ -37,6 +37,12 @@ export class XMLAPI {
   private history: HistoryManager = new HistoryManager();
   private isTransacting: boolean = false;
 
+  /**
+   * Initializes the API with the source XML string.
+   * @param input The initial XML source code.
+   * @param grammar (Optional) Custom grammar definition.
+   * @param converter (Optional) Custom CST-to-AST converter.
+   */
   constructor(
     input: string,
     grammar: Grammar = defaultGrammar,
@@ -65,10 +71,18 @@ export class XMLAPI {
     }
   }
 
+  /**
+   * Registers an event handler to listen for model changes.
+   * @param handler The callback function.
+   * @returns A function to unsubscribe the handler.
+   */
   public on(handler: EventHandler): () => void {
     return this.events.on(handler);
   }
 
+  /**
+   * Reverts the last source code change.
+   */
   public undo(): void {
     const tx = this.history.undo();
     if (tx) {
@@ -81,6 +95,9 @@ export class XMLAPI {
     }
   }
 
+  /**
+   * Re-applies a previously undone source code change.
+   */
   public redo(): void {
     const tx = this.history.redo();
     if (tx) {
@@ -115,6 +132,10 @@ export class XMLAPI {
 
   /**
    * Updates the input text and refreshes the CST/AST.
+   * This method attempts an incremental update first, falling back to a full re-parse if necessary.
+   * @param from Start index of the range to replace.
+   * @param to End index of the range.
+   * @param value The new text to insert.
    */
   public updateInput(from: number, to: number, value: string): void {
     if (from < 0 || to > this.input.length || from > to) {
@@ -213,7 +234,10 @@ export class XMLAPI {
 
   /**
    * Sets an attribute on the specified AST node.
-   * Updates the source code, CST, Model, and AST.
+   * Updates the source code, CST, Model, and AST by calculating a minimal text patch.
+   * @param astNode The target AST node.
+   * @param key Attribute name.
+   * @param value Attribute value.
    */
   public setAttribute(astNode: AST, key: string, value: string): void {
     if (!this.binder || !this.model) {
@@ -236,6 +260,8 @@ export class XMLAPI {
 
   /**
    * Updates the text content of the specified AST element.
+   * @param astNode The target AST element.
+   * @param text The new text content.
    */
   public updateText(astNode: AST, text: string): void {
     if (!this.binder || !this.model) {

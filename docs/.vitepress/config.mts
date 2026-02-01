@@ -23,7 +23,7 @@ export default withMermaid(defineConfig({
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/getting-started' },
       { text: 'Architecture', link: '/architecture/overview' },
-      { text: 'API', link: '/api/xml-api' },
+      { text: 'API', link: '/api/reference/README' },
       { text: 'Examples', link: '/examples/interactive-demo' }
     ],
     sidebar: {
@@ -50,9 +50,19 @@ export default withMermaid(defineConfig({
         {
           text: 'API Reference',
           items: [
-            { text: 'XMLAPI', link: '/api/xml-api' },
-            { text: 'DOM Interface', link: '/api/dom-interface' },
-            { text: 'Binding & Events', link: '/api/binding-events' }
+            { text: 'Overview', link: '/api/reference/README' },
+            {
+              text: 'Classes',
+              collapsed: false,
+              items: [
+                { text: 'XMLAPI', link: '/api/reference/classes/XMLAPI' },
+                { text: 'AST', link: '/api/reference/classes/AST' },
+                { text: 'XMLBinder', link: '/api/reference/classes/XMLBinder' },
+                { text: 'Formatter', link: '/api/reference/classes/Formatter' },
+                { text: 'Document', link: '/api/reference/classes/Document' },
+                { text: 'Element', link: '/api/reference/classes/Element' }
+              ]
+            }
           ]
         }
       ],
