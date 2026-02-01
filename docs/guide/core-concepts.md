@@ -1,58 +1,70 @@
 # Core Concepts
 
-The project adopts a layered architecture to separate the concerns of text fidelity and operational ease.
+This section provides a deeper dive into the architecture of the XML synchronization engine. The system is designed around a layered architecture that bridges the gap between raw source code and application-level object models.
 
-## Layer Structure
+## Architecture Overview
 
-| Layer | Name | Role | Characteristics |
-| :--- | :--- | :--- | :--- |
-| **Physical Layer** | CST | Represents the exact physical structure of the source code. | Positional data, formatting, comments. |
-| **Model Layer** | Model | The authoritative source of truth. | Persistent IDs, Reconciliation, Link to CST. |
-| **Interface Layer** | DOM | Standard-compatible wrapper for manipulation. | `setAttribute`, `textContent`, `querySelector`. |
-| **Semantic Layer** | AST | A simplified projection (Optional). | Tag names, attributes, child nodes. |
+The system consists of three main layers, orchestrated by the central **XMLAPI**.
 
-## Layer Details
+| Layer | Role | Characteristics |
+| :--- | :--- | :--- |
+| **CST** (Concrete Syntax Tree) | Physical Layer | Exact source structure, validation, incremental parsing. |
+| **Model** | Logical Layer | Source of Truth, persistent IDs, reconciliation. |
+| **AST & DOM** | Interface Layer | Standard DOM API, simplified data view, change observation. |
 
-### Physical Layer: CST (Concrete Syntax Tree)
-The CST captures every character of the source, including "hidden" data like attribute quote styles, specific whitespace between attributes, and indentation. This layer is crucial for achieving **Full Fidelity**.
+## Layers in Depth
 
-### Model Layer: Core Model
-The Model is where the "intelligence" of the system resides. It maps CST nodes to logical elements. When the source code changes, the Model performs **Reconciliation**—it compares the new CST with the old Model and updates only the necessary parts. This preserves object identity, which is essential for UI frameworks that bind to these objects.
+### 1. CST (Concrete Syntax Tree)
+The CST is the result of parsing the source code against a strict grammar definition based on the **W3C XML 1.0 Specification**.
 
-### Interface Layer: DOM Interface
-The DOM layer provides an industry-standard interface. It translates standard operations (like appending a child) into specific requests for the Binder to update the source code.
+- **Full Fidelity**: Captures every character, including whitespace, comments, and attribute quote styles.
+- **Validation**: Enforces Well-Formedness Constraints (WFC) such as matching start/end tags and unique attributes during the parsing process.
+- **Incremental Parsing**: Supports efficient updates by re-parsing only specific branches of the tree when the input changes (`Parser.parseAt`).
 
-## Component Map
+### 2. Model
+The Model is the authoritative source of truth that connects the physical CST to the application.
 
-The system is organized around the `XMLAPI`, which acts as an orchestrator.
+- **Persistent Identity**: Every node is assigned a unique, immutable ID upon creation. This allows external systems (like UI frameworks) to track nodes reliably even after re-parsing.
+- **Binder Engine**: The core logic that synchronizes data. It performs **Reconciliation**—intelligently updating the existing Model tree with new CST data to minimize object replacement—and calculates precise text patches for updates.
+- **Linkage**: Maintains direct references to CST nodes, enabling the retrieval of exact source code locations for every logical element.
+
+### 3. AST & DOM Interface
+This layer provides the interfaces for applications to interact with the document.
+
+- **DOM Interface**: The primary API for manipulation. It implements standard W3C interfaces (`Document`, `Element`) and acts as a wrapper around the Model. Changes made here are observed and automatically synchronized with the source code.
+- **AST**: A simplified, read-only tree structure (`xml-ast.ts`). It is lighter than the DOM and is used mainly for data extraction or feeding into the Formatter.
+
+## Data Flow
+
+The system maintains a bidirectional loop between the source code and the application.
 
 ```mermaid
 graph TD
     User["Application"]
 
-    subgraph "XML API System"
+    subgraph "XML Synchronization Engine"
         Mediator["XMLAPI"]
 
-        subgraph "Physical"
-            Parser["Parser"]
+        subgraph "Physical Layer"
+            Parser["Incremental Parser"]
             CST["CST"]
         end
 
-        subgraph "Model / Logic"
+        subgraph "Logical Layer"
             Binder["XMLBinder"]
             Model["Model"]
         end
         
-        subgraph "API / View"
+        subgraph "Application Layer"
             DOM["DOM Interface"]
-            AST["AST"]
+            AST["AST (Optional)"]
         end
     end
 
     %% Interaction
-    User <==>|"DOM Operations / Events"| DOM
+    User <==>|"DOM Operations"| DOM
     DOM <--> Mediator
-    User --> AST
+    User -.-> AST
 
     %% Internal Flows
     Mediator -- "1. Parse" --> Parser
