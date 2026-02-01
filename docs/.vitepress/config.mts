@@ -1,7 +1,8 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 import path from 'path'
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   title: "XML API",
   description: "A foundational XML parser and manipulation API for WYSIWYG editors and IDEs.",
   vite: {
@@ -63,4 +64,4 @@ export default defineConfig({
     },
     socialLinks: []
   }
-})
+}))
