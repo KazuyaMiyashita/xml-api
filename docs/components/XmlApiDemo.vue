@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, shallowRef, onMounted, computed } from 'vue';
 import { XMLAPI, Document, Element, CharacterData, Node, createWrapper, type DOMObserver, XMLBinder } from '@/index';
 import XmlTreeNode from './XmlTreeNode.vue';
 import InspectorPanel from './InspectorPanel.vue';
@@ -17,10 +17,10 @@ const inputXml = ref(`<root>
   </item>
 </root>`);
 
-const rootElement = ref<Element | null>(null);
+const rootElement = shallowRef<Element | null>(null);
 
 // Selection State
-const selectedNode = ref<Node | null>(null);
+const selectedNode = shallowRef<Node | null>(null);
 const selectedPath = ref<string | null>(null);
 
 // API Instances

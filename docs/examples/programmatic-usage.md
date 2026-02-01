@@ -1,47 +1,39 @@
-# Programmatic Usage
+# Programmatic Usage Guide
 
-This example demonstrates how to use the `xml-api` programmatically in a Node.js environment or directly in logic. It covers parsing, searching, incremental updates, and AST manipulation.
+This guide demonstrates how to use the `xml-api` in your application logic. It covers everything from basic initialization to advanced bidirectional synchronization.
 
-## Source Code
+All examples below are fully functional. You can click the **Run (▶)** icon at the bottom right of each code block to see the actual execution result.
 
-The following code is a comprehensive example of the API's capabilities.
+## Basic Initialization
 
-```typescript
-// sample.xml
-const xmlContent = `<book xml:lang="ja">
-  <title>りんごの選び方</title>
-  <section>
-    <h2>選定基準</h2>
-    <p>美味しいりんごを選ぶには...</p>
-  </section>
-  <section>
-    <h2>保存方法</h2>
-    <p>涼しい場所で...</p>
-  </section>
-</book>`;
+To start using the API, initialize the `XMLAPI` class with your XML source string. This process parses the source and builds the internal CST, AST, and Model.
 
-// Initialize
-const api = new XMLAPI(xmlContent);
+<CodeRunner scenario="basic-init" />
 
-// 1. Search
-const titles = api.ast?.find("title");
-console.log(`Found title: ${titles[0].text()}`);
+## Modifying Source via AST
 
-// 2. Incremental Update
-const targetText = "りんごの選び方";
-const startPos = api.input.indexOf(targetText);
-api.updateInput(startPos, startPos + targetText.length, "美味しいりんごの見分け方");
+The most intuitive way to update your XML is through the AST-based methods. These methods automatically calculate minimal text patches for the source code, ensuring that formatting in unmodified areas remains intact.
 
-// 3. AST Manipulation
-const sections = api.ast?.find("section");
-// ... construct new AST ...
-// api.replaceNode(targetSection, newSectionAst);
-```
+<CodeRunner scenario="modifying-source" />
 
-## Execution Result
+## Advanced Searching and Updates
 
-Click the "Run Code" button below to execute the full logic in your browser.
+You can perform complex searches using the `find` method and manipulate the source directly using `updateInput` for character-level precision.
 
-<ClientOnly>
-  <CodeRunner />
-</ClientOnly>
+<CodeRunner scenario="programmatic-usage" />
+
+## Bidirectional Syncing Mechanism
+
+This example simulates the core logic used in our interactive demo. It shows how changes in a "Virtual DOM" are captured by an observer and converted into source code patches using the `XMLBinder`.
+
+### Key Concepts
+
+1.  **Observer**: Monitors changes in the application state (e.g., a properties panel edit).
+2.  **Binder**: The bridge that knows how to map logical nodes back to their exact locations in the source text.
+3.  **Incremental Update**: Only the affected part of the source is modified, and the `XMLAPI` refreshes its internal state efficiently.
+
+<CodeRunner scenario="demo-walkthrough" />
+
+::: tip Note
+For a visual demonstration of these concepts in action, visit the [Interactive Demo](./interactive-demo.md).
+:::
