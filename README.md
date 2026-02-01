@@ -1,5 +1,7 @@
 # XML API
 
+An XML library that faithfully synchronizes documents and AST.
+
 This project provides a foundational XML parser and manipulation API designed for WYSIWYG editors and Integrated Development Environments (IDEs). It aims to achieve both intuitive application operation and full fidelity of the source code. By maintaining a bidirectional synchronization between the application view and the source code, it ensures high performance and data integrity.
 
 ## Project Goals
