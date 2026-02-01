@@ -2,7 +2,13 @@
   "name": "xml-api",
   "version": "0.9.0",
   "description": "An XML library that faithfully synchronizes documents and AST.",
-  "main": "dist/index.js",
+  "main": "dist/xml-api.js",
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
   "types": "dist/index.d.ts",
   "files": [
     "dist"
@@ -12,11 +18,11 @@
     "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit",
     "docs:typecheck": "vue-tsc --noEmit -p docs/tsconfig.json",
-    "test": "jest src",
+    "test": "jest",
     "test:all": "jest",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:gen-api": "typedoc",
+    "docs:gen-api": "typedoc && ts-node scripts/generate-sidebar.ts",
     "docs:preview": "vitepress preview docs",
     "format": "biome format --write ."
   },

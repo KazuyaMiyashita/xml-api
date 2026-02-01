@@ -1,0 +1,320 @@
+[
+  {
+    "text": "Overview",
+    "link": "/api/reference/README"
+  },
+  {
+    "text": "ast",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "dom",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "CDATASection",
+            "link": "/api/reference/ast/dom/classes/CDATASection"
+          },
+          {
+            "text": "CharacterData",
+            "link": "/api/reference/ast/dom/classes/CharacterData"
+          },
+          {
+            "text": "Comment",
+            "link": "/api/reference/ast/dom/classes/Comment"
+          },
+          {
+            "text": "createWrapper",
+            "link": "/api/reference/ast/dom/functions/createWrapper"
+          },
+          {
+            "text": "Document",
+            "link": "/api/reference/ast/dom/classes/Document"
+          },
+          {
+            "text": "DOMObserver",
+            "link": "/api/reference/ast/dom/interfaces/DOMObserver"
+          },
+          {
+            "text": "Element",
+            "link": "/api/reference/ast/dom/classes/Element"
+          },
+          {
+            "text": "Node",
+            "link": "/api/reference/ast/dom/classes/Node"
+          },
+          {
+            "text": "NodeList",
+            "link": "/api/reference/ast/dom/classes/NodeList"
+          },
+          {
+            "text": "Text",
+            "link": "/api/reference/ast/dom/classes/Text"
+          }
+        ]
+      },
+      {
+        "text": "xml-ast",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "AST",
+            "link": "/api/reference/ast/xml-ast/classes/AST"
+          },
+          {
+            "text": "ASTCDATA",
+            "link": "/api/reference/ast/xml-ast/classes/ASTCDATA"
+          },
+          {
+            "text": "ASTComment",
+            "link": "/api/reference/ast/xml-ast/classes/ASTComment"
+          },
+          {
+            "text": "ASTNode",
+            "link": "/api/reference/ast/xml-ast/type-aliases/ASTNode"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "text": "cst",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "grammar",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "alt",
+            "link": "/api/reference/cst/grammar/functions/alt"
+          },
+          {
+            "text": "exc",
+            "link": "/api/reference/cst/grammar/functions/exc"
+          },
+          {
+            "text": "Expression",
+            "link": "/api/reference/cst/grammar/type-aliases/Expression"
+          },
+          {
+            "text": "Grammar",
+            "link": "/api/reference/cst/grammar/classes/Grammar"
+          },
+          {
+            "text": "GrammarBuilder",
+            "link": "/api/reference/cst/grammar/classes/GrammarBuilder"
+          },
+          {
+            "text": "lit",
+            "link": "/api/reference/cst/grammar/functions/lit"
+          },
+          {
+            "text": "opt",
+            "link": "/api/reference/cst/grammar/functions/opt"
+          },
+          {
+            "text": "plus",
+            "link": "/api/reference/cst/grammar/functions/plus"
+          },
+          {
+            "text": "ref",
+            "link": "/api/reference/cst/grammar/functions/ref"
+          },
+          {
+            "text": "reg",
+            "link": "/api/reference/cst/grammar/functions/reg"
+          },
+          {
+            "text": "rep",
+            "link": "/api/reference/cst/grammar/functions/rep"
+          },
+          {
+            "text": "seq",
+            "link": "/api/reference/cst/grammar/functions/seq"
+          },
+          {
+            "text": "Validator",
+            "link": "/api/reference/cst/grammar/type-aliases/Validator"
+          }
+        ]
+      },
+      {
+        "text": "parser",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "Parser",
+            "link": "/api/reference/cst/parser/classes/Parser"
+          }
+        ]
+      },
+      {
+        "text": "xml-cst",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "CST",
+            "link": "/api/reference/cst/xml-cst/classes/CST"
+          }
+        ]
+      },
+      {
+        "text": "xml-grammar",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "variables",
+            "collapsed": true,
+            "items": [
+              {
+                "text": "g_deprecated",
+                "link": "/api/reference/cst/xml-grammar/variables/g_deprecated"
+              },
+              {
+                "text": "grammar",
+                "link": "/api/reference/cst/xml-grammar/variables/grammar"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "text": "history-manager",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "HistoryManager",
+        "link": "/api/reference/history-manager/classes/HistoryManager"
+      },
+      {
+        "text": "Transaction",
+        "link": "/api/reference/history-manager/interfaces/Transaction"
+      }
+    ]
+  },
+  {
+    "text": "model",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "formatter",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "Formatter",
+            "link": "/api/reference/model/formatter/classes/Formatter"
+          },
+          {
+            "text": "FormatterOptions",
+            "link": "/api/reference/model/formatter/interfaces/FormatterOptions"
+          }
+        ]
+      },
+      {
+        "text": "xml-api-model",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "ModelCDATA",
+            "link": "/api/reference/model/xml-api-model/classes/ModelCDATA"
+          },
+          {
+            "text": "ModelComment",
+            "link": "/api/reference/model/xml-api-model/classes/ModelComment"
+          },
+          {
+            "text": "ModelElement",
+            "link": "/api/reference/model/xml-api-model/classes/ModelElement"
+          },
+          {
+            "text": "ModelNode",
+            "link": "/api/reference/model/xml-api-model/classes/ModelNode"
+          },
+          {
+            "text": "ModelNodeType",
+            "link": "/api/reference/model/xml-api-model/enumerations/ModelNodeType"
+          },
+          {
+            "text": "ModelText",
+            "link": "/api/reference/model/xml-api-model/classes/ModelText"
+          },
+          {
+            "text": "NodeId",
+            "link": "/api/reference/model/xml-api-model/type-aliases/NodeId"
+          }
+        ]
+      },
+      {
+        "text": "xml-binder",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "convert",
+            "link": "/api/reference/model/xml-binder/functions/convert"
+          },
+          {
+            "text": "XMLBinder",
+            "link": "/api/reference/model/xml-binder/classes/XMLBinder"
+          }
+        ]
+      },
+      {
+        "text": "xml-schema",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "ElementDefinition",
+            "link": "/api/reference/model/xml-schema/interfaces/ElementDefinition"
+          },
+          {
+            "text": "XMLSchema",
+            "link": "/api/reference/model/xml-schema/classes/XMLSchema"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "text": "modules",
+    "link": "/api/reference/modules"
+  },
+  {
+    "text": "xml-api",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "Converter",
+        "link": "/api/reference/xml-api/type-aliases/Converter"
+      },
+      {
+        "text": "XMLAPI",
+        "link": "/api/reference/xml-api/classes/XMLAPI"
+      }
+    ]
+  },
+  {
+    "text": "xml-api-events",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "ChangeEvent",
+        "link": "/api/reference/xml-api-events/interfaces/ChangeEvent"
+      },
+      {
+        "text": "ChangeType",
+        "link": "/api/reference/xml-api-events/type-aliases/ChangeType"
+      },
+      {
+        "text": "EventEmitter",
+        "link": "/api/reference/xml-api-events/classes/EventEmitter"
+      },
+      {
+        "text": "EventHandler",
+        "link": "/api/reference/xml-api-events/type-aliases/EventHandler"
+      }
+    ]
+  }
+]

@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: "XML API"
-  text: "High-Fidelity XML Manipulation"
-  tagline: A foundational API for WYSIWYG editors and IDEs.
+  text: "High-Fidelity XML Synchronization"
+  tagline: An XML synchronization engine that maintains full fidelity between source code and the Document Object Model (DOM).
   actions:
     - theme: brand
       text: Get Started
@@ -15,11 +15,11 @@ hero:
 
 features:
   - title: Intuitive Operation
-    details: Manipulate XML using a familiar DOM-like interface tailored for applications.
+    details: Manipulate XML using a DOM-compatible interface. Familiar methods like setAttribute work as expected.
   - title: Full Fidelity
-    details: Edits preserve all whitespace, indentation, and comments automatically.
+    details: Edits preserve all whitespace, indentation, and comments. No more broken formatting after automated edits.
   - title: Bidirectional Sync
-    details: Changes sync instantly between the source code and the application model.
-  - title: Domain Suitability
-    details: Recognizes schema-specific rules, such as void elements, to ensure valid edits.
+    details: Instantly synchronizes changes between the source code and the in-memory model, ensuring data integrity.
+  - title: Incremental Engine
+    details: Powered by an incremental parser that re-calculates only what's changed, making it ideal for large documents.
 ---

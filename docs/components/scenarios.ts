@@ -20,9 +20,9 @@ const xml = \`<root>
 
 const api = new XMLAPI(xml);
 
-if (api.ast) {
+if (api.model) {
   console.log("Parse successful!");
-  console.log(\`Root tag: <\${api.ast.tagName}>\`);
+  console.log(\`Root tag: <\${api.model.tagName}>\`);
 } else {
   console.error("Parse failed.");
 }`,
@@ -31,9 +31,9 @@ if (api.ast) {
   <item id="1">Value</item>
 </root>`;
       const api = new XMLAPI(xml);
-      if (api.ast) {
+      if (api.model) {
         log("Parse successful!");
-        log(`Root tag: <${api.ast.tagName}>`);
+        log(`Root tag: <${api.model.tagName}>`);
       } else {
         log("Parse failed.");
       }
@@ -41,22 +41,21 @@ if (api.ast) {
   },
 
   'modifying-source': {
-    title: 'Modifying Source via AST',
-    code: `// Assume api is initialized
-// Find the first 'item' node in AST
-const root = api.ast;
-const itemNode = root?.children.find(
-  child => typeof child === 'object' && 'tagName' in child && child.tagName === 'item'
-);
+    title: 'Modifying via DOM Interface',
+    code: `// Get a DOM-compatible Document object
+const doc = api.getDocument();
 
-if (itemNode) {
-  // Update attribute
+// Find the item element
+const item = doc.querySelector('item');
+
+if (item) {
+  // Update attribute using standard DOM method
   console.log("Setting attribute 'status' to 'active'...");
-  api.setAttribute(itemNode, 'status', 'active');
+  item.setAttribute('status', 'active');
   
   // Update text content
   console.log("Updating text content to 'New Value'...");
-  api.updateText(itemNode, 'New Value');
+  item.textContent = 'New Value';
 }
 
 console.log("Updated Source:");
@@ -66,19 +65,16 @@ console.log(api.input);`,
   <item id="1">Value</item>
 </root>`;
       const api = new XMLAPI(xml);
+      const doc = api.getDocument();
       
-      const root = api.ast;
-      // @ts-ignore
-      const itemNode = root?.children.find(
-        child => typeof child === 'object' && 'tagName' in child && child.tagName === 'item'
-      ) as AST | undefined;
+      const item = doc.querySelector('item');
 
-      if (itemNode) {
+      if (item) {
         log("Setting attribute 'status' to 'active'...");
-        api.setAttribute(itemNode, 'status', 'active');
+        item.setAttribute('status', 'active');
         
         log("Updating text content to 'New Value'...");
-        api.updateText(itemNode, 'New Value');
+        item.textContent = 'New Value';
       }
 
       log("Updated Source:");
@@ -150,7 +146,11 @@ if (newTitles.length > 0) {
   
   'demo-walkthrough': {
     title: 'Bidirectional Sync Simulation',
-    code: `// Simulation of the Observer Pattern used in the demo
+    code: `import { XMLAPI } from 'xml-api';
+import { XMLBinder } from 'xml-api/model/xml-binder';
+import { ModelElement } from 'xml-api/model/xml-api-model';
+
+// Simulation of the Observer Pattern used in the demo
 const input = \`<button class="btn">Click me</button>\`;
 const api = new XMLAPI(input);
 const binder = new XMLBinder(input);

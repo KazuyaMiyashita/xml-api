@@ -10,9 +10,9 @@ To start using the API, initialize the `XMLAPI` class with your XML source strin
 
 <CodeRunner scenario="basic-init" />
 
-## Modifying Source via AST
+## Modifying via DOM Interface
 
-The most intuitive way to update your XML is through the AST-based methods. These methods automatically calculate minimal text patches for the source code, ensuring that formatting in unmodified areas remains intact.
+The most intuitive way to update your XML is through the DOM-compatible interface. Standard methods like `setAttribute` and `textContent` automatically calculate minimal text patches for the source code, ensuring that formatting in unmodified areas remains intact.
 
 <CodeRunner scenario="modifying-source" />
 

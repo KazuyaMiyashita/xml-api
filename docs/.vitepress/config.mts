@@ -1,6 +1,10 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import path from 'path'
+import fs from 'fs'
+
+const sidebarPath = path.resolve(__dirname, 'api-sidebar.json')
+const apiSidebar = JSON.parse(fs.readFileSync(sidebarPath, 'utf-8'))
 
 export default withMermaid(defineConfig({
   title: "XML API",
@@ -49,21 +53,7 @@ export default withMermaid(defineConfig({
       '/api/': [
         {
           text: 'API Reference',
-          items: [
-            { text: 'Overview', link: '/api/reference/README' },
-            {
-              text: 'Classes',
-              collapsed: false,
-              items: [
-                { text: 'XMLAPI', link: '/api/reference/classes/XMLAPI' },
-                { text: 'AST', link: '/api/reference/classes/AST' },
-                { text: 'XMLBinder', link: '/api/reference/classes/XMLBinder' },
-                { text: 'Formatter', link: '/api/reference/classes/Formatter' },
-                { text: 'Document', link: '/api/reference/classes/Document' },
-                { text: 'Element', link: '/api/reference/classes/Element' }
-              ]
-            }
-          ]
+          items: apiSidebar
         }
       ],
       '/examples/': [

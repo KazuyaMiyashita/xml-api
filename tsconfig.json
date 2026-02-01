@@ -8,15 +8,17 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "outDir": "./dist",
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": [
     "node_modules",
     "dist",
     "worktrees",
-    "**/*.test.ts",
-    "**/*.spec.ts",
     "src/experiments"
   ]
 }

@@ -1,72 +1,83 @@
 # XML API
 
-An XML library that faithfully synchronizes documents and AST.
+An XML synchronization engine that maintains full fidelity between source code and the Document Object Model (DOM).
 
-This project provides a foundational XML parser and manipulation API designed for WYSIWYG editors and Integrated Development Environments (IDEs). It aims to achieve both intuitive application operation and full fidelity of the source code. By maintaining a bidirectional synchronization between the application view and the source code, it ensures high performance and data integrity.
+This project provides a foundational XML parser and manipulation API designed for WYSIWYG editors and Integrated Development Environments (IDEs). It features a DOM-compatible interface that bidirectionally synchronizes intuitive application edits and source code modifications, all while preserving details like whitespace and indentation.
 
-## Documentation
+## Key Features
 
-- **[Getting Started](docs/guide/getting-started.md)**: Installation and basic usage.
-- **[Architecture](docs/architecture/overview.md)**: Detailed system design and component interaction.
-- **[API Reference](docs/api/reference/README.md)**: Auto-generated API documentation.
-- **[Examples](docs/examples/programmatic-usage.md)**: Programmatic usage scenarios and demos.
+- **Full Fidelity**: Edits preserve all whitespace, indentation, and comments automatically in unmodified parts of the code.
+- **Bidirectional Sync**: Instantly synchronizes changes between the source code and the in-memory model, ensuring consistent state across operations.
+- **DOM Compatibility**: Provides a familiar interface (`Element`, `Document`, `setAttribute`, etc.) for intuitive application development.
+- **Incremental Updates**: High performance through incremental parsing and minimal text patching.
+
+## Architecture
+
+The system consists of three main layers orchestrated by the **XMLAPI**:
+
+1. **CST (Concrete Syntax Tree)**: Captures the exact physical structure of the source code, including formatting.
+2. **Model**: The authoritative internal representation that maintains object identity and coordinates synchronization.
+3. **AST (Abstract Syntax Tree)**: A semantic projection for easy data access and formatting.
 
 ## Basic Usage
+
+### Initialization
 
 ```typescript
 import { XMLAPI } from 'xml-api';
 
 const xml = `<root>
-  <item id="1">Value</item>
+  <item id="1">Original Value</item>
 </root>`;
 
 const api = new XMLAPI(xml);
+```
 
-// 1. Parse and Access AST
-if (api.ast) {
-  console.log(`Root tag: ${api.ast.tagName}`);
-}
+### Manipulating via DOM API (Recommended)
 
-// 2. Manipulate
-// Update text content of the first child element
-const item = api.ast?.children.find(node => typeof node === 'object' && 'tagName' in node);
+You can use standard DOM methods to manipulate the XML. These changes are automatically reflected back to the source code with minimal patches.
+
+```typescript
+const doc = api.getDocument(); // Returns a DOM-like Document
+const item = doc.querySelector('item');
+
 if (item) {
-  api.updateText(item, "New Value");
+  item.setAttribute('status', 'active');
+  item.textContent = 'Updated Value';
 }
 
 console.log(api.input);
-// Output:
-// <root>
-//   <item id="1">New Value</item>
-// </root>
+/* 
+Output:
+<root>
+  <item id="1" status="active">Updated Value</item>
+</root>
+*/
 ```
 
-## Development Guide
+### Low-level Incremental Updates
+
+```typescript
+// Update the source code directly at specific offsets
+api.updateInput(14, 28, "New Content");
+```
+
+## Documentation
+
+- **[Getting Started](docs/guide/getting-started.md)**: Installation and detailed usage.
+- **[Architecture](docs/architecture/overview.md)**: Deep dive into the system design.
+- **[Core Concepts](docs/guide/core-concepts.md)**: Understanding Fidelity and the Layered model.
+- **[API Reference](docs/api/reference/README.md)**: Auto-generated API documentation.
+
+## Development
 
 This project uses [pnpm](https://pnpm.io/).
 
-### Setup
-
 ```bash
 pnpm install
+pnpm test
+pnpm docs:gen-api
 ```
-
-### Testing
-
-*   `pnpm test`: Runs all tests in the `src/` directory (Jest).
-*   `pnpm typecheck`: Runs TypeScript type checking for the source code.
-*   `pnpm docs:typecheck`: Runs type checking for the documentation (Vue components).
-
-### Building
-
-*   `pnpm build`: Builds the library to the `dist/` directory.
-
-### Documentation
-
-*   `pnpm docs:gen-api`: Generates API documentation from source code JSDoc using TypeDoc.
-*   `pnpm docs:dev`: Starts the VitePress development server for documentation.
-*   `pnpm docs:build`: Builds the static documentation site.
-*   `pnpm docs:preview`: Previews the built documentation locally.
 
 ## License
 

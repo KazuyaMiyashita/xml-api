@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import type { Node, Element, CharacterData } from '@/index';
+import type { Node, Element, CharacterData } from '@/ast/dom';
 
 const props = defineProps<{
   node: Node;
