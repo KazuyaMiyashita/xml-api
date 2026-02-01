@@ -7,8 +7,7 @@
 The `CollabBridge` interface allows you to hook into the synchronization pipeline.
 
 ```typescript
-import { CollabBridge, Transaction } from 'xml-api';
-
+import { CollabBridge, Transaction } from '@miy2/xml-api';
 class YjsBridge implements CollabBridge {
   constructor(private yDoc: Y.Doc) {}
 

@@ -11,7 +11,7 @@ export interface Scenario {
 export const scenarios: Record<string, Scenario> = {
   "basic-init": {
     title: "Initializing the API",
-    code: `import { XMLAPI } from 'xml-api';
+    code: `import { XMLAPI } from '@miy2/xml-api';
 
 const xml = \`<root>
   <item id="1">Value</item>
@@ -149,9 +149,9 @@ if (newTitles.length > 0) {
 
   "demo-walkthrough": {
     title: "Bidirectional Sync Simulation",
-    code: `import { XMLAPI } from 'xml-api';
-import { XMLBinder } from 'xml-api/model/xml-binder';
-import { ModelElement } from 'xml-api/model/xml-api-model';
+    code: `import { XMLAPI } from '@miy2/xml-api';
+import { XMLBinder } from '@miy2/xml-api/model/xml-binder';
+import { ModelElement } from '@miy2/xml-api/model/xml-api-model';
 
 // Simulation of the Observer Pattern used in the demo
 const input = \`<button class="btn">Click me</button>\`;

@@ -34,7 +34,7 @@ Additionally, a **DOM-compatible Interface** wraps the Model for familiar applic
 ### Initialization
 
 ```typescript
-import { XMLAPI } from 'xml-api';
+import { XMLAPI } from '@miy2/xml-api';
 
 const xml = `<root>
   <item id="1">Original Value</item>

@@ -1,8 +1,8 @@
-[**xml-api**](README.md)
+[**@miy2/xml-api**](README.md)
 
 ***
 
-# xml-api
+# @miy2/xml-api
 
 ## Modules
 

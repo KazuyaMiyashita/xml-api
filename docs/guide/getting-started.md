@@ -13,7 +13,7 @@ This project provides a foundational XML parser and manipulation API designed fo
 ## Installation
 
 ```bash
-pnpm install xml-api
+pnpm install @miy2/xml-api
 ```
 
 ## Basic Usage
@@ -21,7 +21,7 @@ pnpm install xml-api
 ### Initialization
 
 ```typescript
-import { XMLAPI } from 'xml-api';
+import { XMLAPI } from '@miy2/xml-api';
 
 const source = `<root>
   <item>Hello World</item>
