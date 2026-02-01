@@ -46,7 +46,7 @@ To achieve the dual goals of utilizing standard Web APIs and maintaining strict 
 *   **DOM Compatibility**: Provides a familiar interface for application developers, supporting standard-like traversal and manipulation.
 *   **Direct Source Mapping**: Every AST node maintains a link to its corresponding CST node, enabling precise text patches.
 
-For more details on why this custom approach was selected over native `XMLDocument` integration, see `docs/architecture/comparison.md`.
+For more details on why this custom approach was selected over native `XMLDocument` integration, see `docs/architecture/decision.md`.
 
 ## System Components
 
