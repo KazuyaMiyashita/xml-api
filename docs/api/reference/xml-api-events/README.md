@@ -8,11 +8,7 @@
 
 - [EventEmitter](classes/EventEmitter.md)
 
-## Interfaces
-
-- [ChangeEvent](interfaces/ChangeEvent.md)
-
 ## Type Aliases
 
-- [ChangeType](type-aliases/ChangeType.md)
+- [ChangeEvent](type-aliases/ChangeEvent.md)
 - [EventHandler](type-aliases/EventHandler.md)

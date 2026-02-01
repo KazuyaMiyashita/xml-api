@@ -94,6 +94,50 @@
 
 ***
 
+### clone()
+
+> **clone**(`preserveId`): `ModelElement`
+
+#### Parameters
+
+##### preserveId
+
+`boolean` = `false`
+
+#### Returns
+
+`ModelElement`
+
+#### Overrides
+
+[`ModelNode`](ModelNode.md).[`clone`](ModelNode.md#clone)
+
+***
+
+### cloneBase()
+
+> `protected` **cloneBase**(`target`, `preserveId`): `void`
+
+#### Parameters
+
+##### target
+
+[`ModelNode`](ModelNode.md)
+
+##### preserveId
+
+`boolean`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`cloneBase`](ModelNode.md#clonebase)
+
+***
+
 ### find()
 
 > **find**(`tagName`): `ModelElement`[]

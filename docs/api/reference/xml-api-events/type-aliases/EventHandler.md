@@ -12,7 +12,7 @@ Callback function for handling change events.
 
 ### event
 
-[`ChangeEvent`](../interfaces/ChangeEvent.md)
+[`ChangeEvent`](ChangeEvent.md)
 
 ## Returns
 

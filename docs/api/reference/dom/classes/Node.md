@@ -237,3 +237,61 @@ The node to append.
 #### Returns
 
 [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
+
+***
+
+### insertBefore()
+
+> **insertBefore**\<`T`\>(`newChild`, `refChild`): `T`
+
+Inserts a node before a reference node as a child of this node.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* `Node`
+
+#### Parameters
+
+##### newChild
+
+`T`
+
+The node to insert.
+
+##### refChild
+
+The reference node (must be a child of this node).
+
+`Node` | `null`
+
+#### Returns
+
+`T`
+
+***
+
+### removeChild()
+
+> **removeChild**\<`T`\>(`child`): `T`
+
+Removes a child node from the DOM and returns the removed node.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* `Node`
+
+#### Parameters
+
+##### child
+
+`T`
+
+The child node to remove.
+
+#### Returns
+
+`T`

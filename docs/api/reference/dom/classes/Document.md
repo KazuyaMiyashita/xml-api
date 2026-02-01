@@ -392,6 +392,42 @@ The node to append.
 
 ***
 
+### insertBefore()
+
+> **insertBefore**\<`T`\>(`newChild`, `refChild`): `T`
+
+Inserts a node before a reference node as a child of this node.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* [`Node`](Node.md)
+
+#### Parameters
+
+##### newChild
+
+`T`
+
+The node to insert.
+
+##### refChild
+
+The reference node (must be a child of this node).
+
+[`Node`](Node.md) | `null`
+
+#### Returns
+
+`T`
+
+#### Inherited from
+
+[`Node`](Node.md).[`insertBefore`](Node.md#insertbefore)
+
+***
+
 ### notifyAttributeChange()
 
 > **notifyAttributeChange**(`element`, `name`, `value`): `void`
@@ -419,6 +455,30 @@ The node to append.
 ### notifyChildAdded()
 
 > **notifyChildAdded**(`parent`, `child`, `index`): `void`
+
+#### Parameters
+
+##### parent
+
+[`Node`](Node.md)
+
+##### child
+
+[`Node`](Node.md)
+
+##### index
+
+`number`
+
+#### Returns
+
+`void`
+
+***
+
+### notifyChildRemoved()
+
+> **notifyChildRemoved**(`parent`, `child`, `index`): `void`
 
 #### Parameters
 
@@ -509,6 +569,36 @@ The node to append.
 #### Returns
 
 [`NodeList`](NodeList.md)
+
+***
+
+### removeChild()
+
+> **removeChild**\<`T`\>(`child`): `T`
+
+Removes a child node from the DOM and returns the removed node.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* [`Node`](Node.md)
+
+#### Parameters
+
+##### child
+
+`T`
+
+The child node to remove.
+
+#### Returns
+
+`T`
+
+#### Inherited from
+
+[`Node`](Node.md).[`removeChild`](Node.md#removechild)
 
 ***
 

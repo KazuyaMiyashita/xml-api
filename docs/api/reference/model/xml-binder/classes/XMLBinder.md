@@ -22,6 +22,46 @@
 
 ## Methods
 
+### calcInsertNodePatch()
+
+> **calcInsertNodePatch**(`parent`, `index`, `insertText`): \{ `end`: `number`; `start`: `number`; `text`: `string`; \} \| `null`
+
+#### Parameters
+
+##### parent
+
+[`ModelElement`](../../xml-api-model/classes/ModelElement.md)
+
+##### index
+
+`number`
+
+##### insertText
+
+`string`
+
+#### Returns
+
+\{ `end`: `number`; `start`: `number`; `text`: `string`; \} \| `null`
+
+***
+
+### calcRemoveNodePatch()
+
+> **calcRemoveNodePatch**(`child`): \{ `end`: `number`; `start`: `number`; `text`: `string`; \} \| `null`
+
+#### Parameters
+
+##### child
+
+[`ModelNode`](../../xml-api-model/classes/ModelNode.md)
+
+#### Returns
+
+\{ `end`: `number`; `start`: `number`; `text`: `string`; \} \| `null`
+
+***
+
 ### calcReplaceNodePatch()
 
 > **calcReplaceNodePatch**(`model`, `newXml`): \{ `end`: `number`; `start`: `number`; `text`: `string`; \} \| `null`

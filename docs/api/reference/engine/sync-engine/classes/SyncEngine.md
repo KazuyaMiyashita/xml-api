@@ -24,19 +24,19 @@
 
 `SyncEngine`
 
-## Properties
+## Accessors
 
 ### cst
 
-> **cst**: [`CST`](../../../cst/xml-cst/classes/CST.md) \| `null` = `null`
+#### Get Signature
+
+> **get** **cst**(): [`CST`](../../../cst/xml-cst/classes/CST.md) \| `null`
+
+##### Returns
+
+[`CST`](../../../cst/xml-cst/classes/CST.md) \| `null`
 
 ***
-
-### model
-
-> **model**: [`ModelElement`](../../../model/xml-api-model/classes/ModelElement.md) \| `null` = `null`
-
-## Accessors
 
 ### grammar
 
@@ -50,6 +50,18 @@
 
 ***
 
+### model
+
+#### Get Signature
+
+> **get** **model**(): [`ModelElement`](../../../model/xml-api-model/classes/ModelElement.md) \| `null`
+
+##### Returns
+
+[`ModelElement`](../../../model/xml-api-model/classes/ModelElement.md) \| `null`
+
+***
+
 ### source
 
 #### Get Signature
@@ -59,6 +71,18 @@
 ##### Returns
 
 `string`
+
+***
+
+### state
+
+#### Get Signature
+
+> **get** **state**(): [`EditorState`](../../editor-state/classes/EditorState.md)
+
+##### Returns
+
+[`EditorState`](../../editor-state/classes/EditorState.md)
 
 ## Methods
 
@@ -82,6 +106,48 @@ This is the "Application -> Source" flow.
 ##### text
 
 `string`
+
+#### Returns
+
+`void`
+
+***
+
+### dispatch()
+
+> **dispatch**(`tr`): `void`
+
+Applies a transaction to the engine, updating the state and notifying listeners.
+
+#### Parameters
+
+##### tr
+
+[`Transaction`](../../transaction/classes/Transaction.md)
+
+#### Returns
+
+`void`
+
+***
+
+### insertNode()
+
+> **insertNode**(`parent`, `child`, `index`): `void`
+
+#### Parameters
+
+##### parent
+
+[`ModelElement`](../../../model/xml-api-model/classes/ModelElement.md)
+
+##### child
+
+[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+
+##### index
+
+`number`
 
 #### Returns
 
@@ -114,6 +180,26 @@ Subscribe to model changes.
 ### redo()
 
 > **redo**(): `void`
+
+#### Returns
+
+`void`
+
+***
+
+### removeNode()
+
+> **removeNode**(`parent`, `child`): `void`
+
+#### Parameters
+
+##### parent
+
+[`ModelElement`](../../../model/xml-api-model/classes/ModelElement.md)
+
+##### child
+
+[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
 
 #### Returns
 
