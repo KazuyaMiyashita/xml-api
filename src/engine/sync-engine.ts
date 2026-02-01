@@ -192,6 +192,38 @@ export class SyncEngine {
     }
   }
 
+  public insertNode(
+    parent: ModelElement,
+    child: ModelNode,
+    index: number,
+  ): void {
+    if (!parent.cst) throw new Error("Parent node not linked to CST");
+
+    // Determine basic indentation (simplistic)
+    let indentUnit = "  ";
+    if (parent.cst) {
+      const parentIndent = this.detectIndent(parent.cst);
+      // Try to find a child to detect indent step
+      // ... skipping complex logic for now
+    }
+
+    const formatter = new Formatter({ indent: indentUnit });
+    const insertText = formatter.format(child);
+
+    const patch = this.binder.calcInsertNodePatch(parent, index, insertText);
+    if (patch) {
+      this.applyPatch(patch.start, patch.end, patch.text);
+    }
+  }
+
+  public removeNode(parent: ModelElement, child: ModelNode): void {
+    if (!child.cst) throw new Error("Target node not linked to CST");
+    const patch = this.binder.calcRemoveNodePatch(child);
+    if (patch) {
+      this.applyPatch(patch.start, patch.end, patch.text);
+    }
+  }
+
   // --- Internal Logic ---
 
   private fullParse(): void {

@@ -188,6 +188,52 @@ export abstract class Node {
     throw new Error("HierarchyRequestError");
   }
 
+  /**
+   * Inserts a node before a reference node as a child of this node.
+   * @param newChild The node to insert.
+   * @param refChild The reference node (must be a child of this node).
+   */
+  insertBefore<T extends Node>(newChild: T, refChild: Node | null): T {
+    if (this.model instanceof ModelElement) {
+      if (!refChild) {
+        return this.appendChild(newChild);
+      }
+      const refModel = refChild.getModel();
+      const index = this.model.children.indexOf(refModel);
+      if (index === -1) throw new Error("NotFoundError");
+
+      // Update Model
+      this.model.children.splice(index, 0, newChild.getModel());
+      newChild.getModel().parent = this.model;
+      // @ts-ignore
+      newChild.ownerDocument = this.ownerDocument;
+
+      this.ownerDocument?.notifyChildAdded(this, newChild, index);
+      return newChild;
+    }
+    throw new Error("HierarchyRequestError");
+  }
+
+  /**
+   * Removes a child node from the DOM and returns the removed node.
+   * @param child The child node to remove.
+   */
+  removeChild<T extends Node>(child: T): T {
+    if (this.model instanceof ModelElement) {
+      const childModel = child.getModel();
+      const index = this.model.children.indexOf(childModel);
+      if (index === -1) throw new Error("NotFoundError");
+
+      // Update Model
+      this.model.children.splice(index, 1);
+      childModel.parent = null;
+
+      this.ownerDocument?.notifyChildRemoved(this, child, index);
+      return child;
+    }
+    throw new Error("HierarchyRequestError");
+  }
+
   // Internal access
   getModel(): ModelNode {
     return this.model;
@@ -366,6 +412,10 @@ export class Document extends Node {
 
   notifyChildAdded(parent: Node, child: Node, index: number) {
     this.observer?.onChildAdded(parent, child, index);
+  }
+
+  notifyChildRemoved(parent: Node, child: Node, index: number) {
+    this.observer?.onChildRemoved(parent, child, index);
   }
 
   get nodeType(): number {

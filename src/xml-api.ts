@@ -132,10 +132,18 @@ export class XMLAPI {
         }
       },
       onChildAdded: (parent: Node, child: Node, index: number) => {
-        console.warn("Child addition not yet supported via Observer");
+        const parentModel = parent.getModel();
+        const childModel = child.getModel();
+        if (parentModel instanceof ModelElement) {
+          this.engine.insertNode(parentModel, childModel, index);
+        }
       },
       onChildRemoved: (parent: Node, child: Node, index: number) => {
-        console.warn("Child removal not yet supported via Observer");
+        const parentModel = parent.getModel();
+        const childModel = child.getModel();
+        if (parentModel instanceof ModelElement) {
+          this.engine.removeNode(parentModel, childModel);
+        }
       },
     });
 

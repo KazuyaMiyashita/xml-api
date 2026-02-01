@@ -40,7 +40,7 @@
 現在の `XMLAPI` はテキスト編集や属性変更には対応していますが、DOM APIの核心である「要素の追加・削除」がソースコードに反映されません（`console.warn` が出るのみ）。
 これでは「XMLアプリケーション側からの操作で文書構造を変える」という要件を満たせません。このフェーズで DOM インターフェースとしての最低限の要件を充足させます。
 
-- [ ] **DOM構造変更の同期サポート**:
+- [x] **DOM構造変更の同期サポート**:
     - **Goal**: DOM API (`appendChild`, `removeChild`) を通じた構造変更が、即座にソースコード（XMLテキスト）に反映されるようにする。
     - **Task**:
         1. `SyncEngine` に `insertNode(parent: ModelElement, child: ModelNode, index: number)` メソッドを追加する。（論理操作の定義）

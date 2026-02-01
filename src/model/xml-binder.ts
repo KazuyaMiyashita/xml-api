@@ -420,6 +420,85 @@ export class XMLBinder {
     };
   }
 
+  public calcInsertNodePatch(
+    parent: ModelElement,
+    index: number,
+    insertText: string,
+  ): { start: number; end: number; text: string } | null {
+    if (!parent.cst) return null;
+
+    const structural = parent.cst.unwrap();
+
+    // Case 1: Sequence [STag, content, ETag]
+    if (
+      structural.children.length === 3 &&
+      structural.children[0].name === "STag"
+    ) {
+      // content -> seq(opt(CharData), rep(seq(alt(...), opt(CharData))))
+      
+      let insertPos: number;
+
+      // Look for the next sibling that has a CST (stable anchor)
+      // Since the model already contains the new node at 'index', we look from 'index + 1'
+      let anchorNode: ModelNode | null = null;
+      for (let i = index + 1; i < parent.children.length; i++) {
+        if (parent.children[i].cst) {
+          anchorNode = parent.children[i];
+          break;
+        }
+      }
+
+      if (anchorNode && anchorNode.cst) {
+        insertPos = anchorNode.cst.start;
+      } else {
+        // No following stable anchor found, insert before ETag
+        const etag = structural.children[2];
+        insertPos = etag.start;
+      }
+
+      return {
+        start: insertPos,
+        end: insertPos,
+        text: insertText,
+      };
+    }
+
+    // Case 2: EmptyElemTag
+    // <Name ... /> -> <Name ... >insertText</Name>
+    if (
+      structural.name === "EmptyElemTag" ||
+      (structural.children.length >= 2 &&
+        structural.children[0].getText(this.input) === "<")
+    ) {
+      const len = structural.children.length;
+      const closing = structural.children[len - 1]; // "/>"
+
+      if (closing.getText(this.input) === "/>") {
+        return {
+          start: closing.start,
+          end: closing.end,
+          text: `>${insertText}</${parent.tagName}>`,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  public calcRemoveNodePatch(
+    child: ModelNode,
+  ): { start: number; end: number; text: string } | null {
+    if (!child.cst) return null;
+
+    // TODO: Ideally we should remove surrounding whitespace if it becomes redundant (pretty print maintenance).
+    // For now, strict removal.
+    return {
+      start: child.cst.start,
+      end: child.cst.end,
+      text: "",
+    };
+  }
+
   private parseTag(node: CST): ModelElement {
     const structural = node.unwrap();
     const nameNode = structural.children[1];
