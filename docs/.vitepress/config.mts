@@ -6,6 +6,12 @@ export default withMermaid(defineConfig({
   title: "XML API",
   description: "A foundational XML parser and manipulation API for WYSIWYG editors and IDEs.",
   vite: {
+    optimizeDeps: {
+      include: ['mermaid', 'vitepress-plugin-mermaid', 'dayjs']
+    },
+    ssr: {
+      noExternal: ['mermaid', 'vitepress-plugin-mermaid']
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '../../src')
