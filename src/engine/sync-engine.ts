@@ -7,6 +7,7 @@ import { Formatter } from "../model/formatter";
 import { ModelElement, type ModelNode } from "../model/xml-api-model";
 import { XMLBinder } from "../model/xml-binder";
 import { EventEmitter, type EventHandler } from "../xml-api-events";
+import type { CollabBridge } from "../collab/bridge";
 import { EditorState } from "./editor-state";
 import { Transaction } from "./transaction";
 
@@ -17,6 +18,7 @@ export class SyncEngine {
   private history: HistoryManager;
   private events: EventEmitter;
   private isTransacting: boolean = false;
+  private collabBridge: CollabBridge | null = null;
 
   constructor(source: string, grammar: Grammar = defaultGrammar) {
     this._state = EditorState.create(source);
@@ -46,6 +48,10 @@ export class SyncEngine {
 
   public get grammar(): Grammar {
     return this.parser.grammar;
+  }
+
+  public setCollabBridge(bridge: CollabBridge): void {
+    this.collabBridge = bridge;
   }
 
   /**
@@ -122,6 +128,11 @@ export class SyncEngine {
     if (!handled) {
       this.fullParse();
       this.events.emit({ type: "full", transaction: tr });
+    }
+
+    // Notify Collaboration Bridge if local change
+    if (!tr.isRemote && this.collabBridge) {
+      this.collabBridge.receiveLocalTransaction(tr);
     }
   }
 

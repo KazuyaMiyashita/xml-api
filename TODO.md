@@ -103,8 +103,9 @@ view.update(newState);
 Google Docsのようなリアルタイム共同編集を実現するため、YjsなどのCRDTライブラリとの統合を見据えます。
 Phase 3で整えたTransactionモデルがあれば、Transactionの内容をCRDT操作に変換（およびその逆）することで、比較的容易に同期機能を実現できるはずです。
 
-- [ ] **Yjs / Automerge 連携の検討**:
+- [x] **Yjs / Automerge 連携の検討**:
     - **Goal**: 複数のユーザーが同時に編集しても整合性を保てるようにする。
     - **Task**:
-        - `ModelNode` の ID を CRDT の ID とマッピングする仕組みの設計。
-        - `XMLBinder` のパッチ生成ロジックを、CRDT の操作（`yMap.set`, `yXmlFragment.insert`）に変換するアダプターの作成。
+        - `Transaction` に `isRemote` フラグを追加し、無限ループを防止する。
+        - `CollabBridge` インターフェースを定義し、外部ライブラリとの接続ポイントを作成する。
+        - `SyncEngine` に `setCollabBridge` メソッドを追加し、ローカル変更を通知する仕組みを実装する。

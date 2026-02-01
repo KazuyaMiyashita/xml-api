@@ -14,6 +14,9 @@ export class Transaction {
   public readonly patches: TextPatch[] = [];
   public docChanged = false;
   
+  /** Indicates if this transaction originated from a remote source (collaboration). */
+  public isRemote = false;
+  
   // Placeholder for future selection and metadata
   // public selection: Selection | null = null;
   // public meta: Map<string, any> = new Map();
