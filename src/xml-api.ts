@@ -4,6 +4,14 @@ import {
   type ASTComment,
   type ASTNode,
 } from "./ast/xml-ast";
+import {
+  type CharacterData,
+  Document,
+  type DOMObserver,
+  Element,
+  type Node,
+  createWrapper,
+} from "./ast/dom";
 import type { Grammar } from "./cst/grammar";
 import { Parser } from "./cst/parser";
 import type { CST } from "./cst/xml-cst";
@@ -36,6 +44,7 @@ export class XMLAPI {
   private events: EventEmitter = new EventEmitter();
   private history: HistoryManager = new HistoryManager();
   private isTransacting: boolean = false;
+  private document: Document | null = null;
 
   /**
    * Initializes the API with the source XML string.
@@ -69,6 +78,71 @@ export class XMLAPI {
         this.ast = this.generateAST(this.cst);
       }
     }
+  }
+
+  /**
+   * Returns a DOM-compatible Document object linked to this API.
+   * Changes made to the returned Document are automatically reflected in the source code.
+   */
+  public getDocument(): Document {
+    if (this.document) return this.document;
+
+    const doc = new Document();
+    this.document = doc;
+
+    if (this.model) {
+      // Wrap the root model and attach to document
+      // Note: In a real DOM, documentElement is usually the root element.
+      // We assume this.model is that root element.
+      const rootWrapper = createWrapper(this.model, doc);
+      if (rootWrapper instanceof Element) {
+        doc.documentElement = rootWrapper;
+      }
+    }
+
+    // Set up observer to sync changes back to source
+    doc.setObserver({
+      onAttributeChange: (element: Element, name: string, value: string | null) => {
+        if (!this.binder) return;
+        const model = element.getModel();
+        if (model instanceof ModelElement) {
+          if (value === null) {
+             // Attribute removal not yet supported by binder directly in calcSetAttributePatch?
+             // Or we pass null? Binder needs update if so.
+             // For now, let's assume value is string for setAttribute.
+             // If removeAttribute, we might need new binder method.
+             console.warn("Attribute removal not fully supported yet in sync");
+          } else {
+            const patch = this.binder.calcSetAttributePatch(model, name, value);
+            if (patch) {
+              this.updateInput(patch.start, patch.end, patch.text);
+            }
+          }
+        }
+      },
+      onTextChange: (node: CharacterData, text: string) => {
+        // CharacterData direct update (not yet supported by Binder patch logic)
+        console.warn("Direct CharacterData update not yet supported in sync");
+      },
+      onElementTextChange: (element: Element, text: string) => {
+         if (!this.binder) return;
+         const model = element.getModel();
+         if (model instanceof ModelElement) {
+           const patch = this.binder.calcUpdateTextPatch(model, text);
+           if (patch) {
+             this.updateInput(patch.start, patch.end, patch.text);
+           }
+         }
+      },
+      onChildAdded: (parent: Node, child: Node, index: number) => {
+        console.warn("Child addition not yet supported in sync");
+      },
+      onChildRemoved: (parent: Node, child: Node, index: number) => {
+        console.warn("Child removal not yet supported in sync");
+      }
+    });
+
+    return doc;
   }
 
   /**

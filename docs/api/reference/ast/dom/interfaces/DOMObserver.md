@@ -119,6 +119,32 @@ The index from which the child was removed.
 
 ***
 
+### onElementTextChange()
+
+> **onElementTextChange**(`element`, `text`): `void`
+
+Called when the text content of an Element changes (replacing all children).
+
+#### Parameters
+
+##### element
+
+[`Element`](../classes/Element.md)
+
+The target Element.
+
+##### text
+
+`string`
+
+The new text content.
+
+#### Returns
+
+`void`
+
+***
+
 ### onTextChange()
 
 > **onTextChange**(`node`, `text`): `void`

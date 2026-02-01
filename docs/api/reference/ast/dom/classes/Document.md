@@ -440,6 +440,26 @@ The node to append.
 
 ***
 
+### notifyElementTextChange()
+
+> **notifyElementTextChange**(`element`, `text`): `void`
+
+#### Parameters
+
+##### element
+
+[`Element`](Element.md)
+
+##### text
+
+`string`
+
+#### Returns
+
+`void`
+
+***
+
 ### notifyTextChange()
 
 > **notifyTextChange**(`node`, `text`): `void`

@@ -42,6 +42,7 @@ describe("DOM Fidelity Verification", () => {
              }
         }
       },
+      onElementTextChange: () => {},
       onChildAdded: () => {},
       onChildRemoved: () => {}
     };
@@ -82,6 +83,7 @@ describe("DOM Fidelity Verification", () => {
              }
         }
       },
+      onElementTextChange: () => {},
       onChildAdded: () => {},
       onChildRemoved: () => {}
     };

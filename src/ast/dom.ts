@@ -41,6 +41,13 @@ export interface DOMObserver {
   onTextChange(node: CharacterData, text: string): void;
 
   /**
+   * Called when the text content of an Element changes (replacing all children).
+   * @param element The target Element.
+   * @param text The new text content.
+   */
+  onElementTextChange(element: Element, text: string): void;
+
+  /**
    * Called when a child node is added.
    * @param parent The parent node.
    * @param child The added child node.
@@ -159,9 +166,8 @@ export abstract class Node {
       if (val) {
         const textNode = new ModelText(val);
         this.model.addChild(textNode);
-        // Notification for element textContent set is complex (removes children)
-        // For now, we assume this is handled by re-parsing if needed or generic update.
       }
+      this.ownerDocument?.notifyElementTextChange(this as any as Element, val);
     }
   }
 
@@ -351,6 +357,10 @@ export class Document extends Node {
   
   notifyTextChange(node: CharacterData, text: string) {
     this.observer?.onTextChange(node, text);
+  }
+
+  notifyElementTextChange(element: Element, text: string) {
+    this.observer?.onElementTextChange(element, text);
   }
   
   notifyChildAdded(parent: Node, child: Node, index: number) {

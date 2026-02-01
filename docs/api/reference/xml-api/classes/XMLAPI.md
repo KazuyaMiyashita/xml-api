@@ -86,6 +86,19 @@ Model is the authoritative logical representation.
 
 ## Methods
 
+### getDocument()
+
+> **getDocument**(): [`Document`](../../ast/dom/classes/Document.md)
+
+Returns a DOM-compatible Document object linked to this API.
+Changes made to the returned Document are automatically reflected in the source code.
+
+#### Returns
+
+[`Document`](../../ast/dom/classes/Document.md)
+
+***
+
 ### on()
 
 > **on**(`handler`): () => `void`

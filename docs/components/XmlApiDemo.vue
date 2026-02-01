@@ -40,6 +40,7 @@ function init() {
   const observer: DOMObserver = {
     onAttributeChange: () => {},
     onTextChange: () => {},
+    onElementTextChange: () => {},
     onChildAdded: () => {},
     onChildRemoved: () => {}
   };
