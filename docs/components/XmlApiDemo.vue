@@ -30,7 +30,7 @@ const rootElement = shallowRef<Element | null>(null);
 
 // Selection State
 const selectedNode = shallowRef<Node | null>(null);
-const selectedPath = ref<string | null>(null);
+const selectedId = ref<string | null>(null);
 
 // API Instances
 let api: XMLAPI | null = null;
@@ -60,8 +60,6 @@ function applyPatch(start: number, end: number, text: string) {
   if (!api) return;
   api.updateInput(start, end, text);
   inputXml.value = api.input;
-  // TODO: Fix issue where selection is lost (resets to "Select a node...") on every text input keystroke
-  // causing the inspector panel to flash or clear unexpectedly.
   refreshTree();
 }
 
@@ -71,14 +69,15 @@ function refreshTree() {
   if (api.model) {
     rootElement.value = createWrapper(api.model, doc) as Element;
 
-    // Restore selection
-    if (selectedPath.value) {
-      const restored = findNodeByPath(rootElement.value, selectedPath.value);
+    // Restore selection via ID
+    if (selectedId.value) {
+      const restored = findNodeById(rootElement.value, selectedId.value);
       if (restored) {
         selectedNode.value = restored;
       } else {
+        // If node not found (deleted), clear selection
         selectedNode.value = null;
-        selectedPath.value = null;
+        selectedId.value = null;
       }
     } else {
       selectedNode.value = null;
@@ -87,35 +86,27 @@ function refreshTree() {
 }
 
 // --- Selection Management ---
-function getNodePath(node: Node): string {
-  const path: number[] = [];
-  let current = node;
-  while (current.parentNode) {
-    const parent = current.parentNode;
-    const index = Array.from(parent.childNodes).indexOf(current);
-    path.unshift(index);
-    current = parent;
+function findNodeById(root: Node, id: string): Node | null {
+  // @ts-ignore: Accessing internal model for ID check
+  if (root.getModel().id === id) {
+    return root;
   }
-  return path.join("/");
-}
 
-function findNodeByPath(root: Node, pathStr: string): Node | null {
-  const indices = pathStr.split("/").map(Number);
-  let current = root;
-  for (const idx of indices) {
-    const children = current.childNodes;
-    if (idx >= 0 && idx < children.length) {
-      current = children.item(idx)!;
-    } else {
-      return null;
+  const children = root.childNodes;
+  for (let i = 0; i < children.length; i++) {
+    const child = children.item(i);
+    if (child) {
+      const found = findNodeById(child, id);
+      if (found) return found;
     }
   }
-  return current;
+  return null;
 }
 
 function onSelect(node: Node) {
   selectedNode.value = node;
-  selectedPath.value = getNodePath(node);
+  // @ts-ignore: Accessing internal model
+  selectedId.value = node.getModel().id;
 }
 
 // --- Editor Actions ---
@@ -196,7 +187,7 @@ onMounted(() => {
 
       <!-- AST Pane -->
       <div class="pane tree-pane">
-        <div class="pane-header">AST Structure</div>
+        <div class="pane-header">Model Structure</div>
         <div class="tree-wrapper">
           <XmlTreeNode 
             v-if="rootElement" 

@@ -24,10 +24,10 @@
 リファクタリングにより内部構造は整理されましたが、ユーザーが触れるデモアプリ (`XmlApiDemo.vue`) には、まだ「AST」という古い用語が残っていたり、「編集すると選択状態が解除される」というUX上の欠陥があります。
 特に選択状態の喪失は、双方向編集の体験を著しく損なうため、最優先で修正します。この修正プロセスを通じて、ModelのID安定性（Identity Preservation）が正しく機能しているかも検証します。
 
-- [ ] **UIのラベル修正**:
+- [x] **UIのラベル修正**:
     - **Goal**: ユーザーに見える用語を内部実装（Modelアーキテクチャ）と一致させ、混乱を防ぐ。
     - **Task**: "AST Structure" を "Model Structure" または "Tree View" に変更する。
-- [ ] **選択状態維持のロジック改善 (Fix Selection Loss)**:
+- [x] **選択状態維持のロジック改善 (Fix Selection Loss)**:
     - **Goal**: ドキュメント編集時にフォーカスや選択ノードがリセットされるのを防ぎ、快適な編集体験を提供する。
     - **Task**:
         1. `XmlApiDemo.vue` で `selectedId` (string) を保持するように変更する。（参照ベースからIDベースへの移行）
@@ -60,7 +60,7 @@ Phase 3 で導入する「Transactionモデル」は、状態を不変（Immutab
 - [ ] **Modelの不変性強化の準備**:
     - **Goal**: 状態の履歴管理やUndo/Redo、並行編集（CRDT）において必須となる「オブジェクトの不変性」を導入しやすくする。
     - **Task**:
-        - `ModelElement.clone()` メソッドを実装する。
+        - `ModelElement.clone()` メソッドの実装。
         - 状態変更を伴う操作をメソッドに集約し、将来的に「変更後の新しいModelを返す」形へ移行しやすい構造にする。
 
 ## Phase 3: トランザクションアーキテクチャへの刷新 (Next Gen Architecture)
@@ -106,5 +106,5 @@ Phase 3で整えたTransactionモデルがあれば、Transactionの内容をCRD
 - [ ] **Yjs / Automerge 連携の検討**:
     - **Goal**: 複数のユーザーが同時に編集しても整合性を保てるようにする。
     - **Task**:
-        - `ModelNode` の ID を CRDT の ID とマッピングする仕組みを設計する。
-        - `XMLBinder` のパッチ生成ロジックを、CRDT の操作（`yMap.set`, `yXmlFragment.insert`）に変換するアダプターを作成する。
+        - `ModelNode` の ID を CRDT の ID とマッピングする仕組みの設計。
+        - `XMLBinder` のパッチ生成ロジックを、CRDT の操作（`yMap.set`, `yXmlFragment.insert`）に変換するアダプターの作成。
