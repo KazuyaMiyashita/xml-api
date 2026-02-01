@@ -26,7 +26,6 @@ export default withMermaid(
     },
     themeConfig: {
       nav: [
-        { text: "Home", link: "/" },
         { text: "Guide", link: "/guide/getting-started" },
         { text: "Architecture", link: "/architecture/overview" },
         { text: "API", link: "/api/reference/README" },
@@ -75,7 +74,9 @@ export default withMermaid(
           },
         ],
       },
-      socialLinks: [],
+      socialLinks: [
+        { icon: "github", link: "https://github.com/KazuyaMiyashita/xml-api" },
+      ],
     },
   }),
 );

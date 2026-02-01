@@ -1,4 +1,4 @@
-[**xml-api**](../../README.md)
+[**@miy2/xml-api**](../../README.md)
 
 ***
 

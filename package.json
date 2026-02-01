@@ -1,15 +1,22 @@
 {
-  "name": "xml-api",
+  "name": "@miy2/xml-api",
   "version": "0.9.0",
   "description": "An XML library that faithfully synchronizes documents and AST.",
   "main": "dist/xml-api.js",
   "exports": {
+    ".": {
+      "types": "./dist/xml-api.d.ts",
+      "default": "./dist/xml-api.js"
+    },
     "./*": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"
     }
   },
-  "types": "dist/index.d.ts",
+  "types": "dist/xml-api.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist"
   ],

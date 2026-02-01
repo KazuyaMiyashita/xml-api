@@ -1,4 +1,4 @@
-**xml-api**
+**@miy2/xml-api**
 
 ***
 
@@ -18,7 +18,7 @@ It is designed for WYSIWYG editors and IDEs that require bidirectional synchroni
 This package requires subpath exports. You must import components from their specific paths.
 
 ```typescript
-import { XMLAPI } from 'xml-api/xml-api';
-import { Element } from 'xml-api/dom';
-import { ModelElement } from 'xml-api/model/xml-api-model';
+import { XMLAPI } from '@miy2/xml-api/xml-api';
+import { Element } from '@miy2/xml-api/dom';
+import { ModelElement } from '@miy2/xml-api/model/xml-api-model';
 ```
