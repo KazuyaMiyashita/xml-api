@@ -38,25 +38,15 @@ The XMLAPIModel serves as the authoritative model for the system. It resolves th
 #### AST Layer: AST
 The Application Abstract Syntax Tree is the data model used by the application. It provides a simplified interface with properties such as tag names, attributes, and children. It supports standard elements, text nodes, and comments, hiding the complexity of the CST and the internal management logic of the XMLAPIModel.
 
-## Architecture Under Consideration
+## Architecture Decision: DOM-Compatible Custom AST
 
-### AST Design Strategy: Native DOM vs. Custom Wrapper
+To achieve the dual goals of utilizing standard Web APIs and maintaining strict source fidelity, this project implements a custom AST that mimics the W3C DOM interfaces (`Node`, `Element`, `Document`) while being backed internally by the `XMLAPIModel`.
 
-To achieve the dual goals of utilizing standard Web APIs and maintaining strict source fidelity, the project is currently conducting a feasibility study (Phase 0) to compare two architectural approaches.
+*   **Full Fidelity**: Guarantees that whitespace, attribute quotes, and comments are preserved unless explicitly modified.
+*   **DOM Compatibility**: Provides a familiar interface for application developers, supporting standard-like traversal and manipulation.
+*   **Direct Source Mapping**: Every AST node maintains a link to its corresponding CST node, enabling precise text patches.
 
-#### Option A: Native XMLDocument Integration
-
-This approach involves projecting the CST/Model directly into a native `XMLDocument` (using browser DOM or `jsdom`).
-*   **Pros**: Full compatibility with standard Web APIs (XPath, QuerySelector, etc.) out of the box.
-*   **Cons**: Potential loss of formatting fidelity (whitespace, attribute quotes) due to native parser normalization. Synchronization of mutations back to the source is complex.
-
-#### Option B: DOM-Compatible Custom AST (Selected)
-
-This approach involves implementing a custom AST that mimics the W3C DOM interfaces (`Node`, `Element`, `Document`) but is backed internally by the `XMLAPIModel`.
-*   **Pros**: Full control over fidelity and source mapping. Direct linkage to the CST. High performance.
-*   **Cons**: Requires reimplementing standard DOM methods and traversal logic.
-
-**Decision**: Option B was selected because it is the only approach that guarantees the "Full Fidelity" requirement. Native DOM implementations (Option A) were found to normalize formatting during serialization, which is unacceptable for this project's goals. See `docs/architecture_comparison.md` for details.
+For more details on why this custom approach was selected over native `XMLDocument` integration, see `docs/architecture/comparison.md`.
 
 ## System Components
 
@@ -158,43 +148,33 @@ Automatically detects indentation style from the surrounding code when inserting
 ```
 .
 ├── src/
-│   ├── main.ts
+│   ├── index.ts
+│   ├── xml-api.ts
+│   ├── xml-api-events.ts
+│   ├── history-manager.ts
 │   ├── integration.test.ts
 │   │
-│   └── core/
-│       ├── xml-api.ts
-│       ├── xml-api-events.ts
-│       ├── history-manager.ts
-│       │
-│       ├── cst/
-│       │   ├── parser.ts
-│       │   ├── grammar.ts
-│       │   ├── xml-grammar.ts
-│       │   └── xml-cst.ts
-│       │
-│       ├── model/
-│       │   ├── xml-api-model.ts
-│       │   ├── xml-binder.ts
-│       │   ├── xml-schema.ts
-│       │   └── formatter.ts
-│       │
-│       └── ast/
-│           └── xml-ast.ts
+│   ├── cst/
+│   │   ├── parser.ts
+│   │   ├── grammar.ts
+│   │   ├── xml-grammar.ts
+│   │   └── xml-cst.ts
+│   │
+│   ├── model/
+│   │   ├── xml-api-model.ts
+│   │   ├── xml-binder.ts
+│   │   ├── xml-schema.ts
+│   │   └── formatter.ts
+│   │
+│   └── ast/
+│       ├── xml-ast.ts
+│       └── dom.ts
 ```
 
 ## Development Guide
 
-### Directory Structure Strategy
-
-To balance stability and experimental refactoring, we use a separated directory structure.
-
-*   `src/core/`: Contains the stable, production-ready code organized by the 3-layer architecture (CST, Model, AST).
-    *   Rule: Changes here must always pass `pnpm test`.
-*   `src/experiments/`: Contains experimental code (`minimum-*.ts`) and prototypes for large-scale changes.
-    *   Rule: Use this space for "wip" features. It is isolated from the core test suite. To test safe refactoring, copy core files here, modify them, and verify, before merging back to core.
-
 ### Testing Commands
 
-*   `pnpm test`: Runs tests for the stable `src/core/` directory. Use this for standard development and CI.
-*   `pnpm test:wip`: Runs tests for `src/experiments/`. Use this when iterating on experimental features.
-*   `pnpm test:all`: Runs all tests.
+*   `pnpm test`: Runs all tests in the `src/` directory. Use this for standard development and CI.
+*   `pnpm run build`: Builds the library to the `dist/` directory.
+

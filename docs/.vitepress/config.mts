@@ -35,7 +35,8 @@ export default defineConfig({
           text: 'Architecture',
           items: [
             { text: 'Overview', link: '/architecture/overview' },
-            { text: 'Comparison & Decision', link: '/architecture/decision' }
+            { text: 'Decision', link: '/architecture/decision' },
+            { text: 'Comparison', link: '/architecture/comparison' }
           ]
         }
       ],
