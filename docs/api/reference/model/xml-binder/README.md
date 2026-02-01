@@ -7,7 +7,3 @@
 ## Classes
 
 - [XMLBinder](classes/XMLBinder.md)
-
-## Functions
-
-- [convert](functions/convert.md)

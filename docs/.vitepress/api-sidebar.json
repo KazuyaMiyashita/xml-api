@@ -4,74 +4,16 @@
     "link": "/api/reference/README"
   },
   {
-    "text": "ast",
+    "text": "collab",
     "collapsed": true,
     "items": [
       {
-        "text": "dom",
+        "text": "bridge",
         "collapsed": true,
         "items": [
           {
-            "text": "CDATASection",
-            "link": "/api/reference/ast/dom/classes/CDATASection"
-          },
-          {
-            "text": "CharacterData",
-            "link": "/api/reference/ast/dom/classes/CharacterData"
-          },
-          {
-            "text": "Comment",
-            "link": "/api/reference/ast/dom/classes/Comment"
-          },
-          {
-            "text": "createWrapper",
-            "link": "/api/reference/ast/dom/functions/createWrapper"
-          },
-          {
-            "text": "Document",
-            "link": "/api/reference/ast/dom/classes/Document"
-          },
-          {
-            "text": "DOMObserver",
-            "link": "/api/reference/ast/dom/interfaces/DOMObserver"
-          },
-          {
-            "text": "Element",
-            "link": "/api/reference/ast/dom/classes/Element"
-          },
-          {
-            "text": "Node",
-            "link": "/api/reference/ast/dom/classes/Node"
-          },
-          {
-            "text": "NodeList",
-            "link": "/api/reference/ast/dom/classes/NodeList"
-          },
-          {
-            "text": "Text",
-            "link": "/api/reference/ast/dom/classes/Text"
-          }
-        ]
-      },
-      {
-        "text": "xml-ast",
-        "collapsed": true,
-        "items": [
-          {
-            "text": "AST",
-            "link": "/api/reference/ast/xml-ast/classes/AST"
-          },
-          {
-            "text": "ASTCDATA",
-            "link": "/api/reference/ast/xml-ast/classes/ASTCDATA"
-          },
-          {
-            "text": "ASTComment",
-            "link": "/api/reference/ast/xml-ast/classes/ASTComment"
-          },
-          {
-            "text": "ASTNode",
-            "link": "/api/reference/ast/xml-ast/type-aliases/ASTNode"
+            "text": "CollabBridge",
+            "link": "/api/reference/collab/bridge/interfaces/CollabBridge"
           }
         ]
       }
@@ -182,6 +124,96 @@
     ]
   },
   {
+    "text": "dom",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "CDATASection",
+        "link": "/api/reference/dom/classes/CDATASection"
+      },
+      {
+        "text": "CharacterData",
+        "link": "/api/reference/dom/classes/CharacterData"
+      },
+      {
+        "text": "Comment",
+        "link": "/api/reference/dom/classes/Comment"
+      },
+      {
+        "text": "createWrapper",
+        "link": "/api/reference/dom/functions/createWrapper"
+      },
+      {
+        "text": "Document",
+        "link": "/api/reference/dom/classes/Document"
+      },
+      {
+        "text": "DOMObserver",
+        "link": "/api/reference/dom/interfaces/DOMObserver"
+      },
+      {
+        "text": "Element",
+        "link": "/api/reference/dom/classes/Element"
+      },
+      {
+        "text": "Node",
+        "link": "/api/reference/dom/classes/Node"
+      },
+      {
+        "text": "NodeList",
+        "link": "/api/reference/dom/classes/NodeList"
+      },
+      {
+        "text": "Text",
+        "link": "/api/reference/dom/classes/Text"
+      }
+    ]
+  },
+  {
+    "text": "engine",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "editor-state",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "EditorState",
+            "link": "/api/reference/engine/editor-state/classes/EditorState"
+          },
+          {
+            "text": "EditorStateConfig",
+            "link": "/api/reference/engine/editor-state/interfaces/EditorStateConfig"
+          }
+        ]
+      },
+      {
+        "text": "sync-engine",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "SyncEngine",
+            "link": "/api/reference/engine/sync-engine/classes/SyncEngine"
+          }
+        ]
+      },
+      {
+        "text": "transaction",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "TextPatch",
+            "link": "/api/reference/engine/transaction/interfaces/TextPatch"
+          },
+          {
+            "text": "Transaction",
+            "link": "/api/reference/engine/transaction/classes/Transaction"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "text": "history-manager",
     "collapsed": true,
     "items": [
@@ -252,10 +284,6 @@
         "collapsed": true,
         "items": [
           {
-            "text": "convert",
-            "link": "/api/reference/model/xml-binder/functions/convert"
-          },
-          {
             "text": "XMLBinder",
             "link": "/api/reference/model/xml-binder/classes/XMLBinder"
           }
@@ -286,10 +314,6 @@
     "collapsed": true,
     "items": [
       {
-        "text": "Converter",
-        "link": "/api/reference/xml-api/type-aliases/Converter"
-      },
-      {
         "text": "XMLAPI",
         "link": "/api/reference/xml-api/classes/XMLAPI"
       }
@@ -301,11 +325,7 @@
     "items": [
       {
         "text": "ChangeEvent",
-        "link": "/api/reference/xml-api-events/interfaces/ChangeEvent"
-      },
-      {
-        "text": "ChangeType",
-        "link": "/api/reference/xml-api-events/type-aliases/ChangeType"
+        "link": "/api/reference/xml-api-events/type-aliases/ChangeEvent"
       },
       {
         "text": "EventEmitter",

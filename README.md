@@ -13,11 +13,21 @@ This project provides a foundational XML parser and manipulation API designed fo
 
 ## Architecture
 
-The system consists of three main layers orchestrated by the **XMLAPI**:
 
-1. **CST (Concrete Syntax Tree)**: Captures the exact physical structure of the source code, including formatting.
-2. **Model**: The authoritative internal representation that maintains object identity and coordinates synchronization.
-3. **AST (Abstract Syntax Tree)**: A semantic projection for easy data access and formatting.
+
+The system is built on a robust synchronization engine orchestrated by the **XMLAPI**:
+
+
+
+1.  **SyncEngine**: The core engine that manages state via Transactions and orchestrates updates.
+
+2.  **CST (Concrete Syntax Tree)**: Captures the exact physical structure of the source code, including formatting.
+
+3.  **Model**: The authoritative internal representation that maintains object identity, coordinates synchronization, and provides a semantic view for traversal.
+
+
+
+Additionally, a **DOM-compatible Interface** wraps the Model for familiar application development.
 
 ## Basic Usage
 

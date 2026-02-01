@@ -1,4 +1,3 @@
-import { AST, ASTCDATA, ASTComment } from "../ast/xml-ast";
 import type { CST } from "../cst/xml-cst";
 import {
   ModelCDATA,
@@ -261,40 +260,6 @@ export class XMLBinder {
     }
   }
 
-  public project(model: ModelNode): AST | string | ASTComment | ASTCDATA {
-    if (model.getType() === ModelNodeType.Text) {
-      return (model as ModelText).text;
-    }
-    if (model.getType() === ModelNodeType.Comment) {
-      const ast = new ASTComment((model as ModelComment).content);
-      ast.cst = model.cst;
-      return ast;
-    }
-    if (model.getType() === ModelNodeType.CDATA) {
-      const ast = new ASTCDATA((model as ModelCDATA).content);
-      ast.cst = model.cst;
-      return ast;
-    }
-
-    const el = model as ModelElement;
-    const ast = new AST(el.tagName);
-
-    // Copy attributes
-    for (const [key, value] of el.attributes) {
-      ast.attributes[key] = value;
-    }
-
-    // Recursively project children
-    for (const child of el.children) {
-      ast.children.push(this.project(child));
-    }
-
-    // Link CST if available (for mapping)
-    ast.cst = el.cst;
-
-    return ast;
-  }
-
   public calcSetAttributePatch(
     model: ModelElement,
     key: string,
@@ -455,6 +420,85 @@ export class XMLBinder {
     };
   }
 
+  public calcInsertNodePatch(
+    parent: ModelElement,
+    index: number,
+    insertText: string,
+  ): { start: number; end: number; text: string } | null {
+    if (!parent.cst) return null;
+
+    const structural = parent.cst.unwrap();
+
+    // Case 1: Sequence [STag, content, ETag]
+    if (
+      structural.children.length === 3 &&
+      structural.children[0].name === "STag"
+    ) {
+      // content -> seq(opt(CharData), rep(seq(alt(...), opt(CharData))))
+      
+      let insertPos: number;
+
+      // Look for the next sibling that has a CST (stable anchor)
+      // Since the model already contains the new node at 'index', we look from 'index + 1'
+      let anchorNode: ModelNode | null = null;
+      for (let i = index + 1; i < parent.children.length; i++) {
+        if (parent.children[i].cst) {
+          anchorNode = parent.children[i];
+          break;
+        }
+      }
+
+      if (anchorNode && anchorNode.cst) {
+        insertPos = anchorNode.cst.start;
+      } else {
+        // No following stable anchor found, insert before ETag
+        const etag = structural.children[2];
+        insertPos = etag.start;
+      }
+
+      return {
+        start: insertPos,
+        end: insertPos,
+        text: insertText,
+      };
+    }
+
+    // Case 2: EmptyElemTag
+    // <Name ... /> -> <Name ... >insertText</Name>
+    if (
+      structural.name === "EmptyElemTag" ||
+      (structural.children.length >= 2 &&
+        structural.children[0].getText(this.input) === "<")
+    ) {
+      const len = structural.children.length;
+      const closing = structural.children[len - 1]; // "/>"
+
+      if (closing.getText(this.input) === "/>") {
+        return {
+          start: closing.start,
+          end: closing.end,
+          text: `>${insertText}</${parent.tagName}>`,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  public calcRemoveNodePatch(
+    child: ModelNode,
+  ): { start: number; end: number; text: string } | null {
+    if (!child.cst) return null;
+
+    // TODO: Ideally we should remove surrounding whitespace if it becomes redundant (pretty print maintenance).
+    // For now, strict removal.
+    return {
+      start: child.cst.start,
+      end: child.cst.end,
+      text: "",
+    };
+  }
+
   private parseTag(node: CST): ModelElement {
     const structural = node.unwrap();
     const nameNode = structural.children[1];
@@ -509,20 +553,6 @@ function decodeCharRef(node: CST, input: string): string {
     code = parseInt(text.slice(2, -1), 10);
   }
   return String.fromCodePoint(code);
-}
-
-// Keep backward compatibility for tests that use convert() directly?
-// Or we should update them.
-// The task is "Implement src/model/xml-binder.ts".
-// I am replacing it. Tests will break. I will fix tests.
-export function convert(
-  node: CST,
-  input: string,
-): AST | string | ASTComment | null {
-  const binder = new XMLBinder(input);
-  const model = binder.hydrate(node);
-  if (!model) return null;
-  return binder.project(model);
 }
 
 function escapeText(str: string): string {

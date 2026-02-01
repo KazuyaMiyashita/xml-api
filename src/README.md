@@ -6,8 +6,8 @@ It is designed for WYSIWYG editors and IDEs that require bidirectional synchroni
 ## Key Components
 
 - **XMLAPI**: The central entry point. Manages the source code, parsing, and bidirectional updates.
-- **AST**: High-level Abstract Syntax Tree for easy traversal.
-- **Model**: Logical representation for bidirectional synchronization.
+- **Model**: The authoritative logical representation for traversal and bidirectional synchronization.
+- **DOM**: familiar W3C-like interface for intuitive manipulation.
 
 ## Usage
 
@@ -15,6 +15,6 @@ This package requires subpath exports. You must import components from their spe
 
 ```typescript
 import { XMLAPI } from 'xml-api/xml-api';
-import { Element } from 'xml-api/ast/dom';
+import { Element } from 'xml-api/dom';
 import { ModelElement } from 'xml-api/model/xml-api-model';
 ```

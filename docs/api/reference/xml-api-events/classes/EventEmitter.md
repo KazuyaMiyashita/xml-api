@@ -26,7 +26,7 @@ Internal event emitter for managing listeners.
 
 ##### event
 
-[`ChangeEvent`](../interfaces/ChangeEvent.md)
+[`ChangeEvent`](../type-aliases/ChangeEvent.md)
 
 #### Returns
 

@@ -1,10 +1,15 @@
-import { AST } from "@/ast/xml-ast";
+import { ModelElement, type ModelNode } from "@/model/xml-api-model";
 import { Parser } from "@/cst/parser";
 import { CST } from "@/cst/xml-cst";
 import { grammar } from "@/cst/xml-grammar";
-import { convert } from "@/model/xml-binder";
+import { XMLBinder } from "@/model/xml-binder";
 
-describe("XML Converter", () => {
+function convert(node: CST, input: string): ModelNode | null {
+  const binder = new XMLBinder(input);
+  return binder.hydrate(node);
+}
+
+describe("XML Binder (Hydration)", () => {
   const parser = new Parser(grammar);
 
   it("should convert simple element", () => {
@@ -12,11 +17,11 @@ describe("XML Converter", () => {
     const cst = parser.parse(xml, "element");
     expect(cst).not.toBeNull();
     if (cst) {
-      const ast = convert(cst, xml);
-      expect(ast).toBeInstanceOf(AST);
-      if (ast instanceof AST) {
-        expect(ast.tagName).toBe("root");
-        expect(ast.text()).toBe("text");
+      const model = convert(cst, xml);
+      expect(model).toBeInstanceOf(ModelElement);
+      if (model instanceof ModelElement) {
+        expect(model.tagName).toBe("root");
+        expect(model.text()).toBe("text");
       }
     }
   });
@@ -26,12 +31,12 @@ describe("XML Converter", () => {
     const cst = parser.parse(xml, "element");
     expect(cst).not.toBeNull();
     if (cst) {
-      const ast = convert(cst, xml);
-      expect(ast).toBeInstanceOf(AST);
-      if (ast instanceof AST) {
-        expect(ast.tagName).toBe("item");
-        expect(ast.attr("id")).toBe("1");
-        expect(ast.attr("type")).toBe("test");
+      const model = convert(cst, xml);
+      expect(model).toBeInstanceOf(ModelElement);
+      if (model instanceof ModelElement) {
+        expect(model.tagName).toBe("item");
+        expect(model.attributes.get("id")).toBe("1");
+        expect(model.attributes.get("type")).toBe("test");
       }
     }
   });
@@ -41,12 +46,12 @@ describe("XML Converter", () => {
     const cst = parser.parse(xml, "element");
     expect(cst).not.toBeNull();
     if (cst) {
-      const ast = convert(cst, xml);
-      expect(ast).toBeInstanceOf(AST);
-      if (ast instanceof AST) {
-        expect(ast.tagName).toBe("parent");
-        expect(ast.children.length).toBe(2);
-        expect(ast.find("child").length).toBe(2);
+      const model = convert(cst, xml);
+      expect(model).toBeInstanceOf(ModelElement);
+      if (model instanceof ModelElement) {
+        expect(model.tagName).toBe("parent");
+        expect(model.children.length).toBe(2);
+        expect(model.find("child").length).toBe(2);
       }
     }
   });
@@ -56,10 +61,10 @@ describe("XML Converter", () => {
     const cst = parser.parse(xml, "element");
     expect(cst).not.toBeNull();
     if (cst) {
-      const ast = convert(cst, xml);
-      expect(ast).toBeInstanceOf(AST);
-      if (ast instanceof AST) {
-        expect(ast.text()).toBe("<raw>");
+      const model = convert(cst, xml);
+      expect(model).toBeInstanceOf(ModelElement);
+      if (model instanceof ModelElement) {
+        expect(model.text()).toBe("<raw>");
       }
     }
   });
@@ -69,10 +74,10 @@ describe("XML Converter", () => {
     const cst = parser.parse(xml, "element");
     expect(cst).not.toBeNull();
     if (cst) {
-      const ast = convert(cst, xml);
-      expect(ast).toBeInstanceOf(AST);
-      if (ast instanceof AST) {
-        expect(ast.text()).toBe("AB");
+      const model = convert(cst, xml);
+      expect(model).toBeInstanceOf(ModelElement);
+      if (model instanceof ModelElement) {
+        expect(model.text()).toBe("AB");
       }
     }
   });
@@ -85,9 +90,9 @@ describe("XML Converter", () => {
       const cst = parser.parse(xml, "element");
       expect(cst).not.toBeNull();
       if (cst) {
-        const ast = convert(cst, xml);
-        if (ast instanceof AST) {
-          expect(ast.text()).toBe("😀");
+        const model = convert(cst, xml);
+        if (model instanceof ModelElement) {
+          expect(model.text()).toBe("😀");
         }
       }
     });
@@ -98,9 +103,9 @@ describe("XML Converter", () => {
       const cst = parser.parse(xml, "element");
       expect(cst).not.toBeNull();
       if (cst) {
-        const ast = convert(cst, xml);
-        if (ast instanceof AST) {
-          expect(ast.text()).toBe("😀");
+        const model = convert(cst, xml);
+        if (model instanceof ModelElement) {
+          expect(model.text()).toBe("😀");
         }
       }
     });

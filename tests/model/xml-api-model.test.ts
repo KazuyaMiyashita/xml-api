@@ -29,4 +29,24 @@ describe("XMLAPIModel", () => {
     el.setAttribute("id", "123");
     expect(el.attributes.get("id")).toBe("123");
   });
+
+  it("should deep clone", () => {
+    const root = new ModelElement("root");
+    const child = new ModelElement("child");
+    root.addChild(child);
+
+    const clone = root.clone();
+
+    expect(clone).not.toBe(root);
+    expect(clone.id).not.toBe(root.id);
+    expect(clone.children).toHaveLength(1);
+    expect(clone.children[0]).not.toBe(child);
+    expect(clone.children[0].parent).toBe(clone);
+  });
+
+  it("should clone with ID preservation", () => {
+    const root = new ModelElement("root");
+    const clone = root.clone(true);
+    expect(clone.id).toBe(root.id);
+  });
 });

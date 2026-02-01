@@ -4,13 +4,23 @@ This section provides a deeper dive into the architecture of the XML synchroniza
 
 ## Architecture Overview
 
-The system consists of three main layers, orchestrated by the central **XMLAPI**.
+The system architecture is centered around the **SyncEngine**, which manages state transitions via Transactions.
 
 | Layer | Role | Characteristics |
 | :--- | :--- | :--- |
-| **CST** (Concrete Syntax Tree) | Physical Layer | Exact source structure, validation, incremental parsing. |
-| **Model** | Logical Layer | Source of Truth, persistent IDs, reconciliation. |
-| **AST & DOM** | Interface Layer | Standard DOM API, simplified data view, change observation. |
+| **SyncEngine** | Core Logic | Transaction processing, History, Event dispatching. |
+| **CST** | Physical Layer | Exact source structure, validation, incremental parsing. |
+| **Model & DOM** | Application Layer | Source of Truth, persistent IDs, DOM API. |
+
+## Transaction Architecture
+
+`xml-api` employs a transactional state management model inspired by modern editors.
+
+- **EditorState**: An immutable object representing the state of the editor at a single point in time. It holds the `source`, `model`, and `cst`.
+- **Transaction**: Represents a unit of change. It encapsulates text patches and metadata.
+- **SyncEngine**: The processor that takes a `Transaction`, applies it to the current state, performs parsing and reconciliation, and produces a new `EditorState`.
+
+This ensures that all updates are atomic, predictable, and historically trackable.
 
 ## Layers in Depth
 
@@ -27,12 +37,10 @@ The Model is the authoritative source of truth that connects the physical CST to
 - **Persistent Identity**: Every node is assigned a unique, immutable ID upon creation. This allows external systems (like UI frameworks) to track nodes reliably even after re-parsing.
 - **Binder Engine**: The core logic that synchronizes data. It performs **Reconciliation**—intelligently updating the existing Model tree with new CST data to minimize object replacement—and calculates precise text patches for updates.
 - **Linkage**: Maintains direct references to CST nodes, enabling the retrieval of exact source code locations for every logical element.
+- **Standard Operations**: Provides built-in methods for data extraction (`find`, `text`) and formatting.
 
-### 3. AST & DOM Interface
-This layer provides the interfaces for applications to interact with the document.
-
-- **DOM Interface**: The primary API for manipulation. It implements standard W3C interfaces (`Document`, `Element`) and acts as a wrapper around the Model. Changes made here are observed and automatically synchronized with the source code.
-- **AST**: A simplified, read-only tree structure (`xml-ast.ts`). It is lighter than the DOM and is used mainly for data extraction or feeding into the Formatter.
+### 3. DOM Interface
+This layer provides the primary interface for applications to interact with the document. It implements standard W3C interfaces (`Document`, `Element`) and acts as a wrapper around the Model. Changes made here are observed and automatically synchronized with the source code.
 
 ## Data Flow
 
@@ -43,7 +51,8 @@ graph TD
     User["Application"]
 
     subgraph "XML Synchronization Engine"
-        Mediator["XMLAPI"]
+        Facade["XMLAPI"]
+        Engine["SyncEngine"]
 
         subgraph "Physical Layer"
             Parser["Incremental Parser"]
@@ -57,27 +66,25 @@ graph TD
         
         subgraph "Application Layer"
             DOM["DOM Interface"]
-            AST["AST (Optional)"]
         end
     end
 
     %% Interaction
     User <==>|"DOM Operations"| DOM
-    DOM <--> Mediator
-    User -.-> AST
+    DOM <--> Facade
+    Facade <--> Engine
 
     %% Internal Flows
-    Mediator -- "1. Parse" --> Parser
+    Engine -- "1. Parse" --> Parser
     Parser -- "return" --> CST
     
-    Mediator -- "2. Sync" --> Binder
+    Engine -- "2. Sync" --> Binder
     Binder -- "Hydrate / Reconcile" --> Model
     Model -- "Link" --> CST
     
-    Binder -- "Project" --> AST
     DOM -- "Wrap" --> Model
     
     DOM -- "Edit" --> Binder
-    Binder -- "Generate Patch" --> Mediator
-    Mediator -- "Update Input" --> Parser
+    Binder -- "Generate Patch" --> Engine
+    Engine -- "Update Input" --> Parser
 ```

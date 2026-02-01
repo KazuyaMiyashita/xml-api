@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import type { Node, Element, CharacterData } from '@/ast/dom';
+import { computed, ref } from "vue";
+import type { Node, Element, CharacterData } from "@/dom";
 
 const props = defineProps<{
   node: Node;
@@ -10,8 +10,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'select', node: Node): void;
-  (e: 'toggle', node: Node): void; // For expanding/collapsing
+  (e: "select", node: Node): void;
+  (e: "toggle", node: Node): void; // For expanding/collapsing
 }>();
 
 const isExpanded = ref(true);
@@ -26,13 +26,15 @@ const asElement = computed(() => props.node as Element);
 const asText = computed(() => props.node as CharacterData);
 
 // Content Helpers
-const tagName = computed(() => isElement.value ? asElement.value.tagName : '');
+const tagName = computed(() =>
+  isElement.value ? asElement.value.tagName : "",
+);
 const textPreview = computed(() => {
   if (isText.value || isComment.value) {
     const t = asText.value.data;
-    return t.length > 20 ? t.slice(0, 20) + '...' : t;
+    return t.length > 20 ? t.slice(0, 20) + "..." : t;
   }
-  return '';
+  return "";
 });
 
 const isWhitespace = computed(() => {
@@ -53,7 +55,7 @@ const hasChildren = computed(() => children.value.length > 0);
 
 function onSelect(e: MouseEvent) {
   e.stopPropagation();
-  emit('select', props.node);
+  emit("select", props.node);
 }
 
 function onToggle(e: MouseEvent) {

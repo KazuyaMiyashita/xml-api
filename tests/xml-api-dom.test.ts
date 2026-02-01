@@ -1,5 +1,5 @@
 import { XMLAPI } from "@/xml-api";
-import { Document, Element } from "@/ast/dom";
+import { Document, Element } from "@/dom";
 
 describe("XMLAPI DOM Integration", () => {
   test("getDocument returns a linked Document object", () => {
@@ -55,7 +55,7 @@ describe("XMLAPI DOM Integration", () => {
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
     const item = doc.querySelector("item")!;
-    
+
     // First update
     item.setAttribute("foo", "bar");
     expect(api.input).toContain('foo="bar"');
@@ -64,7 +64,7 @@ describe("XMLAPI DOM Integration", () => {
     // Update again
     item.setAttribute("baz", "qux");
     expect(api.input).toContain('baz="qux"');
-    
+
     const expected = `<root><item id="1" foo="bar" baz="qux">A</item></root>`;
     // Note: Attribute order depends on implementation, regex or multiple expects might be safer
     // But binder usually appends.

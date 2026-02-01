@@ -7,7 +7,3 @@
 ## Classes
 
 - [XMLAPI](classes/XMLAPI.md)
-
-## Type Aliases
-
-- [Converter](type-aliases/Converter.md)

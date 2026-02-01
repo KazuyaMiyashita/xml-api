@@ -6,12 +6,15 @@
 
 ## Modules
 
-- [ast/dom](ast/dom/README.md)
-- [ast/xml-ast](ast/xml-ast/README.md)
+- [collab/bridge](collab/bridge/README.md)
 - [cst/grammar](cst/grammar/README.md)
 - [cst/parser](cst/parser/README.md)
 - [cst/xml-cst](cst/xml-cst/README.md)
 - [cst/xml-grammar](cst/xml-grammar/README.md)
+- [dom](dom/README.md)
+- [engine/editor-state](engine/editor-state/README.md)
+- [engine/sync-engine](engine/sync-engine/README.md)
+- [engine/transaction](engine/transaction/README.md)
 - [history-manager](history-manager/README.md)
 - [model/formatter](model/formatter/README.md)
 - [model/xml-api-model](model/xml-api-model/README.md)

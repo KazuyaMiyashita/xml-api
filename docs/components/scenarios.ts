@@ -1,7 +1,6 @@
-import { XMLAPI } from '@/xml-api';
-import { AST } from '@/ast/xml-ast';
-import { ModelElement } from '@/model/xml-api-model';
-import { XMLBinder } from '@/model/xml-binder';
+import { XMLAPI } from "@/xml-api";
+import { ModelElement } from "@/model/xml-api-model";
+import { XMLBinder } from "@/model/xml-binder";
 
 export interface Scenario {
   title: string;
@@ -10,8 +9,8 @@ export interface Scenario {
 }
 
 export const scenarios: Record<string, Scenario> = {
-  'basic-init': {
-    title: 'Initializing the API',
+  "basic-init": {
+    title: "Initializing the API",
     code: `import { XMLAPI } from 'xml-api';
 
 const xml = \`<root>
@@ -37,11 +36,11 @@ if (api.model) {
       } else {
         log("Parse failed.");
       }
-    }
+    },
   },
 
-  'modifying-source': {
-    title: 'Modifying via DOM Interface',
+  "modifying-source": {
+    title: "Modifying via DOM Interface",
     code: `// Get a DOM-compatible Document object
 const doc = api.getDocument();
 
@@ -66,24 +65,24 @@ console.log(api.input);`,
 </root>`;
       const api = new XMLAPI(xml);
       const doc = api.getDocument();
-      
-      const item = doc.querySelector('item');
+
+      const item = doc.querySelector("item");
 
       if (item) {
         log("Setting attribute 'status' to 'active'...");
-        item.setAttribute('status', 'active');
-        
+        item.setAttribute("status", "active");
+
         log("Updating text content to 'New Value'...");
-        item.textContent = 'New Value';
+        item.textContent = "New Value";
       }
 
       log("Updated Source:");
       log(api.input);
-    }
+    },
   },
 
-  'programmatic-usage': {
-    title: 'Programmatic Search & Update',
+  "programmatic-usage": {
+    title: "Programmatic Search & Update",
     code: `const xmlContent = \`<book xml:lang="ja">
   <title>りんごの選び方</title>
   <section>
@@ -95,7 +94,7 @@ console.log(api.input);`,
 const api = new XMLAPI(xmlContent);
 
 // 1. Search
-const titles = api.ast?.find("title") || [];
+const titles = api.model?.find("title") || [];
 if (titles.length > 0) {
   console.log(\`Found title: \${titles[0].text()}\`);
 }
@@ -108,8 +107,8 @@ if (startPos !== -1) {
   api.updateInput(startPos, startPos + targetText.length, "美味しいりんごの見分け方");
 }
 
-console.log("Updated Title in AST:");
-const newTitles = api.ast?.find("title") || [];
+console.log("Updated Title in Model:");
+const newTitles = api.model?.find("title") || [];
 if (newTitles.length > 0) {
   console.log(newTitles[0].text());
 }`,
@@ -124,7 +123,7 @@ if (newTitles.length > 0) {
 
       const api = new XMLAPI(xmlContent);
 
-      const titles = api.ast?.find("title") || [];
+      const titles = api.model?.find("title") || [];
       if (titles.length > 0) {
         log(`Found title: ${titles[0].text()}`);
       }
@@ -133,19 +132,23 @@ if (newTitles.length > 0) {
       const startPos = api.input.indexOf(targetText);
       if (startPos !== -1) {
         log(`Replacing "${targetText}" with "美味しいりんごの見分け方"...`);
-        api.updateInput(startPos, startPos + targetText.length, "美味しいりんごの見分け方");
+        api.updateInput(
+          startPos,
+          startPos + targetText.length,
+          "美味しいりんごの見分け方",
+        );
       }
 
-      log("Updated Title in AST:");
-      const newTitles = api.ast?.find("title") || [];
+      log("Updated Title in Model:");
+      const newTitles = api.model?.find("title") || [];
       if (newTitles.length > 0) {
         log(newTitles[0].text());
       }
-    }
+    },
   },
-  
-  'demo-walkthrough': {
-    title: 'Bidirectional Sync Simulation',
+
+  "demo-walkthrough": {
+    title: "Bidirectional Sync Simulation",
     code: `import { XMLAPI } from 'xml-api';
 import { XMLBinder } from 'xml-api/model/xml-binder';
 import { ModelElement } from 'xml-api/model/xml-api-model';
@@ -175,9 +178,9 @@ if (patch) {
 
 console.log("Updated Source:", api.input);
 
-// 4. Verify AST Update
-const newClass = api.ast?.attr("class");
-console.log(\`Updated AST Attribute: class="\${newClass}"\`);`,
+// 4. Verify Model Update
+const newClass = api.model?.attributes.get("class");
+console.log(\`Updated Model Attribute: class="\${newClass}"\`);`,
     run: (log) => {
       const input = `<button class="btn">Click me</button>`;
       const api = new XMLAPI(input);
@@ -185,7 +188,7 @@ console.log(\`Updated AST Attribute: class="\${newClass}"\`);`,
       // We can access it implicitly via operations or create a separate one for demo logic if needed,
       // but api.setAttribute uses the internal binder.
       // Here we simulate the logic manually as per the explanation.
-      
+
       // Accessing internal binder requires casting or using public API.
       // For this demo, we'll use a fresh binder to demonstrate the calculation logic
       const binder = new XMLBinder(input);
@@ -206,8 +209,8 @@ console.log(\`Updated AST Attribute: class="\${newClass}"\`);`,
 
       log("Updated Source: " + api.input);
 
-      const newClass = api.ast?.attr("class");
-      log(`Updated AST Attribute: class="${newClass}"`);
-    }
-  }
+      const newClass = api.model?.attributes.get("class");
+      log(`Updated Model Attribute: class="${newClass}"`);
+    },
+  },
 };

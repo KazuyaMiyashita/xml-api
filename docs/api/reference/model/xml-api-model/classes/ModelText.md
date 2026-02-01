@@ -66,6 +66,50 @@
 
 ## Methods
 
+### clone()
+
+> **clone**(`preserveId`): `ModelText`
+
+#### Parameters
+
+##### preserveId
+
+`boolean` = `false`
+
+#### Returns
+
+`ModelText`
+
+#### Overrides
+
+[`ModelNode`](ModelNode.md).[`clone`](ModelNode.md#clone)
+
+***
+
+### cloneBase()
+
+> `protected` **cloneBase**(`target`, `preserveId`): `void`
+
+#### Parameters
+
+##### target
+
+[`ModelNode`](ModelNode.md)
+
+##### preserveId
+
+`boolean`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`cloneBase`](ModelNode.md#clonebase)
+
+***
+
 ### getType()
 
 > **getType**(): [`ModelNodeType`](../enumerations/ModelNodeType.md)

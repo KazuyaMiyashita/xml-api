@@ -19,6 +19,16 @@ export abstract class ModelNode {
   }
 
   abstract getType(): ModelNodeType;
+
+  abstract clone(preserveId?: boolean): ModelNode;
+
+  protected cloneBase(target: ModelNode, preserveId: boolean): void {
+    if (preserveId) {
+      // @ts-ignore
+      target.id = this.id;
+    }
+    target.cst = this.cst;
+  }
 }
 
 export class ModelElement extends ModelNode {
@@ -35,6 +45,18 @@ export class ModelElement extends ModelNode {
     return ModelNodeType.Element;
   }
 
+  clone(preserveId = false): ModelElement {
+    const clone = new ModelElement(this.tagName);
+    this.cloneBase(clone, preserveId);
+    clone.attributes = new Map(this.attributes);
+    clone.children = this.children.map((c) => {
+      const cClone = c.clone(preserveId);
+      cClone.parent = clone;
+      return cClone;
+    });
+    return clone;
+  }
+
   addChild(node: ModelNode): void {
     node.parent = this;
     this.children.push(node);
@@ -42,6 +64,30 @@ export class ModelElement extends ModelNode {
 
   setAttribute(key: string, value: string): void {
     this.attributes.set(key, value);
+  }
+
+  find(tagName: string): ModelElement[] {
+    let results: ModelElement[] = [];
+    for (const child of this.children) {
+      if (child instanceof ModelElement) {
+        if (child.tagName === tagName) {
+          results.push(child);
+        }
+        results = results.concat(child.find(tagName));
+      }
+    }
+    return results;
+  }
+
+  text(): string {
+    return this.children
+      .map((c) => {
+        if (c instanceof ModelText) return c.text;
+        if (c instanceof ModelCDATA) return c.content;
+        if (c instanceof ModelElement) return c.text();
+        return "";
+      })
+      .join("");
   }
 }
 
@@ -56,6 +102,12 @@ export class ModelText extends ModelNode {
   getType(): ModelNodeType {
     return ModelNodeType.Text;
   }
+
+  clone(preserveId = false): ModelText {
+    const clone = new ModelText(this.text);
+    this.cloneBase(clone, preserveId);
+    return clone;
+  }
 }
 
 export class ModelComment extends ModelNode {
@@ -69,6 +121,12 @@ export class ModelComment extends ModelNode {
   getType(): ModelNodeType {
     return ModelNodeType.Comment;
   }
+
+  clone(preserveId = false): ModelComment {
+    const clone = new ModelComment(this.content);
+    this.cloneBase(clone, preserveId);
+    return clone;
+  }
 }
 
 export class ModelCDATA extends ModelNode {
@@ -81,5 +139,11 @@ export class ModelCDATA extends ModelNode {
 
   getType(): ModelNodeType {
     return ModelNodeType.CDATA;
+  }
+
+  clone(preserveId = false): ModelCDATA {
+    const clone = new ModelCDATA(this.content);
+    this.cloneBase(clone, preserveId);
+    return clone;
   }
 }

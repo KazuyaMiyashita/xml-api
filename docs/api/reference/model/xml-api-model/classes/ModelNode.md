@@ -41,6 +41,42 @@
 
 ## Methods
 
+### clone()
+
+> `abstract` **clone**(`preserveId?`): `ModelNode`
+
+#### Parameters
+
+##### preserveId?
+
+`boolean`
+
+#### Returns
+
+`ModelNode`
+
+***
+
+### cloneBase()
+
+> `protected` **cloneBase**(`target`, `preserveId`): `void`
+
+#### Parameters
+
+##### target
+
+`ModelNode`
+
+##### preserveId
+
+`boolean`
+
+#### Returns
+
+`void`
+
+***
+
 ### getType()
 
 > `abstract` **getType**(): [`ModelNodeType`](../enumerations/ModelNodeType.md)

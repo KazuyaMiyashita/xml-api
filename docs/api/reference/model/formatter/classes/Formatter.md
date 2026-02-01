@@ -30,7 +30,7 @@
 
 ##### node
 
-[`ASTNode`](../../../ast/xml-ast/type-aliases/ASTNode.md)
+[`ModelNode`](../../xml-api-model/classes/ModelNode.md)
 
 #### Returns
 
