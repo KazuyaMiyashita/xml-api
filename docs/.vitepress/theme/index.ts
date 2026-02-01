@@ -4,7 +4,7 @@ import CodeRunner from '../../components/CodeRunner.vue'
 
 export default {
   extends: DefaultTheme,
-  enhanceApp({ app }) {
+  enhanceApp({ app }: { app: any }) {
     app.component('XmlApiDemo', XmlApiDemo)
     app.component('CodeRunner', CodeRunner)
   }

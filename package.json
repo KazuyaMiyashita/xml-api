@@ -11,6 +11,7 @@
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit",
+    "docs:typecheck": "vue-tsc --noEmit -p docs/tsconfig.json",
     "test": "jest src",
     "test:all": "jest",
     "docs:dev": "vitepress dev docs",
@@ -41,6 +42,7 @@
     "typescript": "^5.9.3",
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17",
-    "vue": "^3.5.27"
+    "vue": "^3.5.27",
+    "vue-tsc": "^3.2.4"
   }
 }
