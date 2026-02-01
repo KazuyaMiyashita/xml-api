@@ -31,6 +31,14 @@ Currently focuses on text changes (patches).
 
 ***
 
+### isRemote
+
+> **isRemote**: `boolean` = `false`
+
+Indicates if this transaction originated from a remote source (collaboration).
+
+***
+
 ### patches
 
 > `readonly` **patches**: [`TextPatch`](../interfaces/TextPatch.md)[] = `[]`

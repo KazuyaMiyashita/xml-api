@@ -251,6 +251,22 @@ Subscribe to model changes.
 
 ***
 
+### setCollabBridge()
+
+> **setCollabBridge**(`bridge`): `void`
+
+#### Parameters
+
+##### bridge
+
+[`CollabBridge`](../../../collab/bridge/interfaces/CollabBridge.md)
+
+#### Returns
+
+`void`
+
+***
+
 ### undo()
 
 > **undo**(): `void`

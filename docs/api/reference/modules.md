@@ -6,6 +6,7 @@
 
 ## Modules
 
+- [collab/bridge](collab/bridge/README.md)
 - [cst/grammar](cst/grammar/README.md)
 - [cst/parser](cst/parser/README.md)
 - [cst/xml-cst](cst/xml-cst/README.md)

@@ -4,6 +4,22 @@
     "link": "/api/reference/README"
   },
   {
+    "text": "collab",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "bridge",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "CollabBridge",
+            "link": "/api/reference/collab/bridge/interfaces/CollabBridge"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "text": "cst",
     "collapsed": true,
     "items": [
@@ -158,12 +174,40 @@
     "collapsed": true,
     "items": [
       {
+        "text": "editor-state",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "EditorState",
+            "link": "/api/reference/engine/editor-state/classes/EditorState"
+          },
+          {
+            "text": "EditorStateConfig",
+            "link": "/api/reference/engine/editor-state/interfaces/EditorStateConfig"
+          }
+        ]
+      },
+      {
         "text": "sync-engine",
         "collapsed": true,
         "items": [
           {
             "text": "SyncEngine",
             "link": "/api/reference/engine/sync-engine/classes/SyncEngine"
+          }
+        ]
+      },
+      {
+        "text": "transaction",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "TextPatch",
+            "link": "/api/reference/engine/transaction/interfaces/TextPatch"
+          },
+          {
+            "text": "Transaction",
+            "link": "/api/reference/engine/transaction/classes/Transaction"
           }
         ]
       }
@@ -281,11 +325,7 @@
     "items": [
       {
         "text": "ChangeEvent",
-        "link": "/api/reference/xml-api-events/interfaces/ChangeEvent"
-      },
-      {
-        "text": "ChangeType",
-        "link": "/api/reference/xml-api-events/type-aliases/ChangeType"
+        "link": "/api/reference/xml-api-events/type-aliases/ChangeEvent"
       },
       {
         "text": "EventEmitter",
