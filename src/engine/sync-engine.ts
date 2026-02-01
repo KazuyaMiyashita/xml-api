@@ -105,14 +105,15 @@ export class SyncEngine {
           this.updateModelIncremental(
             incrementalResult.oldNode,
             incrementalResult.newNode,
+            tr,
           );
         } else {
-          this.events.emit({ type: "full" });
+          this.events.emit({ type: "full", transaction: tr });
         }
         
         if (this._state.cst && !this._state.cst.wellFormed) {
            this._state = this._state.update({ model: null });
-           this.events.emit({ type: "full" });
+           this.events.emit({ type: "full", transaction: tr });
         }
         handled = true;
       }
@@ -120,7 +121,7 @@ export class SyncEngine {
 
     if (!handled) {
       this.fullParse();
-      this.events.emit({ type: "full" });
+      this.events.emit({ type: "full", transaction: tr });
     }
   }
 
@@ -330,7 +331,11 @@ export class SyncEngine {
     return null;
   }
 
-  private updateModelIncremental(oldNode: CST, newNode: CST): void {
+  private updateModelIncremental(
+    oldNode: CST,
+    newNode: CST,
+    tr?: Transaction,
+  ): void {
     const currentModel = this._state.model;
     if (!currentModel) return;
 
@@ -338,7 +343,11 @@ export class SyncEngine {
       const newModelNode = this.binder.hydrate(newNode);
       if (newModelNode instanceof ModelElement) {
         this._state = this._state.update({ model: newModelNode });
-        this.events.emit({ type: "full", target: newModelNode });
+        this.events.emit({
+          type: "full",
+          target: newModelNode,
+          transaction: tr,
+        });
       }
       return;
     }
@@ -351,7 +360,11 @@ export class SyncEngine {
           modelPath.parent.children[modelPath.index] = reconciledModel;
           reconciledModel.parent = modelPath.parent;
         }
-        this.events.emit({ type: "structure", target: reconciledModel });
+        this.events.emit({
+          type: "structure",
+          target: reconciledModel,
+          transaction: tr,
+        });
       }
     }
   }

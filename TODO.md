@@ -91,7 +91,7 @@ view.update(newState);
     - **Task**:
         - `updateSource` や `setAttribute` を「Transactionを作成してDispatchする」形にリファクタリングする。
         - `dispatch(tr: Transaction)` メソッドを実装し、ここで状態更新を行うようにする。
-- [ ] **イベントシステムの刷新**:
+- [x] **イベントシステムの刷新**:
     - **Goal**: クライアントアプリが、Transaction単位で効率的に状態を同期できるようにする。
     - **Task**:
         - `full`, `structure` といった粗いイベント通知を廃止し、Transaction オブジェクトそのものを通知する形へ変更する。

@@ -1,13 +1,29 @@
+import type { Transaction } from "./engine/transaction";
 import type { ModelNode } from "./model/xml-api-model";
 
 /**
  * Event object emitted when the XML model changes.
  */
 export type ChangeEvent =
-  | { type: "full"; target?: ModelNode }
-  | { type: "structure"; target: ModelNode }
-  | { type: "attribute"; target: ModelNode; key: string; newValue: string | null }
-  | { type: "text"; target: ModelNode; newValue?: string };
+  | { type: "full"; target?: ModelNode; transaction?: Transaction }
+  | {
+      type: "structure";
+      target: ModelNode;
+      transaction?: Transaction;
+    }
+  | {
+      type: "attribute";
+      target: ModelNode;
+      key: string;
+      newValue: string | null;
+      transaction?: Transaction;
+    }
+  | {
+      type: "text";
+      target: ModelNode;
+      newValue?: string;
+      transaction?: Transaction;
+    };
 
 /**
  * Callback function for handling change events.
