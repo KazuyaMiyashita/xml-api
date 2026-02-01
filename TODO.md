@@ -80,13 +80,13 @@ view.update(newState);
 
 ### タスク
 
-- [ ] **State オブジェクトの定義**:
+- [x] **State オブジェクトの定義**:
     - **Goal**: 「ある時点のエディタの状態」をスナップショットとして保持できるようにする。
     - **Task**: `XMLAPI` が持つ可変状態（`source`, `model`, `history`, `cst`）を、不変（またはスナップショット可能）な `EditorState` クラスに切り出す。
-- [ ] **Transaction クラスの実装**:
+- [x] **Transaction クラスの実装**:
     - **Goal**: 「変更の内容」をオブジェクトとして表現し、履歴管理やイベント通知で扱えるようにする。
     - **Task**: 変更内容を表現する `Transaction` クラスを実装する。（プロパティ: `docChanged`, `patches`, `selection` 等）
-- [ ] **SyncEngine のパイプライン化**:
+- [x] **SyncEngine のパイプライン化**:
     - **Goal**: 変更処理を「適用」の1箇所に集約し、副作用を制御する。
     - **Task**:
         - `updateSource` や `setAttribute` を「Transactionを作成してDispatchする」形にリファクタリングする。
