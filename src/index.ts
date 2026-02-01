@@ -7,21 +7,19 @@
  * ## Key Components
  *
  * - {@link XMLAPI}: The central entry point. Manages the source code, parsing, and bidirectional updates.
- * - {@link AST}: The high-level Abstract Syntax Tree used for easy traversal and data extraction.
- * - {@link XMLBinder}: Handles the logic for calculating minimal text patches to update the source code based on model changes.
  *
- * ## Core Features
+ * ## Usage
  *
- * - **Incremental Updates**: Update the source code efficiently using {@link XMLAPI.updateInput}.
- * - **AST Manipulation**: Modify the document structure using high-level methods like {@link XMLAPI.setAttribute}, {@link XMLAPI.updateText}, and {@link XMLAPI.replaceNode}.
- * - **History Management**: Built-in support for {@link XMLAPI.undo} and {@link XMLAPI.redo}.
+ * This package supports subpath exports. While the main `XMLAPI` class is available from the root,
+ * other components should be imported from their specific paths to ensure clear separation of concerns (DOM, Model, AST, etc.).
+ *
+ * ```typescript
+ * import { XMLAPI } from 'xml-api';
+ * import { Element } from 'xml-api/ast/dom';
+ * import { ModelElement } from 'xml-api/model/xml-api-model';
+ * ```
  *
  * @packageDocumentation
  */
 
 export * from "./xml-api";
-export * from "./ast/dom";
-export * from "./model/xml-api-model";
-export { XMLBinder } from "./model/xml-binder";
-export * from "./ast/xml-ast";
-export * from "./model/formatter";

@@ -3,6 +3,16 @@
   "version": "0.9.0",
   "description": "An XML library that faithfully synchronizes documents and AST.",
   "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
   "types": "dist/index.d.ts",
   "files": [
     "dist"
@@ -16,7 +26,7 @@
     "test:all": "jest",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:gen-api": "typedoc",
+    "docs:gen-api": "typedoc && ts-node scripts/generate-sidebar.ts",
     "docs:preview": "vitepress preview docs",
     "format": "biome format --write ."
   },

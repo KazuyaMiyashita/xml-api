@@ -150,7 +150,11 @@ if (newTitles.length > 0) {
   
   'demo-walkthrough': {
     title: 'Bidirectional Sync Simulation',
-    code: `// Simulation of the Observer Pattern used in the demo
+    code: `import { XMLAPI } from 'xml-api';
+import { XMLBinder } from 'xml-api/model/xml-binder';
+import { ModelElement } from 'xml-api/model/xml-api-model';
+
+// Simulation of the Observer Pattern used in the demo
 const input = \`<button class="btn">Click me</button>\`;
 const api = new XMLAPI(input);
 const binder = new XMLBinder(input);

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, shallowRef, onMounted, computed } from 'vue';
-import { XMLAPI, Document, Element, CharacterData, Node, createWrapper, type DOMObserver, XMLBinder } from '@/index';
+import { XMLAPI } from '@/xml-api';
+import { Document, Element, CharacterData, Node, createWrapper, type DOMObserver } from '@/ast/dom';
+import { XMLBinder } from '@/model/xml-binder';
 import XmlTreeNode from './XmlTreeNode.vue';
 import InspectorPanel from './InspectorPanel.vue';
 
