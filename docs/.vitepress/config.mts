@@ -8,6 +8,7 @@ const apiSidebar = JSON.parse(fs.readFileSync(sidebarPath, "utf-8"));
 
 export default withMermaid(
   defineConfig({
+    base: "/xml-api/",
     title: "XML API",
     description:
       "A foundational XML parser and manipulation API for WYSIWYG editors and IDEs.",
