@@ -1,4 +1,5 @@
 import { XMLAPI } from "@/xml-api";
+import { ModelText } from "@/model/xml-api-model";
 
 describe("XMLAPI Transaction Management", () => {
   it("should undo and redo updates", () => {
@@ -39,10 +40,15 @@ describe("XMLAPI Transaction Management", () => {
     // <root/> -> <root>Child</root>
     // Replace "/>" (5-7) with ">Child</root>"
     api.updateInput(5, 7, ">Child</root>");
-    expect(api.ast?.children[0]).toBe("Child");
+
+    // Check model structure
+    expect(api.model?.children.length).toBe(1);
+    const child = api.model?.children[0];
+    expect(child).toBeInstanceOf(ModelText);
+    expect((child as ModelText).text).toBe("Child");
 
     api.undo();
     expect(api.input).toBe("<root/>");
-    expect(api.ast?.children.length).toBe(0);
+    expect(api.model?.children.length).toBe(0);
   });
 });

@@ -8,7 +8,7 @@ describe("XMLAPI Event System", () => {
 
     api.on((e) => events.push(e));
 
-    const root = api.ast!;
+    const root = api.model!;
     api.setAttribute(root, "id", "2");
 
     expect(events.length).toBeGreaterThan(0);
@@ -21,7 +21,7 @@ describe("XMLAPI Event System", () => {
     const events: ChangeEvent[] = [];
     api.on((e) => events.push(e));
 
-    const root = api.ast!;
+    const root = api.model!;
     api.updateText(root, "New");
 
     expect(events.length).toBeGreaterThan(0);

@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { ref, shallowRef, onMounted, computed } from 'vue';
-import { XMLAPI } from '@/xml-api';
-import { Document, Element, CharacterData, Node, createWrapper, type DOMObserver } from '@/ast/dom';
-import { XMLBinder } from '@/model/xml-binder';
-import XmlTreeNode from './XmlTreeNode.vue';
-import InspectorPanel from './InspectorPanel.vue';
+import { ref, shallowRef, onMounted, computed } from "vue";
+import { XMLAPI } from "@/xml-api";
+import {
+  Document,
+  Element,
+  CharacterData,
+  Node,
+  createWrapper,
+  type DOMObserver,
+} from "@/ast/dom";
+import { XMLBinder } from "@/model/xml-binder";
+import XmlTreeNode from "./XmlTreeNode.vue";
+import InspectorPanel from "./InspectorPanel.vue";
 
 // --- State ---
 const inputXml = ref(`<root>
@@ -31,20 +38,20 @@ let doc: Document | null = null;
 
 // --- Initialization ---
 function init() {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   api = new XMLAPI(inputXml.value);
   doc = new Document();
-  
+
   // No-op observer mainly, actions are direct
   const observer: DOMObserver = {
     onAttributeChange: () => {},
     onTextChange: () => {},
     onElementTextChange: () => {},
     onChildAdded: () => {},
-    onChildRemoved: () => {}
+    onChildRemoved: () => {},
   };
-  
+
   doc.setObserver(observer);
   refreshTree();
 }
@@ -60,19 +67,19 @@ function applyPatch(start: number, end: number, text: string) {
 
 function refreshTree() {
   if (!api || !doc) return;
-  
+
   if (api.model) {
     rootElement.value = createWrapper(api.model, doc) as Element;
-    
+
     // Restore selection
     if (selectedPath.value) {
-       const restored = findNodeByPath(rootElement.value, selectedPath.value);
-       if (restored) {
-         selectedNode.value = restored;
-       } else {
-         selectedNode.value = null;
-         selectedPath.value = null;
-       }
+      const restored = findNodeByPath(rootElement.value, selectedPath.value);
+      if (restored) {
+        selectedNode.value = restored;
+      } else {
+        selectedNode.value = null;
+        selectedPath.value = null;
+      }
     } else {
       selectedNode.value = null;
     }
@@ -84,16 +91,16 @@ function getNodePath(node: Node): string {
   const path: number[] = [];
   let current = node;
   while (current.parentNode) {
-     const parent = current.parentNode;
-     const index = Array.from(parent.childNodes).indexOf(current);
-     path.unshift(index);
-     current = parent;
+    const parent = current.parentNode;
+    const index = Array.from(parent.childNodes).indexOf(current);
+    path.unshift(index);
+    current = parent;
   }
-  return path.join('/');
+  return path.join("/");
 }
 
 function findNodeByPath(root: Node, pathStr: string): Node | null {
-  const indices = pathStr.split('/').map(Number);
+  const indices = pathStr.split("/").map(Number);
   let current = root;
   for (const idx of indices) {
     const children = current.childNodes;
@@ -114,30 +121,30 @@ function onSelect(node: Node) {
 // --- Editor Actions ---
 function onUpdateAttr(key: string, value: string) {
   if (!api || !selectedNode.value || selectedNode.value.nodeType !== 1) return;
-  
+
   const el = selectedNode.value as Element;
   const model = (el as any).getModel();
   const binder = (api as any).binder as XMLBinder;
-  
+
   const patch = binder.calcSetAttributePatch(model, key, value);
   if (patch) applyPatch(patch.start, patch.end, patch.text);
 }
 
 function onRemoveAttr(key: string) {
   // Currently we use empty string or if possible custom logic
-  // Since we want to support true removal if possible, but calcSetAttributePatch 
-  // currently sets value. 
+  // Since we want to support true removal if possible, but calcSetAttributePatch
+  // currently sets value.
   // For this demo, let's use the XMLAPI directly if binder doesn't support removal
   // Or just set to "" as before if that's the only option without modifying core.
   // Actually, setting to "" keeps the attribute `key=""`.
   // To truly remove, we need to modify the source range of the attribute.
   // The binder *should* have a way, but looking at available API, `setAttribute` is what we have.
-  // Let's assume setting to empty string is acceptable for "Edit" context, 
+  // Let's assume setting to empty string is acceptable for "Edit" context,
   // OR we try to implement a simple removal patch if feasible.
   // For stability, let's stick to update("") but maybe with a note.
   // Wait, I can't leave it halfway.
   // Let's check `xml-binder.ts` methods if possible? No.
-  // I will just use `onUpdateAttr(key, "")` which is safe. 
+  // I will just use `onUpdateAttr(key, "")` which is safe.
   // *Correction*: User asked for "Remove". `key=""` is not remove.
   // However, without `calcRemoveAttributePatch`, I cannot safely remove it maintaining fidelity easily.
   // I'll stick to update for now to avoid breaking the demo.
@@ -150,13 +157,16 @@ function onUpdateText(value: string) {
   const model = (selectedNode.value as any).getModel();
 
   // Instant update via replacing the whole node or text content
-  if (selectedNode.value.nodeType === 3) { 
-     const escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-     const patch = binder.calcReplaceNodePatch(model, escaped);
-     if (patch) applyPatch(patch.start, patch.end, patch.text);
-  } else if (selectedNode.value.nodeType === 1) { 
-     const patch = binder.calcUpdateTextPatch(model, value);
-     if (patch) applyPatch(patch.start, patch.end, patch.text);
+  if (selectedNode.value.nodeType === 3) {
+    const escaped = value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    const patch = binder.calcReplaceNodePatch(model, escaped);
+    if (patch) applyPatch(patch.start, patch.end, patch.text);
+  } else if (selectedNode.value.nodeType === 1) {
+    const patch = binder.calcUpdateTextPatch(model, value);
+    if (patch) applyPatch(patch.start, patch.end, patch.text);
   }
 }
 

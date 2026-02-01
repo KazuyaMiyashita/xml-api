@@ -1,5 +1,24 @@
-import { AST } from "@/ast/xml-ast";
+import { ModelElement, ModelText, type ModelNode } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
+
+function h(
+  tagName: string,
+  attrs: { [key: string]: string } = {},
+  children: (ModelNode | string)[] = [],
+): ModelElement {
+  const el = new ModelElement(tagName);
+  for (const [k, v] of Object.entries(attrs)) {
+    el.setAttribute(k, v);
+  }
+  for (const child of children) {
+    if (typeof child === "string") {
+      el.addChild(new ModelText(child));
+    } else {
+      el.addChild(child);
+    }
+  }
+  return el;
+}
 
 describe("XMLAPI Context-Aware Formatting", () => {
   it("should respect surrounding indentation when replacing a node with nested content", () => {
@@ -10,12 +29,10 @@ describe("XMLAPI Context-Aware Formatting", () => {
     </parent>
 </root>`;
     const api = new XMLAPI(input);
-    const child = api.ast!.find("child")[0]!;
+    const child = api.model!.find("child")[0]!;
 
     // New content has structure
-    const newContent = new AST("child", {}, [
-      new AST("grandchild", {}, ["Val"]),
-    ]);
+    const newContent = h("child", {}, [h("grandchild", {}, ["Val"])]);
 
     api.replaceNode(child, newContent);
 
@@ -38,11 +55,9 @@ describe("XMLAPI Context-Aware Formatting", () => {
 	</parent>
 </root>`;
     const api = new XMLAPI(input);
-    const child = api.ast!.find("child")[0]!;
+    const child = api.model!.find("child")[0]!;
 
-    const newContent = new AST("child", {}, [
-      new AST("grandchild", {}, ["Val"]),
-    ]);
+    const newContent = h("child", {}, [h("grandchild", {}, ["Val"])]);
 
     api.replaceNode(child, newContent);
 

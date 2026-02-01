@@ -148,20 +148,17 @@ export abstract class Node {
 
   set textContent(value: string | null) {
     const val = value || "";
-    
+
     if (this.model instanceof ModelText) {
       this.model.text = val;
       this.ownerDocument?.notifyTextChange(this as any as CharacterData, val);
-    }
-    else if (this.model instanceof ModelComment) {
+    } else if (this.model instanceof ModelComment) {
       this.model.content = val;
       this.ownerDocument?.notifyTextChange(this as any as CharacterData, val);
-    }
-    else if (this.model instanceof ModelCDATA) {
+    } else if (this.model instanceof ModelCDATA) {
       this.model.content = val;
       this.ownerDocument?.notifyTextChange(this as any as CharacterData, val);
-    }
-    else if (this.model instanceof ModelElement) {
+    } else if (this.model instanceof ModelElement) {
       this.model.children = [];
       if (val) {
         const textNode = new ModelText(val);
@@ -180,8 +177,12 @@ export abstract class Node {
       this.model.addChild(newChild.getModel());
       // @ts-ignore
       newChild.ownerDocument = this.ownerDocument;
-      
-      this.ownerDocument?.notifyChildAdded(this, newChild, this.model.children.length - 1);
+
+      this.ownerDocument?.notifyChildAdded(
+        this,
+        newChild,
+        this.model.children.length - 1,
+      );
       return newChild;
     }
     throw new Error("HierarchyRequestError");
@@ -287,7 +288,7 @@ export class Element extends Node {
   get namespaceURI(): string | null {
     const prefix = this.prefix;
     const xmlnsKey = prefix ? `xmlns:${prefix}` : "xmlns";
-    
+
     let current: ModelElement | null = this.model;
     while (current) {
       if (current.attributes.has(xmlnsKey)) {
@@ -343,18 +344,18 @@ export class Document extends Node {
     super(new ModelElement("#document"), null);
     this.ownerDocument = this; // Document owns itself
   }
-  
+
   /**
    * Sets the observer to listen for DOM changes.
    */
   setObserver(observer: DOMObserver) {
     this.observer = observer;
   }
-  
+
   notifyAttributeChange(element: Element, name: string, value: string | null) {
     this.observer?.onAttributeChange(element, name, value);
   }
-  
+
   notifyTextChange(node: CharacterData, text: string) {
     this.observer?.onTextChange(node, text);
   }
@@ -362,7 +363,7 @@ export class Document extends Node {
   notifyElementTextChange(element: Element, text: string) {
     this.observer?.onElementTextChange(element, text);
   }
-  
+
   notifyChildAdded(parent: Node, child: Node, index: number) {
     this.observer?.onChildAdded(parent, child, index);
   }
@@ -419,10 +420,7 @@ export class Document extends Node {
 }
 
 // Helper factory
-export function createWrapper(
-  model: ModelNode,
-  doc: Document | null,
-): Node {
+export function createWrapper(model: ModelNode, doc: Document | null): Node {
   if (model instanceof ModelElement) return new Element(model, doc);
   if (model instanceof ModelText) return new Text(model, doc);
   if (model instanceof ModelComment) return new Comment(model, doc);
@@ -437,7 +435,9 @@ function matchSelector(el: Element, selector: string): boolean {
   }
   if (selector.startsWith(".")) {
     const className = el.getAttribute("class");
-    return className ? className.split(/\s+/).includes(selector.slice(1)) : false;
+    return className
+      ? className.split(/\s+/).includes(selector.slice(1))
+      : false;
   }
   if (selector.startsWith("[") && selector.endsWith("]")) {
     const parts = selector.slice(1, -1).split("=");
@@ -457,7 +457,7 @@ function querySelectorAllRecursive(
 ) {
   // Check self (if not root of query? Standard querySelectorAll doesn't match root usually, but here we traverse children)
   // Actually querySelectorAll searches *descendants*.
-  
+
   const children = root.childNodes;
   for (const child of children) {
     if (child instanceof Element) {

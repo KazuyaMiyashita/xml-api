@@ -71,10 +71,10 @@ describe("Custom DOM Wrapper", () => {
 
       expect(item1.nextSibling).not.toBeNull();
       expect((item1.nextSibling as Element).tagName).toBe("item2");
-      
+
       expect(item2.previousSibling).not.toBeNull();
       expect((item2.previousSibling as Element).tagName).toBe("item1");
-      
+
       expect(item3.nextSibling).toBeNull();
     });
   });
@@ -83,16 +83,16 @@ describe("Custom DOM Wrapper", () => {
     it("should reflect changes in underlying model", () => {
       const model = new ModelElement("root");
       const wrapper = createWrapper(model, doc) as Element;
-      
+
       wrapper.setAttribute("foo", "bar");
       expect(model.attributes.get("foo")).toBe("bar");
-      
+
       const textModel = new ModelText("initial");
       model.addChild(textModel);
-      
+
       expect(wrapper.childNodes.length).toBe(1);
       expect(wrapper.firstChild?.textContent).toBe("initial");
-      
+
       wrapper.firstChild!.textContent = "updated";
       expect(textModel.text).toBe("updated");
     });
@@ -102,17 +102,17 @@ describe("Custom DOM Wrapper", () => {
     beforeEach(() => {
       const root = doc.createElement("root");
       doc.documentElement = root;
-      
+
       const child1 = doc.createElement("child");
       child1.setAttribute("id", "c1");
       child1.setAttribute("class", "foo bar");
       root.appendChild(child1);
-      
+
       const child2 = doc.createElement("child");
       child2.setAttribute("id", "c2");
       child2.setAttribute("class", "bar");
       root.appendChild(child2);
-      
+
       const subChild = doc.createElement("sub");
       child1.appendChild(subChild);
     });
@@ -132,7 +132,7 @@ describe("Custom DOM Wrapper", () => {
     it("should find by class", () => {
       const bars = doc.querySelectorAll(".bar");
       expect(bars.length).toBe(2);
-      
+
       const foos = doc.querySelectorAll(".foo");
       expect(foos.length).toBe(1);
       expect((foos.item(0) as Element).getAttribute("id")).toBe("c1");
@@ -143,11 +143,11 @@ describe("Custom DOM Wrapper", () => {
       expect(el).not.toBeNull();
       expect(el?.tagName).toBe("child");
     });
-    
+
     it("should find descendants", () => {
       const sub = doc.querySelector("sub");
       expect(sub).not.toBeNull();
-      
+
       const subFromChild = doc.querySelector("#c1")?.querySelector("sub");
       expect(subFromChild).not.toBeNull();
     });
@@ -158,7 +158,7 @@ describe("Custom DOM Wrapper", () => {
       const el = doc.createElement("svg:circle");
       expect(el.prefix).toBe("svg");
       expect(el.localName).toBe("circle");
-      
+
       const el2 = doc.createElement("div");
       expect(el2.prefix).toBeNull();
       expect(el2.localName).toBe("div");
@@ -169,32 +169,32 @@ describe("Custom DOM Wrapper", () => {
       root.setAttribute("xmlns:svg", "http://www.w3.org/2000/svg");
       root.setAttribute("xmlns", "http://example.com/default");
       doc.documentElement = root;
-      
+
       const circle = doc.createElement("svg:circle");
       root.appendChild(circle);
-      
+
       const div = doc.createElement("div");
       root.appendChild(div);
-      
+
       const orphan = doc.createElement("svg:rect"); // No parent
-      
+
       expect(circle.namespaceURI).toBe("http://www.w3.org/2000/svg");
       expect(div.namespaceURI).toBe("http://example.com/default");
       expect(orphan.namespaceURI).toBeNull();
     });
-    
+
     it("should resolve nested namespaceURI", () => {
       const root = doc.createElement("root");
       root.setAttribute("xmlns", "http://root.com");
       doc.documentElement = root;
-      
+
       const child = doc.createElement("child");
       child.setAttribute("xmlns", "http://child.com");
       root.appendChild(child);
-      
+
       const grandChild = doc.createElement("item");
       child.appendChild(grandChild);
-      
+
       expect(root.namespaceURI).toBe("http://root.com");
       expect(child.namespaceURI).toBe("http://child.com"); // Shadowing
       expect(grandChild.namespaceURI).toBe("http://child.com"); // Inherited from child

@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue';
-import type { Element, CharacterData } from '@/ast/dom';
+import { computed, ref, nextTick } from "vue";
+import type { Element, CharacterData } from "@/ast/dom";
 
 const props = defineProps<{
   node: Element | CharacterData | null;
 }>();
 
 const emit = defineEmits<{
-  (e: 'update:attr', key: string, value: string): void;
-  (e: 'remove:attr', key: string): void;
-  (e: 'update:text', value: string): void;
+  (e: "update:attr", key: string, value: string): void;
+  (e: "remove:attr", key: string): void;
+  (e: "update:text", value: string): void;
 }>();
 
-const newAttrKey = ref('');
-const newAttrValue = ref('');
+const newAttrKey = ref("");
+const newAttrValue = ref("");
 const attrKeyInput = ref<HTMLInputElement | null>(null);
 
 // Helper to determine type
@@ -21,8 +21,10 @@ const isElement = computed(() => props.node && props.node.nodeType === 1);
 const isText = computed(() => props.node && props.node.nodeType === 3);
 
 // Data Extraction
-const tagName = computed(() => isElement.value ? (props.node as Element).tagName : '');
-const nodeName = computed(() => props.node ? props.node.nodeName : '');
+const tagName = computed(() =>
+  isElement.value ? (props.node as Element).tagName : "",
+);
+const nodeName = computed(() => (props.node ? props.node.nodeName : ""));
 
 const attributes = computed(() => {
   if (!isElement.value) return [];
@@ -38,25 +40,25 @@ const attributes = computed(() => {
 });
 
 const textContent = computed(() => {
-  if (!props.node) return '';
+  if (!props.node) return "";
   if (isText.value) return (props.node as CharacterData).data;
-  return props.node.textContent || '';
+  return props.node.textContent || "";
 });
 
 function onAttrChange(key: string, e: Event) {
   const val = (e.target as HTMLInputElement).value;
-  emit('update:attr', key, val);
+  emit("update:attr", key, val);
 }
 
 function onAttrRemove(key: string) {
-  emit('remove:attr', key);
+  emit("remove:attr", key);
 }
 
 function onAttrAdd() {
   if (newAttrKey.value) {
-    emit('update:attr', newAttrKey.value, newAttrValue.value);
-    newAttrKey.value = '';
-    newAttrValue.value = '';
+    emit("update:attr", newAttrKey.value, newAttrValue.value);
+    newAttrKey.value = "";
+    newAttrValue.value = "";
     // Focus back to key input for continuous entry
     nextTick(() => {
       attrKeyInput.value?.focus();
@@ -66,9 +68,8 @@ function onAttrAdd() {
 
 function onTextInput(e: Event) {
   const val = (e.target as HTMLTextAreaElement).value;
-  emit('update:text', val);
+  emit("update:text", val);
 }
-
 </script>
 
 <template>

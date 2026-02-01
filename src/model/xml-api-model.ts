@@ -43,6 +43,30 @@ export class ModelElement extends ModelNode {
   setAttribute(key: string, value: string): void {
     this.attributes.set(key, value);
   }
+
+  find(tagName: string): ModelElement[] {
+    let results: ModelElement[] = [];
+    for (const child of this.children) {
+      if (child instanceof ModelElement) {
+        if (child.tagName === tagName) {
+          results.push(child);
+        }
+        results = results.concat(child.find(tagName));
+      }
+    }
+    return results;
+  }
+
+  text(): string {
+    return this.children
+      .map((c) => {
+        if (c instanceof ModelText) return c.text;
+        if (c instanceof ModelCDATA) return c.content;
+        if (c instanceof ModelElement) return c.text();
+        return "";
+      })
+      .join("");
+  }
 }
 
 export class ModelText extends ModelNode {

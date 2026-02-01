@@ -4,15 +4,11 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "baseUrl": ".",
     "paths": {
       "@/*": ["../src/*"]
     },
     "noEmit": true
   },
-  "include": [
-    "**/*.ts",
-    "**/*.vue",
-    ".vitepress/**/*.ts",
-    "../src/**/*"
-  ]
+  "include": ["**/*.ts", "**/*.vue", ".vitepress/**/*.ts", "../src/**/*"]
 }

@@ -1,4 +1,10 @@
-import { type AST, ASTCDATA, ASTComment, type ASTNode } from "../ast/xml-ast";
+import {
+  ModelCDATA,
+  ModelComment,
+  ModelElement,
+  type ModelNode,
+  ModelText,
+} from "./xml-api-model";
 
 export interface FormatterOptions {
   indent?: string; // e.g. "  ", "\t"
@@ -17,101 +23,101 @@ export class Formatter {
     this.force = options.force ?? false;
   }
 
-  public format(node: ASTNode): string {
+  public format(node: ModelNode): string {
     return this.formatNode(node, 0);
   }
 
-  private formatNode(node: ASTNode, level: number): string {
-    if (typeof node === "string") {
-      return this.escape(node);
+  private formatNode(node: ModelNode, level: number): string {
+    if (node instanceof ModelText) {
+      return this.escape(node.text);
     }
-    if (node instanceof ASTComment) {
+    if (node instanceof ModelComment) {
       return `<!--${node.content}-->`;
     }
-    if (node instanceof ASTCDATA) {
+    if (node instanceof ModelCDATA) {
       return `<![CDATA[${node.content}]]>`;
     }
 
-    const tagName = node.tagName;
-    const attributes = this.formatAttributes(node.attributes);
-    const children = node.children;
+    if (node instanceof ModelElement) {
+      const tagName = node.tagName;
+      const attributes = this.formatAttributes(node.attributes);
+      const children = node.children;
 
-    if (children.length === 0) {
-      return `<${tagName}${attributes} />`;
+      if (children.length === 0) {
+        return `<${tagName}${attributes} />`;
+      }
+
+      const isInline = this.isInline(children);
+      const hasFormatting = this.force ? false : this.hasFormatting(children);
+
+      let result = `<${tagName}${attributes}>`;
+
+      if (isInline || hasFormatting) {
+        for (const child of children) {
+          if (
+            this.force &&
+            child instanceof ModelText &&
+            child.text.includes("\n") &&
+            child.text.trim().length === 0
+          ) {
+            continue;
+          }
+          result += this.formatNode(child, level + 1);
+        }
+        result += `</${tagName}>`;
+      } else {
+        for (const child of children) {
+          if (
+            this.force &&
+            child instanceof ModelText &&
+            child.text.includes("\n") &&
+            child.text.trim().length === 0
+          ) {
+            continue;
+          }
+          result +=
+            this.newline +
+            this.getIndent(level + 1) +
+            this.formatNode(child, level + 1);
+        }
+        result += `${this.newline + this.getIndent(level)}</${tagName}>`;
+      }
+
+      return result;
     }
 
-    const isInline = this.isInline(children);
-    const hasFormatting = this.force ? false : this.hasFormatting(children);
-
-    let result = `<${tagName}${attributes}>`;
-
-    if (isInline || hasFormatting) {
-      for (const child of children) {
-        if (
-          this.force &&
-          typeof child === "string" &&
-          child.includes("\n") &&
-          child.trim().length === 0
-        ) {
-          continue;
-        }
-        result += this.formatNode(child, level + 1);
-      }
-      result += `</${tagName}>`;
-    } else {
-      for (const child of children) {
-        if (
-          this.force &&
-          typeof child === "string" &&
-          child.includes("\n") &&
-          child.trim().length === 0
-        ) {
-          continue;
-        }
-        result +=
-          this.newline +
-          this.getIndent(level + 1) +
-          this.formatNode(child, level + 1);
-      }
-      result += `${this.newline + this.getIndent(level)}</${tagName}>`;
-    }
-
-    return result;
+    return "";
   }
 
-  private formatAttributes(attributes: { [key: string]: string }): string {
-    const keys = Object.keys(attributes);
-    if (keys.length === 0) return "";
+  private formatAttributes(attributes: Map<string, string>): string {
+    if (attributes.size === 0) return "";
+    const entries = Array.from(attributes.entries());
     return (
       " " +
-      keys
-        .map((key) => `${key}="${this.escapeAttribute(attributes[key])}"`)
+      entries
+        .map(([key, value]) => `${key}="${this.escapeAttribute(value)}"`) // Corrected: escaped " to \"
         .join(" ")
     );
   }
 
-  private isInline(
-    children: (AST | string | ASTComment | ASTCDATA)[],
-  ): boolean {
+  private isInline(children: ModelNode[]): boolean {
     for (const theChild of children) {
-      if (typeof theChild === "string") {
+      if (theChild instanceof ModelText) {
         // If there is any non-whitespace text, treat as inline.
-        if (theChild.trim().length > 0) return true;
+        if (theChild.text.trim().length > 0) return true;
       }
-      if (theChild instanceof ASTCDATA) {
+      if (theChild instanceof ModelCDATA) {
         return true;
       }
     }
     return false;
   }
 
-  private hasFormatting(
-    children: (AST | string | ASTComment | ASTCDATA)[],
-  ): boolean {
+  private hasFormatting(children: ModelNode[]): boolean {
     for (const theChild of children) {
-      if (typeof theChild === "string") {
+      if (theChild instanceof ModelText) {
         // If it contains a newline and is otherwise whitespace, it's likely formatting.
-        if (theChild.includes("\n") && theChild.trim().length === 0) {
+        if (theChild.text.includes("\n") && theChild.text.trim().length === 0) {
           return true;
         }
       }

@@ -9,8 +9,7 @@ The system consists of three main layers, orchestrated by the central **XMLAPI**
 | Layer | Role | Characteristics |
 | :--- | :--- | :--- |
 | **CST** (Concrete Syntax Tree) | Physical Layer | Exact source structure, validation, incremental parsing. |
-| **Model** | Logical Layer | Source of Truth, persistent IDs, reconciliation. |
-| **AST & DOM** | Interface Layer | Standard DOM API, simplified data view, change observation. |
+| **Model & DOM** | Application Layer | Source of Truth, persistent IDs, DOM API, change observation. |
 
 ## Layers in Depth
 
@@ -27,12 +26,10 @@ The Model is the authoritative source of truth that connects the physical CST to
 - **Persistent Identity**: Every node is assigned a unique, immutable ID upon creation. This allows external systems (like UI frameworks) to track nodes reliably even after re-parsing.
 - **Binder Engine**: The core logic that synchronizes data. It performs **Reconciliation**—intelligently updating the existing Model tree with new CST data to minimize object replacement—and calculates precise text patches for updates.
 - **Linkage**: Maintains direct references to CST nodes, enabling the retrieval of exact source code locations for every logical element.
+- **Standard Operations**: Provides built-in methods for data extraction (`find`, `text`) and formatting.
 
-### 3. AST & DOM Interface
-This layer provides the interfaces for applications to interact with the document.
-
-- **DOM Interface**: The primary API for manipulation. It implements standard W3C interfaces (`Document`, `Element`) and acts as a wrapper around the Model. Changes made here are observed and automatically synchronized with the source code.
-- **AST**: A simplified, read-only tree structure (`xml-ast.ts`). It is lighter than the DOM and is used mainly for data extraction or feeding into the Formatter.
+### 3. DOM Interface
+This layer provides the primary interface for applications to interact with the document. It implements standard W3C interfaces (`Document`, `Element`) and acts as a wrapper around the Model. Changes made here are observed and automatically synchronized with the source code.
 
 ## Data Flow
 
@@ -57,14 +54,12 @@ graph TD
         
         subgraph "Application Layer"
             DOM["DOM Interface"]
-            AST["AST (Optional)"]
         end
     end
 
     %% Interaction
     User <==>|"DOM Operations"| DOM
     DOM <--> Mediator
-    User -.-> AST
 
     %% Internal Flows
     Mediator -- "1. Parse" --> Parser
@@ -74,7 +69,6 @@ graph TD
     Binder -- "Hydrate / Reconcile" --> Model
     Model -- "Link" --> CST
     
-    Binder -- "Project" --> AST
     DOM -- "Wrap" --> Model
     
     DOM -- "Edit" --> Binder

@@ -7,7 +7,6 @@
 ## Modules
 
 - [ast/dom](ast/dom/README.md)
-- [ast/xml-ast](ast/xml-ast/README.md)
 - [cst/grammar](cst/grammar/README.md)
 - [cst/parser](cst/parser/README.md)
 - [cst/xml-cst](cst/xml-cst/README.md)

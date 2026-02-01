@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { scenarios } from './scenarios';
+import { ref, computed, onMounted } from "vue";
+import { scenarios } from "./scenarios";
 
 const props = defineProps<{
   scenario: string;
@@ -18,11 +18,11 @@ onMounted(() => {
 
 async function run() {
   if (!scenarioData.value) return;
-  
+
   output.value = [];
   isRunning.value = true;
   hasRun.value = true;
-  
+
   try {
     await scenarioData.value.run((msg: string) => {
       output.value.push(msg);
@@ -41,7 +41,7 @@ const copyText = async () => {
     await navigator.clipboard.writeText(scenarioData.value.code);
     // Optional: Visual feedback could be added here
   } catch (err) {
-    console.error('Failed to copy', err);
+    console.error("Failed to copy", err);
   }
 };
 </script>

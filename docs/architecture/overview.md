@@ -17,7 +17,7 @@ The core engine that handles data synchronization and transformation. It perform
 - **Patch Generation**: Calculating the minimal text change needed to reflect a logical operation in the source XML, respecting existing formatting.
 
 ### Model (ModelElement, ModelText, etc.)
-The authoritative internal representation of the XML. It sits between the physical CST and the simplified AST/DOM. It manages persistent IDs and maintains the link to the corresponding CST nodes.
+The authoritative internal representation of the XML. It sits between the physical CST and the application-level DOM Interface. It manages persistent IDs and maintains the link to the corresponding CST nodes.
 
 ### Parser & CST
 The **Parser** converts input strings into a **Concrete Syntax Tree (CST)**. The CST captures every character of the source, including whitespace and comments. It supports incremental re-parsing, allowing the system to update only affected branches when the text changes.

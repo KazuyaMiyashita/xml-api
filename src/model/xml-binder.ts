@@ -1,4 +1,3 @@
-import { AST, ASTCDATA, ASTComment } from "../ast/xml-ast";
 import type { CST } from "../cst/xml-cst";
 import {
   ModelCDATA,
@@ -261,40 +260,6 @@ export class XMLBinder {
     }
   }
 
-  public project(model: ModelNode): AST | string | ASTComment | ASTCDATA {
-    if (model.getType() === ModelNodeType.Text) {
-      return (model as ModelText).text;
-    }
-    if (model.getType() === ModelNodeType.Comment) {
-      const ast = new ASTComment((model as ModelComment).content);
-      ast.cst = model.cst;
-      return ast;
-    }
-    if (model.getType() === ModelNodeType.CDATA) {
-      const ast = new ASTCDATA((model as ModelCDATA).content);
-      ast.cst = model.cst;
-      return ast;
-    }
-
-    const el = model as ModelElement;
-    const ast = new AST(el.tagName);
-
-    // Copy attributes
-    for (const [key, value] of el.attributes) {
-      ast.attributes[key] = value;
-    }
-
-    // Recursively project children
-    for (const child of el.children) {
-      ast.children.push(this.project(child));
-    }
-
-    // Link CST if available (for mapping)
-    ast.cst = el.cst;
-
-    return ast;
-  }
-
   public calcSetAttributePatch(
     model: ModelElement,
     key: string,
@@ -509,20 +474,6 @@ function decodeCharRef(node: CST, input: string): string {
     code = parseInt(text.slice(2, -1), 10);
   }
   return String.fromCodePoint(code);
-}
-
-// Keep backward compatibility for tests that use convert() directly?
-// Or we should update them.
-// The task is "Implement src/model/xml-binder.ts".
-// I am replacing it. Tests will break. I will fix tests.
-export function convert(
-  node: CST,
-  input: string,
-): AST | string | ASTComment | null {
-  const binder = new XMLBinder(input);
-  const model = binder.hydrate(node);
-  if (!model) return null;
-  return binder.project(model);
 }
 
 function escapeText(str: string): string {

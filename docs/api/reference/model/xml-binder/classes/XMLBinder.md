@@ -118,22 +118,6 @@
 
 ***
 
-### project()
-
-> **project**(`model`): `string` \| [`ASTComment`](../../../ast/xml-ast/classes/ASTComment.md) \| [`ASTCDATA`](../../../ast/xml-ast/classes/ASTCDATA.md) \| [`AST`](../../../ast/xml-ast/classes/AST.md)
-
-#### Parameters
-
-##### model
-
-[`ModelNode`](../../xml-api-model/classes/ModelNode.md)
-
-#### Returns
-
-`string` \| [`ASTComment`](../../../ast/xml-ast/classes/ASTComment.md) \| [`ASTCDATA`](../../../ast/xml-ast/classes/ASTCDATA.md) \| [`AST`](../../../ast/xml-ast/classes/AST.md)
-
-***
-
 ### reconcile()
 
 > **reconcile**(`currentModel`, `newCst`): [`ModelNode`](../../xml-api-model/classes/ModelNode.md)

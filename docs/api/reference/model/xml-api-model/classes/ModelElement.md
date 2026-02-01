@@ -94,6 +94,22 @@
 
 ***
 
+### find()
+
+> **find**(`tagName`): `ModelElement`[]
+
+#### Parameters
+
+##### tagName
+
+`string`
+
+#### Returns
+
+`ModelElement`[]
+
+***
+
 ### getType()
 
 > **getType**(): [`ModelNodeType`](../enumerations/ModelNodeType.md)
@@ -125,3 +141,13 @@
 #### Returns
 
 `void`
+
+***
+
+### text()
+
+> **text**(): `string`
+
+#### Returns
+
+`string`

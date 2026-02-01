@@ -8,7 +8,7 @@
 
 ### Constructor
 
-> **new XMLAPI**(`input`, `grammar`, `converter`): `XMLAPI`
+> **new XMLAPI**(`input`, `grammar`): `XMLAPI`
 
 Initializes the API with the source XML string.
 
@@ -26,31 +26,11 @@ The initial XML source code.
 
 (Optional) Custom grammar definition.
 
-##### converter
-
-[`Converter`](../type-aliases/Converter.md) = `defaultConverter`
-
-(Optional) Custom CST-to-AST converter.
-
 #### Returns
 
 `XMLAPI`
 
 ## Properties
-
-### ast
-
-> **ast**: [`AST`](../../ast/xml-ast/classes/AST.md) \| `null` = `null`
-
-AST is null if CST is null or not well-formed.
-
-***
-
-### converter
-
-> **converter**: [`Converter`](../type-aliases/Converter.md)
-
-***
 
 ### cst
 
@@ -139,23 +119,23 @@ Re-applies a previously undone source code change.
 
 ### replaceNode()
 
-> **replaceNode**(`astNode`, `content`): `void`
+> **replaceNode**(`target`, `content`): `void`
 
-Replaces an AST node with new content.
+Replaces a Model node with new content.
 
 #### Parameters
 
-##### astNode
+##### target
 
-The AST node to replace.
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
-[`ASTComment`](../../ast/xml-ast/classes/ASTComment.md) | [`ASTCDATA`](../../ast/xml-ast/classes/ASTCDATA.md) | [`AST`](../../ast/xml-ast/classes/AST.md)
+The Model node to replace.
 
 ##### content
 
-[`ASTNode`](../../ast/xml-ast/type-aliases/ASTNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
-New content as an AST object.
+New content as a Model node.
 
 #### Returns
 
@@ -165,18 +145,18 @@ New content as an AST object.
 
 ### setAttribute()
 
-> **setAttribute**(`astNode`, `key`, `value`): `void`
+> **setAttribute**(`modelNode`, `key`, `value`): `void`
 
-Sets an attribute on the specified AST node.
-Updates the source code, CST, Model, and AST by calculating a minimal text patch.
+Sets an attribute on the specified Model node.
+Updates the source code, CST, and Model by calculating a minimal text patch.
 
 #### Parameters
 
-##### astNode
+##### modelNode
 
-[`AST`](../../ast/xml-ast/classes/AST.md)
+[`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
 
-The target AST node.
+The target Model element.
 
 ##### key
 
@@ -212,7 +192,7 @@ Reverts the last source code change.
 
 > **updateInput**(`from`, `to`, `value`): `void`
 
-Updates the input text and refreshes the CST/AST.
+Updates the input text and refreshes the CST/Model.
 This method attempts an incremental update first, falling back to a full re-parse if necessary.
 
 #### Parameters
@@ -243,17 +223,17 @@ The new text to insert.
 
 ### updateText()
 
-> **updateText**(`astNode`, `text`): `void`
+> **updateText**(`modelNode`, `text`): `void`
 
-Updates the text content of the specified AST element.
+Updates the text content of the specified Model element.
 
 #### Parameters
 
-##### astNode
+##### modelNode
 
-[`AST`](../../ast/xml-ast/classes/AST.md)
+[`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
 
-The target AST element.
+The target Model element.
 
 ##### text
 

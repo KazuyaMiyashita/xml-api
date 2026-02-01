@@ -52,28 +52,6 @@
             "link": "/api/reference/ast/dom/classes/Text"
           }
         ]
-      },
-      {
-        "text": "xml-ast",
-        "collapsed": true,
-        "items": [
-          {
-            "text": "AST",
-            "link": "/api/reference/ast/xml-ast/classes/AST"
-          },
-          {
-            "text": "ASTCDATA",
-            "link": "/api/reference/ast/xml-ast/classes/ASTCDATA"
-          },
-          {
-            "text": "ASTComment",
-            "link": "/api/reference/ast/xml-ast/classes/ASTComment"
-          },
-          {
-            "text": "ASTNode",
-            "link": "/api/reference/ast/xml-ast/type-aliases/ASTNode"
-          }
-        ]
       }
     ]
   },
@@ -252,10 +230,6 @@
         "collapsed": true,
         "items": [
           {
-            "text": "convert",
-            "link": "/api/reference/model/xml-binder/functions/convert"
-          },
-          {
             "text": "XMLBinder",
             "link": "/api/reference/model/xml-binder/classes/XMLBinder"
           }
@@ -285,10 +259,6 @@
     "text": "xml-api",
     "collapsed": true,
     "items": [
-      {
-        "text": "Converter",
-        "link": "/api/reference/xml-api/type-aliases/Converter"
-      },
       {
         "text": "XMLAPI",
         "link": "/api/reference/xml-api/classes/XMLAPI"

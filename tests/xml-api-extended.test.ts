@@ -1,4 +1,4 @@
-import { ASTCDATA, ASTComment } from "@/ast/xml-ast";
+import { ModelCDATA, ModelComment } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI Extended Support (CDATA & Comment)", () => {
@@ -6,23 +6,14 @@ describe("XMLAPI Extended Support (CDATA & Comment)", () => {
     const input = `<root><![CDATA[Some <data>]]></root>`;
     const api = new XMLAPI(input);
 
-    expect(api.ast?.children.length).toBe(1);
-    const child = api.ast?.children[0];
+    expect(api.model?.children.length).toBe(1);
+    const child = api.model?.children[0];
 
-    expect(child).toBeInstanceOf(ASTCDATA);
-    expect((child as ASTCDATA).text()).toBe("Some <data>");
+    expect(child).toBeInstanceOf(ModelCDATA);
+    expect((child as ModelCDATA).content).toBe("Some <data>");
 
-    // To verify fidelity, we can modify it and check output
-    (child as ASTCDATA).content = "New & <data>";
-
-    // Replace the root's child with the modified CDATA
-    // (This is a bit tricky since AST modification alone doesn't update source unless we use an API)
-    // But XMLAPI model update should work.
-
-    // Actually, let's use replaceNode to insert a new CDATA
-    const _root = api.ast!;
-    const newCData = new ASTCDATA("New <Content>");
-    api.replaceNode(child as any, newCData as any); // Type assertion until AST types are updated
+    const newCData = new ModelCDATA("New <Content>");
+    api.replaceNode(child as any, newCData as any);
 
     expect(api.input).toBe(`<root><![CDATA[New <Content>]]></root>`);
   });
@@ -31,10 +22,10 @@ describe("XMLAPI Extended Support (CDATA & Comment)", () => {
     const input = `<root><!-- Old Comment --></root>`;
     const api = new XMLAPI(input);
 
-    const comment = api.ast?.children[0];
-    expect(comment).toBeInstanceOf(ASTComment);
+    const comment = api.model?.children[0];
+    expect(comment).toBeInstanceOf(ModelComment);
 
-    const newComment = new ASTComment(" New Comment ");
+    const newComment = new ModelComment(" New Comment ");
     api.replaceNode(comment as any, newComment as any);
 
     expect(api.input).toBe(`<root><!-- New Comment --></root>`);
