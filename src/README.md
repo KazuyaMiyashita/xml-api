@@ -1,7 +1,3 @@
-**xml-api**
-
-***
-
 # XML API Reference
 
 This package provides a foundational API for parsing, manipulating, and synchronizing XML documents with high fidelity.

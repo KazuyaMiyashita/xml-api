@@ -196,11 +196,6 @@
     ]
   },
   {
-    "text": "index",
-    "collapsed": true,
-    "items": []
-  },
-  {
     "text": "model",
     "collapsed": true,
     "items": [
@@ -281,6 +276,10 @@
         ]
       }
     ]
+  },
+  {
+    "text": "modules",
+    "link": "/api/reference/modules"
   },
   {
     "text": "xml-api",

@@ -22,7 +22,7 @@ pnpm install xml-api
 ### Initialization
 
 ```typescript
-import { XMLAPI } from 'xml-api';
+import { XMLAPI } from 'xml-api/xml-api';
 
 const source = `<root>
   <item>Hello World</item>

@@ -3,7 +3,7 @@
   "entryPoints": ["src/**/!(*.test|*.spec).ts"],
   "out": "docs/api/reference",
   "plugin": ["typedoc-plugin-markdown"],
-  "readme": "none",
+  "readme": "src/README.md",
   "disableSources": true,
   "hideBreadcrumbs": true
 }
