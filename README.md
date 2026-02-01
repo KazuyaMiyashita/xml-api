@@ -63,9 +63,9 @@ pnpm install
 
 ### Documentation
 
+*   `pnpm docs:gen-api`: Generates API documentation from source code JSDoc using TypeDoc.
 *   `pnpm docs:dev`: Starts the VitePress development server for documentation.
 *   `pnpm docs:build`: Builds the static documentation site.
-*   `pnpm docs:gen-api`: Generates API documentation from source code JSDoc using TypeDoc.
 *   `pnpm docs:preview`: Previews the built documentation locally.
 
 ## License
