@@ -1,9 +1,43 @@
-import { convert as minConvert } from "../experiments/minimum-converter";
-import { grammar as minGrammar } from "../experiments/minimum-grammar";
 import { AST } from "./ast/xml-ast";
 import { GrammarBuilder, lit, opt, plus, ref, reg, seq } from "./cst/grammar";
 import type { CST } from "./cst/xml-cst";
 import { XMLAPI } from "./xml-api";
+
+// Helper to define a minimum grammar for testing custom injection
+const createMinGrammar = () => {
+  const b = new GrammarBuilder();
+  b.rule("S", plus(reg("[ \t\r\n]")));
+  // Simple tag: <tagName>content</tagName>
+  b.rule("open", seq(lit("<"), reg("[a-zA-Z0-9]+"), lit(">")));
+  b.rule("close", seq(lit("</"), reg("[a-zA-Z0-9]+"), lit(">")));
+  b.rule("text", reg("[^<]*"));
+  b.rule("element", seq(ref("open"), ref("text"), ref("close")));
+  b.rule("document", ref("element"));
+  return b.build("document");
+};
+
+const minConvert = (node: CST, input: string): AST | null => {
+  if (node.name === "document") {
+    return minConvert(node.children[0], input);
+  }
+  if (node.name === "element") {
+    // element -> seq(open, text, close)
+    // node.children[0] is the sequence node wrapper
+    const elementSeq = node.children[0];
+    const openNode = elementSeq.children[0];
+    const textNode = elementSeq.children[1];
+
+    // open -> seq("<", tagName, ">")
+    // openNode.children[0] is the sequence node wrapper
+    const openSeq = openNode.children[0];
+    const tagNameNode = openSeq.children[1];
+
+    const tagName = input.substring(tagNameNode.start, tagNameNode.end);
+    const content = input.substring(textNode.start, textNode.end);
+    return new AST(tagName, {}, [content]);
+  }
+  return null;
+};
 
 describe("XMLAPI", () => {
   describe("Initialization & Basic Parsing", () => {
@@ -39,7 +73,7 @@ describe("XMLAPI", () => {
 
     it("should accept custom grammar and converter", () => {
       const xml = "<min>Simple</min>";
-      const api = new XMLAPI(xml, minGrammar, minConvert);
+      const api = new XMLAPI(xml, createMinGrammar(), minConvert);
 
       expect(api.ast).toBeInstanceOf(AST);
       if (api.ast instanceof AST) {
@@ -97,7 +131,7 @@ describe("XMLAPI", () => {
     describe("Incremental Content Updates", () => {
       it("should be consistent with full re-parse after updating text content", () => {
         const initialXml = "<root><child>hello</child></root>";
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
         // Update "hello" to "world" (pos 13-18)
         verifyUpdate(api, 13, 18, "world");
@@ -105,7 +139,7 @@ describe("XMLAPI", () => {
 
       it("should handle attribute updates", () => {
         const initialXml = '<root attr="val" />';
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
         // Change "val" to "newval"
         verifyUpdate(api, 12, 15, "newval");
@@ -117,7 +151,7 @@ describe("XMLAPI", () => {
 
       it("should handle tag name changes", () => {
         const initialXml = "<foo></foo>";
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
         // Change <foo> to <bar>
         verifyUpdate(api, 1, 4, "bar"); // <bar></foo> -> invalid
@@ -135,7 +169,7 @@ describe("XMLAPI", () => {
     describe("Structural Updates", () => {
       it("should handle STag length changes (attributes addition)", () => {
         const initialXml = "<root><a>text</a></root>";
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
         // Change <a>text</a> to <a foo="bar">text</a>
         // Insert ' foo="bar"' after 'a' (7) and before '>' (8).
@@ -157,7 +191,7 @@ describe("XMLAPI", () => {
 
       it("should handle sibling to parent-child transformation (swallowing)", () => {
         const initialXml = "<root><a/><b/></root>";
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
         // Replace "<a/><b/>" (index 6 to 14) with "<a><b/></a>" (length 11)
         verifyUpdate(api, 6, 14, "<a><b/></a>");
@@ -172,11 +206,11 @@ describe("XMLAPI", () => {
 
       it("should handle wrapping the root element", () => {
         const initialXml = "<root>A</root>";
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
         // 1. Insert "<wrap>" at 0.
         verifyUpdate(api, 0, 0, "<wrap>");
-        expect(api.cst).toBeNull(); // Invalid state
+        expect(api.cst).toBeNull(); // Invalid state (multiple roots or fragments not supported yet?) or just invalid XML
 
         // 2. Insert "</wrap>" at end.
         verifyUpdate(api, 20, 20, "</wrap>");
@@ -189,7 +223,7 @@ describe("XMLAPI", () => {
 
       it("should handle deleting the entire content and replacing it", () => {
         const initialXml = "<root>Old</root>";
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
         const newXml = "<new>New</new>";
         verifyUpdate(api, 0, initialXml.length, newXml);
@@ -213,7 +247,8 @@ describe("XMLAPI", () => {
           if (node.name === "document") {
             return new AST("root", {});
           }
-          return minConvert(node, input);
+          // Fallback or simple conversion for children if needed
+          return null; 
         };
 
         const api = new XMLAPI("<root></root>", lenientGrammar, lenientConvert);
@@ -228,18 +263,24 @@ describe("XMLAPI", () => {
 
       it("should handle insertion at the very beginning (Prepend Invalid)", () => {
         const initialXml = "<root></root>";
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
-        // Insert "   " at 0. (Not allowed in minGrammar)
-        verifyUpdate(api, 0, 0, "   ");
+        // Insert "   " at 0. (Standard XML allows prolog/spaces, but parser might be strict or this tests invalid state)
+        // If standard grammar allows spaces, this test expectation might need change.
+        // Assuming Standard XML Grammar allows whitespace before root.
+        // Let's check: "   <root></root>" is valid XML.
+        // If the original test expected it to be INVALID, it was because minGrammar didn't allow it.
+        // Let's change the input to something definitely invalid, like "junk"
+        
+        verifyUpdate(api, 0, 0, "junk");
         expect(api.cst).toBeNull();
       });
 
       it("should handle insertion at the very end (Append Invalid)", () => {
         const initialXml = "<root></root>";
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
-        verifyUpdate(api, 13, 13, "   ");
+        verifyUpdate(api, 13, 13, "junk");
         expect(api.cst).toBeNull();
       });
     });
@@ -247,7 +288,7 @@ describe("XMLAPI", () => {
     describe("Error Handling & Validation", () => {
       it("should maintain CST but report wellFormed=false on semantic violation", () => {
         const initialXml = "<root><item>A</item></root>";
-        const api = new XMLAPI(initialXml, minGrammar, minConvert);
+        const api = new XMLAPI(initialXml);
 
         // Break the closing tag: </item> -> </ite> (but keep structure somewhat parseable if grammar allows or partial match)
         // Here we just change it to mismatched tag name
