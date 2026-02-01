@@ -61,9 +61,7 @@ export default withMermaid(defineConfig({
           text: 'Examples',
           items: [
             { text: 'Interactive Demo', link: '/examples/interactive-demo' },
-            { text: 'Programmatic Usage', link: '/examples/programmatic-usage' },
-            { text: 'Basic Usage', link: '/examples/basic-usage' },
-            { text: 'Demo Walkthrough', link: '/examples/demo-walkthrough' }
+            { text: 'Usage Guide', link: '/examples/programmatic-usage' }
           ]
         }
       ]

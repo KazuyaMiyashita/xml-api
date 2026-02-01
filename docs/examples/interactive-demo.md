@@ -16,4 +16,4 @@ Try selecting a node in the Visual DOM and editing its properties. Notice how th
 
 This demo runs entirely in your browser. It uses the `XMLAPI` to parse the source string into a CST, which is then bound to a logical Model, and finally projected into a DOM-like interface for rendering.
 
-See the [Demo Walkthrough](/examples/demo-walkthrough) for a code-level explanation.
+See the [Demo Walkthrough](/examples/programmatic-usage#bidirectional-syncing-mechanism) for a code-level explanation.
