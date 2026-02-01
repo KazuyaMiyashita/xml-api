@@ -50,6 +50,6 @@ The primary goal of this project is **Full Fidelity**. Option A fundamentally co
 Option B allows us to maintain the link between the application's view (AST) and the source code's physical structure (CST) through the `XMLAPIModel`. While it requires more effort to implement DOM-compatible methods, it ensures that automated edits "blend seamlessly with the existing code style" as required by the project goals.
 
 ## Next Steps
-- Implement formal `Node`, `Element`, `Document` interfaces in `src/core/ast/`.
+- Implement formal `Node`, `Element`, `Document` interfaces in `src/ast/`.
 - Develop a query engine (querySelector) for the custom AST.
 - Integrate with existing `XMLAPIModel` reconciliation logic.

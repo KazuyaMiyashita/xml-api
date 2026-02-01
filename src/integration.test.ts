@@ -1,12 +1,15 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { AST, ASTCDATA, ASTComment } from "./core/ast/xml-ast";
-import { Formatter } from "./core/model/formatter";
-import { XMLAPI } from "./core/xml-api";
+import { AST, ASTCDATA, ASTComment } from "./ast/xml-ast";
+import { Formatter } from "./model/formatter";
+import { XMLAPI } from "./xml-api";
 
-describe("Integration Test", () => {
-  const xmlPath = path.join(__dirname, "core/sample_01.xml");
-  const xmlContent = fs.readFileSync(xmlPath, "utf8");
+describe("Integration Tests", () => {
+  let xmlContent: string;
+  beforeAll(() => {
+    const xmlPath = path.join(__dirname, "sample_01.xml");
+    xmlContent = fs.readFileSync(xmlPath, "utf8");
+  });
 
   it("should parse and convert sample_01.xml correctly", () => {
     const api = new XMLAPI(xmlContent);

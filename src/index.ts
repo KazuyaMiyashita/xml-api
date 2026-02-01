@@ -1,6 +1,6 @@
-export * from "./core/xml-api";
-export * from "./core/ast/dom";
-export * from "./core/model/xml-api-model";
-export { XMLBinder } from "./core/model/xml-binder";
-export * from "./core/ast/xml-ast";
-export * from "./core/model/formatter";
+export * from "./xml-api";
+export * from "./ast/dom";
+export * from "./model/xml-api-model";
+export { XMLBinder } from "./model/xml-binder";
+export * from "./ast/xml-ast";
+export * from "./model/formatter";

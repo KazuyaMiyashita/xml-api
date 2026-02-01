@@ -513,7 +513,7 @@ function decodeCharRef(node: CST, input: string): string {
 
 // Keep backward compatibility for tests that use convert() directly?
 // Or we should update them.
-// The task is "Implement src/core/model/xml-binder.ts".
+// The task is "Implement src/model/xml-binder.ts".
 // I am replacing it. Tests will break. I will fix tests.
 export function convert(
   node: CST,
