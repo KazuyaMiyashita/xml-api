@@ -20,6 +20,12 @@
 
 `Parser`
 
+## Properties
+
+### grammar
+
+> **grammar**: [`Grammar`](../../grammar/classes/Grammar.md)
+
 ## Methods
 
 ### parse()

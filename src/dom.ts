@@ -5,7 +5,7 @@ import {
   type ModelNode,
   ModelNodeType,
   ModelText,
-} from "../model/xml-api-model";
+} from "./model/xml-api-model";
 
 /**
  * Observer interface to listen for changes in the DOM-like structure.

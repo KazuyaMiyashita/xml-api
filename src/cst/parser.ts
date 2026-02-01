@@ -8,7 +8,7 @@ interface Context {
 }
 
 export class Parser {
-  constructor(private grammar: Grammar) {}
+  constructor(public grammar: Grammar) {}
 
   parse(input: string, rootRule?: string): CST | null {
     const startRule = rootRule || this.grammar.rootRule;

@@ -8,7 +8,7 @@ import {
   Node,
   createWrapper,
   type DOMObserver,
-} from "@/ast/dom";
+} from "@/dom";
 import { XMLBinder } from "@/model/xml-binder";
 import XmlTreeNode from "./XmlTreeNode.vue";
 import InspectorPanel from "./InspectorPanel.vue";
@@ -124,7 +124,7 @@ function onUpdateAttr(key: string, value: string) {
 
   const el = selectedNode.value as Element;
   const model = (el as any).getModel();
-  const binder = (api as any).binder as XMLBinder;
+  const binder = (api as any).engine.binder as XMLBinder;
 
   const patch = binder.calcSetAttributePatch(model, key, value);
   if (patch) applyPatch(patch.start, patch.end, patch.text);
@@ -153,7 +153,7 @@ function onRemoveAttr(key: string) {
 
 function onUpdateText(value: string) {
   if (!api || !selectedNode.value) return;
-  const binder = (api as any).binder as XMLBinder;
+  const binder = (api as any).engine.binder as XMLBinder;
   const model = (selectedNode.value as any).getModel();
 
   // Instant update via replacing the whole node or text content

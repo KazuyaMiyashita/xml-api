@@ -4,25 +4,28 @@
 
 # Class: XMLAPI
 
+The primary entry point for the XML API.
+Orchestrates the synchronization between source code (CST) and the logical Model.
+
 ## Constructors
 
 ### Constructor
 
-> **new XMLAPI**(`input`, `grammar`): `XMLAPI`
+> **new XMLAPI**(`source`, `grammar?`): `XMLAPI`
 
 Initializes the API with the source XML string.
 
 #### Parameters
 
-##### input
+##### source
 
 `string`
 
 The initial XML source code.
 
-##### grammar
+##### grammar?
 
-[`Grammar`](../../cst/grammar/classes/Grammar.md) = `defaultGrammar`
+[`Grammar`](../../cst/grammar/classes/Grammar.md)
 
 (Optional) Custom grammar definition.
 
@@ -30,52 +33,92 @@ The initial XML source code.
 
 `XMLAPI`
 
-## Properties
+## Accessors
 
 ### cst
 
-> **cst**: [`CST`](../../cst/xml-cst/classes/CST.md) \| `null` = `null`
+#### Get Signature
 
-CST is null if parsing fails.
+> **get** **cst**(): [`CST`](../../cst/xml-cst/classes/CST.md) \| `null`
+
+The Concrete Syntax Tree (Physical layer).
+
+##### Returns
+
+[`CST`](../../cst/xml-cst/classes/CST.md) \| `null`
 
 ***
 
 ### grammar
 
-> **grammar**: [`Grammar`](../../cst/grammar/classes/Grammar.md)
+#### Get Signature
+
+> **get** **grammar**(): [`Grammar`](../../cst/grammar/classes/Grammar.md)
+
+The grammar used for parsing.
+
+##### Returns
+
+[`Grammar`](../../cst/grammar/classes/Grammar.md)
 
 ***
 
 ### input
 
-> **input**: `string`
+#### Get Signature
+
+> **get** **input**(): `string`
+
+Alias for `source` to maintain compatibility with existing tests/demos temporarily.
+
+##### Deprecated
+
+Use `source` instead.
+
+##### Returns
+
+`string`
 
 ***
 
 ### model
 
-> **model**: [`ModelElement`](../../model/xml-api-model/classes/ModelElement.md) \| `null` = `null`
+#### Get Signature
 
-Model is the authoritative logical representation.
+> **get** **model**(): [`ModelElement`](../../model/xml-api-model/classes/ModelElement.md) \| `null`
+
+The authoritative logical model.
+
+##### Returns
+
+[`ModelElement`](../../model/xml-api-model/classes/ModelElement.md) \| `null`
 
 ***
 
-### parser
+### source
 
-> **parser**: [`Parser`](../../cst/parser/classes/Parser.md)
+#### Get Signature
+
+> **get** **source**(): `string`
+
+The current source code string.
+
+##### Returns
+
+`string`
 
 ## Methods
 
 ### getDocument()
 
-> **getDocument**(): [`Document`](../../ast/dom/classes/Document.md)
+> **getDocument**(): [`Document`](../../dom/classes/Document.md)
 
 Returns a DOM-compatible Document object linked to this API.
 Changes made to the returned Document are automatically reflected in the source code.
 
 #### Returns
 
-[`Document`](../../ast/dom/classes/Document.md)
+[`Document`](../../dom/classes/Document.md)
 
 ***
 
@@ -91,11 +134,7 @@ Registers an event handler to listen for model changes.
 
 [`EventHandler`](../../xml-api-events/type-aliases/EventHandler.md)
 
-The callback function.
-
 #### Returns
-
-A function to unsubscribe the handler.
 
 > (): `void`
 
@@ -109,19 +148,15 @@ A function to unsubscribe the handler.
 
 > **redo**(): `void`
 
-Re-applies a previously undone source code change.
-
 #### Returns
 
 `void`
 
 ***
 
-### replaceNode()
+### ~~replaceNode()~~
 
 > **replaceNode**(`target`, `content`): `void`
-
-Replaces a Model node with new content.
 
 #### Parameters
 
@@ -129,26 +164,23 @@ Replaces a Model node with new content.
 
 [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
-The Model node to replace.
-
 ##### content
 
 [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
-
-New content as a Model node.
 
 #### Returns
 
 `void`
 
+#### Deprecated
+
+Use DOM interface or Engine directly if needed.
+
 ***
 
-### setAttribute()
+### ~~setAttribute()~~
 
 > **setAttribute**(`modelNode`, `key`, `value`): `void`
-
-Sets an attribute on the specified Model node.
-Updates the source code, CST, and Model by calculating a minimal text patch.
 
 #### Parameters
 
@@ -156,23 +188,21 @@ Updates the source code, CST, and Model by calculating a minimal text patch.
 
 [`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
 
-The target Model element.
-
 ##### key
 
 `string`
-
-Attribute name.
 
 ##### value
 
 `string`
 
-Attribute value.
-
 #### Returns
 
 `void`
+
+#### Deprecated
+
+Use DOM interface or Engine directly if needed.
 
 ***
 
@@ -180,20 +210,48 @@ Attribute value.
 
 > **undo**(): `void`
 
-Reverts the last source code change.
-
 #### Returns
 
 `void`
 
 ***
 
-### updateInput()
+### ~~updateInput()~~
 
-> **updateInput**(`from`, `to`, `value`): `void`
+> **updateInput**(`from`, `to`, `text`): `void`
 
-Updates the input text and refreshes the CST/Model.
-This method attempts an incremental update first, falling back to a full re-parse if necessary.
+Alias for `updateSource` to maintain compatibility.
+
+#### Parameters
+
+##### from
+
+`number`
+
+##### to
+
+`number`
+
+##### text
+
+`string`
+
+#### Returns
+
+`void`
+
+#### Deprecated
+
+Use `updateSource` instead.
+
+***
+
+### updateSource()
+
+> **updateSource**(`from`, `to`, `text`): `void`
+
+Updates the source code directly (e.g. from a text editor).
+Attempts an optimized incremental update, falling back to full re-parse if needed.
 
 #### Parameters
 
@@ -209,7 +267,7 @@ Start index of the range to replace.
 
 End index of the range.
 
-##### value
+##### text
 
 `string`
 
@@ -221,11 +279,9 @@ The new text to insert.
 
 ***
 
-### updateText()
+### ~~updateText()~~
 
 > **updateText**(`modelNode`, `text`): `void`
-
-Updates the text content of the specified Model element.
 
 #### Parameters
 
@@ -233,14 +289,14 @@ Updates the text content of the specified Model element.
 
 [`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
 
-The target Model element.
-
 ##### text
 
 `string`
 
-The new text content.
-
 #### Returns
 
 `void`
+
+#### Deprecated
+
+Use DOM interface or Engine directly if needed.

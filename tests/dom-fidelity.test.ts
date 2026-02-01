@@ -5,7 +5,7 @@ import {
   Element,
   CharacterData,
   Node,
-} from "@/ast/dom";
+} from "@/dom";
 import { XMLAPI } from "@/xml-api";
 import { ModelElement, ModelText } from "@/model/xml-api-model";
 import { XMLBinder } from "@/model/xml-binder";
@@ -23,7 +23,7 @@ describe("DOM Fidelity Verification", () => {
 
     // We need to access the internal binder to calculate patches
     // In a real app, this logic would be inside XMLAPI or a Bridge
-    const binder = (api as any).binder as XMLBinder;
+    const binder = (api as any).engine.binder as XMLBinder;
 
     const observer: DOMObserver = {
       onAttributeChange: (element, name, value) => {
@@ -77,7 +77,7 @@ describe("DOM Fidelity Verification", () => {
   it("should preserve formatting when updating text via DOM", () => {
     const api = new XMLAPI(xmlInput);
     const doc = new Document();
-    const binder = (api as any).binder as XMLBinder;
+    const binder = (api as any).engine.binder as XMLBinder;
 
     const observer: DOMObserver = {
       onAttributeChange: () => {},

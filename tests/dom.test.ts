@@ -5,7 +5,7 @@ import {
   Element,
   Text,
   createWrapper,
-} from "@/ast/dom";
+} from "@/dom";
 import { ModelElement, ModelText } from "@/model/xml-api-model";
 
 describe("Custom DOM Wrapper", () => {

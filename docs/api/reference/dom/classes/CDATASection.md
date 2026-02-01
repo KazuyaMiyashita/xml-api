@@ -1,8 +1,8 @@
-[**xml-api**](../../../README.md)
+[**xml-api**](../../README.md)
 
 ***
 
-# Class: Text
+# Class: CDATASection
 
 Base class for Text, Comment, and CDATASection nodes.
 
@@ -14,13 +14,13 @@ Base class for Text, Comment, and CDATASection nodes.
 
 ### Constructor
 
-> **new Text**(`model`, `ownerDocument`): `Text`
+> **new CDATASection**(`model`, `ownerDocument`): `CDATASection`
 
 #### Parameters
 
 ##### model
 
-[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 ##### ownerDocument
 
@@ -28,7 +28,7 @@ Base class for Text, Comment, and CDATASection nodes.
 
 #### Returns
 
-`Text`
+`CDATASection`
 
 #### Inherited from
 
@@ -78,7 +78,7 @@ Base class for Text, Comment, and CDATASection nodes.
 
 ### model
 
-> `protected` **model**: [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+> `protected` **model**: [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Inherited from
 
@@ -346,11 +346,11 @@ The node to append.
 
 ### getModel()
 
-> **getModel**(): [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+> **getModel**(): [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Returns
 
-[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Inherited from
 

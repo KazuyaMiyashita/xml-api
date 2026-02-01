@@ -1,26 +1,42 @@
-[**xml-api**](../../../README.md)
+[**xml-api**](../../README.md)
 
 ***
 
-# Class: Document
+# Abstract Class: CharacterData
 
-Represents the entire XML document.
+Base class for Text, Comment, and CDATASection nodes.
 
 ## Extends
 
 - [`Node`](Node.md)
 
+## Extended by
+
+- [`Text`](Text.md)
+- [`Comment`](Comment.md)
+- [`CDATASection`](CDATASection.md)
+
 ## Constructors
 
 ### Constructor
 
-> **new Document**(): `Document`
+> **new CharacterData**(`model`, `ownerDocument`): `CharacterData`
+
+#### Parameters
+
+##### model
+
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
+
+##### ownerDocument
+
+[`Document`](Document.md) | `null`
 
 #### Returns
 
-`Document`
+`CharacterData`
 
-#### Overrides
+#### Inherited from
 
 [`Node`](Node.md).[`constructor`](Node.md#constructor)
 
@@ -68,7 +84,7 @@ Represents the entire XML document.
 
 ### model
 
-> `protected` **model**: [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+> `protected` **model**: [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Inherited from
 
@@ -78,7 +94,7 @@ Represents the entire XML document.
 
 ### ownerDocument
 
-> **ownerDocument**: `Document` \| `null`
+> **ownerDocument**: [`Document`](Document.md) \| `null`
 
 #### Inherited from
 
@@ -114,25 +130,25 @@ Returns a NodeList containing all children of this node.
 
 ***
 
-### documentElement
+### data
 
 #### Get Signature
 
-> **get** **documentElement**(): [`Element`](Element.md) \| `null`
+> **get** **data**(): `string`
 
 ##### Returns
 
-[`Element`](Element.md) \| `null`
+`string`
 
 #### Set Signature
 
-> **set** **documentElement**(`element`): `void`
+> **set** **data**(`value`): `void`
 
 ##### Parameters
 
-###### element
+###### value
 
-[`Element`](Element.md) | `null`
+`string`
 
 ##### Returns
 
@@ -172,6 +188,18 @@ Returns a NodeList containing all children of this node.
 
 ***
 
+### length
+
+#### Get Signature
+
+> **get** **length**(): `number`
+
+##### Returns
+
+`number`
+
+***
+
 ### nextSibling
 
 #### Get Signature
@@ -192,13 +220,13 @@ Returns a NodeList containing all children of this node.
 
 #### Get Signature
 
-> **get** **nodeName**(): `string`
+> **get** `abstract` **nodeName**(): `string`
 
 ##### Returns
 
 `string`
 
-#### Overrides
+#### Inherited from
 
 [`Node`](Node.md).[`nodeName`](Node.md#nodename)
 
@@ -208,13 +236,13 @@ Returns a NodeList containing all children of this node.
 
 #### Get Signature
 
-> **get** **nodeType**(): `number`
+> **get** `abstract` **nodeType**(): `number`
 
 ##### Returns
 
 `number`
 
-#### Overrides
+#### Inherited from
 
 [`Node`](Node.md).[`nodeType`](Node.md#nodetype)
 
@@ -314,216 +342,14 @@ The node to append.
 
 ***
 
-### createCDATASection()
-
-> **createCDATASection**(`data`): [`CDATASection`](CDATASection.md)
-
-#### Parameters
-
-##### data
-
-`string`
-
-#### Returns
-
-[`CDATASection`](CDATASection.md)
-
-***
-
-### createComment()
-
-> **createComment**(`data`): [`Comment`](Comment.md)
-
-#### Parameters
-
-##### data
-
-`string`
-
-#### Returns
-
-[`Comment`](Comment.md)
-
-***
-
-### createElement()
-
-> **createElement**(`tagName`): [`Element`](Element.md)
-
-#### Parameters
-
-##### tagName
-
-`string`
-
-#### Returns
-
-[`Element`](Element.md)
-
-***
-
-### createTextNode()
-
-> **createTextNode**(`data`): [`Text`](Text.md)
-
-#### Parameters
-
-##### data
-
-`string`
-
-#### Returns
-
-[`Text`](Text.md)
-
-***
-
 ### getModel()
 
-> **getModel**(): [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+> **getModel**(): [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Returns
 
-[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Inherited from
 
 [`Node`](Node.md).[`getModel`](Node.md#getmodel)
-
-***
-
-### notifyAttributeChange()
-
-> **notifyAttributeChange**(`element`, `name`, `value`): `void`
-
-#### Parameters
-
-##### element
-
-[`Element`](Element.md)
-
-##### name
-
-`string`
-
-##### value
-
-`string` | `null`
-
-#### Returns
-
-`void`
-
-***
-
-### notifyChildAdded()
-
-> **notifyChildAdded**(`parent`, `child`, `index`): `void`
-
-#### Parameters
-
-##### parent
-
-[`Node`](Node.md)
-
-##### child
-
-[`Node`](Node.md)
-
-##### index
-
-`number`
-
-#### Returns
-
-`void`
-
-***
-
-### notifyElementTextChange()
-
-> **notifyElementTextChange**(`element`, `text`): `void`
-
-#### Parameters
-
-##### element
-
-[`Element`](Element.md)
-
-##### text
-
-`string`
-
-#### Returns
-
-`void`
-
-***
-
-### notifyTextChange()
-
-> **notifyTextChange**(`node`, `text`): `void`
-
-#### Parameters
-
-##### node
-
-[`CharacterData`](CharacterData.md)
-
-##### text
-
-`string`
-
-#### Returns
-
-`void`
-
-***
-
-### querySelector()
-
-> **querySelector**(`selector`): [`Element`](Element.md) \| `null`
-
-#### Parameters
-
-##### selector
-
-`string`
-
-#### Returns
-
-[`Element`](Element.md) \| `null`
-
-***
-
-### querySelectorAll()
-
-> **querySelectorAll**(`selector`): [`NodeList`](NodeList.md)
-
-#### Parameters
-
-##### selector
-
-`string`
-
-#### Returns
-
-[`NodeList`](NodeList.md)
-
-***
-
-### setObserver()
-
-> **setObserver**(`observer`): `void`
-
-Sets the observer to listen for DOM changes.
-
-#### Parameters
-
-##### observer
-
-[`DOMObserver`](../interfaces/DOMObserver.md)
-
-#### Returns
-
-`void`

@@ -1,8 +1,8 @@
-[**xml-api**](../../README.md)
+[**xml-api**](../README.md)
 
 ***
 
-# ast/dom
+# dom
 
 ## Classes
 

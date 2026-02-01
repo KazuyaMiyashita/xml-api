@@ -40,7 +40,8 @@ graph TD
     User["Application"]
 
     subgraph "XML Synchronization Engine"
-        Mediator["XMLAPI"]
+        Facade["XMLAPI"]
+        Engine["SyncEngine"]
 
         subgraph "Physical Layer"
             Parser["Incremental Parser"]
@@ -59,19 +60,20 @@ graph TD
 
     %% Interaction
     User <==>|"DOM Operations"| DOM
-    DOM <--> Mediator
+    DOM <--> Facade
+    Facade <--> Engine
 
     %% Internal Flows
-    Mediator -- "1. Parse" --> Parser
+    Engine -- "1. Parse" --> Parser
     Parser -- "return" --> CST
     
-    Mediator -- "2. Sync" --> Binder
+    Engine -- "2. Sync" --> Binder
     Binder -- "Hydrate / Reconcile" --> Model
     Model -- "Link" --> CST
     
     DOM -- "Wrap" --> Model
     
     DOM -- "Edit" --> Binder
-    Binder -- "Generate Patch" --> Mediator
-    Mediator -- "Update Input" --> Parser
+    Binder -- "Generate Patch" --> Engine
+    Engine -- "Update Input" --> Parser
 ```

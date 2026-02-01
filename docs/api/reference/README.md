@@ -19,6 +19,6 @@ This package requires subpath exports. You must import components from their spe
 
 ```typescript
 import { XMLAPI } from 'xml-api/xml-api';
-import { Element } from 'xml-api/ast/dom';
+import { Element } from 'xml-api/dom';
 import { ModelElement } from 'xml-api/model/xml-api-model';
 ```

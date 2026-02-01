@@ -1,32 +1,26 @@
-[**xml-api**](../../../README.md)
+[**xml-api**](../../README.md)
 
 ***
 
-# Abstract Class: CharacterData
+# Class: Text
 
 Base class for Text, Comment, and CDATASection nodes.
 
 ## Extends
 
-- [`Node`](Node.md)
-
-## Extended by
-
-- [`Text`](Text.md)
-- [`Comment`](Comment.md)
-- [`CDATASection`](CDATASection.md)
+- [`CharacterData`](CharacterData.md)
 
 ## Constructors
 
 ### Constructor
 
-> **new CharacterData**(`model`, `ownerDocument`): `CharacterData`
+> **new Text**(`model`, `ownerDocument`): `Text`
 
 #### Parameters
 
 ##### model
 
-[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 ##### ownerDocument
 
@@ -34,11 +28,11 @@ Base class for Text, Comment, and CDATASection nodes.
 
 #### Returns
 
-`CharacterData`
+`Text`
 
 #### Inherited from
 
-[`Node`](Node.md).[`constructor`](Node.md#constructor)
+[`CharacterData`](CharacterData.md).[`constructor`](CharacterData.md#constructor)
 
 ## Properties
 
@@ -48,7 +42,7 @@ Base class for Text, Comment, and CDATASection nodes.
 
 #### Inherited from
 
-[`Node`](Node.md).[`CDATA_SECTION_NODE`](Node.md#cdata_section_node)
+[`CharacterData`](CharacterData.md).[`CDATA_SECTION_NODE`](CharacterData.md#cdata_section_node)
 
 ***
 
@@ -58,7 +52,7 @@ Base class for Text, Comment, and CDATASection nodes.
 
 #### Inherited from
 
-[`Node`](Node.md).[`COMMENT_NODE`](Node.md#comment_node)
+[`CharacterData`](CharacterData.md).[`COMMENT_NODE`](CharacterData.md#comment_node)
 
 ***
 
@@ -68,7 +62,7 @@ Base class for Text, Comment, and CDATASection nodes.
 
 #### Inherited from
 
-[`Node`](Node.md).[`DOCUMENT_NODE`](Node.md#document_node)
+[`CharacterData`](CharacterData.md).[`DOCUMENT_NODE`](CharacterData.md#document_node)
 
 ***
 
@@ -78,17 +72,17 @@ Base class for Text, Comment, and CDATASection nodes.
 
 #### Inherited from
 
-[`Node`](Node.md).[`ELEMENT_NODE`](Node.md#element_node)
+[`CharacterData`](CharacterData.md).[`ELEMENT_NODE`](CharacterData.md#element_node)
 
 ***
 
 ### model
 
-> `protected` **model**: [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+> `protected` **model**: [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Inherited from
 
-[`Node`](Node.md).[`model`](Node.md#model)
+[`CharacterData`](CharacterData.md).[`model`](CharacterData.md#model)
 
 ***
 
@@ -98,7 +92,7 @@ Base class for Text, Comment, and CDATASection nodes.
 
 #### Inherited from
 
-[`Node`](Node.md).[`ownerDocument`](Node.md#ownerdocument)
+[`CharacterData`](CharacterData.md).[`ownerDocument`](CharacterData.md#ownerdocument)
 
 ***
 
@@ -108,7 +102,7 @@ Base class for Text, Comment, and CDATASection nodes.
 
 #### Inherited from
 
-[`Node`](Node.md).[`TEXT_NODE`](Node.md#text_node)
+[`CharacterData`](CharacterData.md).[`TEXT_NODE`](CharacterData.md#text_node)
 
 ## Accessors
 
@@ -126,7 +120,7 @@ Returns a NodeList containing all children of this node.
 
 #### Inherited from
 
-[`Node`](Node.md).[`childNodes`](Node.md#childnodes)
+[`CharacterData`](CharacterData.md).[`childNodes`](CharacterData.md#childnodes)
 
 ***
 
@@ -154,6 +148,10 @@ Returns a NodeList containing all children of this node.
 
 `void`
 
+#### Inherited from
+
+[`CharacterData`](CharacterData.md).[`data`](CharacterData.md#data)
+
 ***
 
 ### firstChild
@@ -168,7 +166,7 @@ Returns a NodeList containing all children of this node.
 
 #### Inherited from
 
-[`Node`](Node.md).[`firstChild`](Node.md#firstchild)
+[`CharacterData`](CharacterData.md).[`firstChild`](CharacterData.md#firstchild)
 
 ***
 
@@ -184,7 +182,7 @@ Returns a NodeList containing all children of this node.
 
 #### Inherited from
 
-[`Node`](Node.md).[`lastChild`](Node.md#lastchild)
+[`CharacterData`](CharacterData.md).[`lastChild`](CharacterData.md#lastchild)
 
 ***
 
@@ -197,6 +195,10 @@ Returns a NodeList containing all children of this node.
 ##### Returns
 
 `number`
+
+#### Inherited from
+
+[`CharacterData`](CharacterData.md).[`length`](CharacterData.md#length)
 
 ***
 
@@ -212,7 +214,7 @@ Returns a NodeList containing all children of this node.
 
 #### Inherited from
 
-[`Node`](Node.md).[`nextSibling`](Node.md#nextsibling)
+[`CharacterData`](CharacterData.md).[`nextSibling`](CharacterData.md#nextsibling)
 
 ***
 
@@ -220,15 +222,15 @@ Returns a NodeList containing all children of this node.
 
 #### Get Signature
 
-> **get** `abstract` **nodeName**(): `string`
+> **get** **nodeName**(): `string`
 
 ##### Returns
 
 `string`
 
-#### Inherited from
+#### Overrides
 
-[`Node`](Node.md).[`nodeName`](Node.md#nodename)
+[`CharacterData`](CharacterData.md).[`nodeName`](CharacterData.md#nodename)
 
 ***
 
@@ -236,15 +238,15 @@ Returns a NodeList containing all children of this node.
 
 #### Get Signature
 
-> **get** `abstract` **nodeType**(): `number`
+> **get** **nodeType**(): `number`
 
 ##### Returns
 
 `number`
 
-#### Inherited from
+#### Overrides
 
-[`Node`](Node.md).[`nodeType`](Node.md#nodetype)
+[`CharacterData`](CharacterData.md).[`nodeType`](CharacterData.md#nodetype)
 
 ***
 
@@ -262,7 +264,7 @@ Returns the parent of this node.
 
 #### Inherited from
 
-[`Node`](Node.md).[`parentNode`](Node.md#parentnode)
+[`CharacterData`](CharacterData.md).[`parentNode`](CharacterData.md#parentnode)
 
 ***
 
@@ -278,7 +280,7 @@ Returns the parent of this node.
 
 #### Inherited from
 
-[`Node`](Node.md).[`previousSibling`](Node.md#previoussibling)
+[`CharacterData`](CharacterData.md).[`previousSibling`](CharacterData.md#previoussibling)
 
 ***
 
@@ -308,7 +310,7 @@ Returns the parent of this node.
 
 #### Inherited from
 
-[`Element`](Element.md).[`textContent`](Element.md#textcontent)
+[`CharacterData`](CharacterData.md).[`textContent`](CharacterData.md#textcontent)
 
 ## Methods
 
@@ -338,18 +340,18 @@ The node to append.
 
 #### Inherited from
 
-[`Node`](Node.md).[`appendChild`](Node.md#appendchild)
+[`CharacterData`](CharacterData.md).[`appendChild`](CharacterData.md#appendchild)
 
 ***
 
 ### getModel()
 
-> **getModel**(): [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+> **getModel**(): [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Returns
 
-[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Inherited from
 
-[`Node`](Node.md).[`getModel`](Node.md#getmodel)
+[`CharacterData`](CharacterData.md).[`getModel`](CharacterData.md#getmodel)

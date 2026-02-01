@@ -61,8 +61,10 @@ describe("XMLAPI Specification Requirements", () => {
 
     it("SHOULD perform incremental updates (optimization check)", () => {
       // We spy on the parser to see if it parses the whole string again.
-      const parseSpy = jest.spyOn(api["parser"], "parse");
-      const parseAtSpy = jest.spyOn(api["parser"], "parseAt");
+      // Accessing private engine for testing optimization behavior
+      const parser = (api as any).engine.parser;
+      const parseSpy = jest.spyOn(parser, "parse");
+      const parseAtSpy = jest.spyOn(parser, "parseAt");
 
       // Small change that should be incremental
       // Replace "B" with "D" inside second item

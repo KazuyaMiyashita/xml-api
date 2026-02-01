@@ -1,4 +1,4 @@
-[**xml-api**](../../../README.md)
+[**xml-api**](../../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 
 ### model
 
-[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 ### doc
 

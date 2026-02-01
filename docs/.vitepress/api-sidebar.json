@@ -4,58 +4,6 @@
     "link": "/api/reference/README"
   },
   {
-    "text": "ast",
-    "collapsed": true,
-    "items": [
-      {
-        "text": "dom",
-        "collapsed": true,
-        "items": [
-          {
-            "text": "CDATASection",
-            "link": "/api/reference/ast/dom/classes/CDATASection"
-          },
-          {
-            "text": "CharacterData",
-            "link": "/api/reference/ast/dom/classes/CharacterData"
-          },
-          {
-            "text": "Comment",
-            "link": "/api/reference/ast/dom/classes/Comment"
-          },
-          {
-            "text": "createWrapper",
-            "link": "/api/reference/ast/dom/functions/createWrapper"
-          },
-          {
-            "text": "Document",
-            "link": "/api/reference/ast/dom/classes/Document"
-          },
-          {
-            "text": "DOMObserver",
-            "link": "/api/reference/ast/dom/interfaces/DOMObserver"
-          },
-          {
-            "text": "Element",
-            "link": "/api/reference/ast/dom/classes/Element"
-          },
-          {
-            "text": "Node",
-            "link": "/api/reference/ast/dom/classes/Node"
-          },
-          {
-            "text": "NodeList",
-            "link": "/api/reference/ast/dom/classes/NodeList"
-          },
-          {
-            "text": "Text",
-            "link": "/api/reference/ast/dom/classes/Text"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "text": "cst",
     "collapsed": true,
     "items": [
@@ -154,6 +102,68 @@
                 "link": "/api/reference/cst/xml-grammar/variables/grammar"
               }
             ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "text": "dom",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "CDATASection",
+        "link": "/api/reference/dom/classes/CDATASection"
+      },
+      {
+        "text": "CharacterData",
+        "link": "/api/reference/dom/classes/CharacterData"
+      },
+      {
+        "text": "Comment",
+        "link": "/api/reference/dom/classes/Comment"
+      },
+      {
+        "text": "createWrapper",
+        "link": "/api/reference/dom/functions/createWrapper"
+      },
+      {
+        "text": "Document",
+        "link": "/api/reference/dom/classes/Document"
+      },
+      {
+        "text": "DOMObserver",
+        "link": "/api/reference/dom/interfaces/DOMObserver"
+      },
+      {
+        "text": "Element",
+        "link": "/api/reference/dom/classes/Element"
+      },
+      {
+        "text": "Node",
+        "link": "/api/reference/dom/classes/Node"
+      },
+      {
+        "text": "NodeList",
+        "link": "/api/reference/dom/classes/NodeList"
+      },
+      {
+        "text": "Text",
+        "link": "/api/reference/dom/classes/Text"
+      }
+    ]
+  },
+  {
+    "text": "engine",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "sync-engine",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "SyncEngine",
+            "link": "/api/reference/engine/sync-engine/classes/SyncEngine"
           }
         ]
       }

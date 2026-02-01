@@ -1,4 +1,4 @@
-[**xml-api**](../../../README.md)
+[**xml-api**](../../README.md)
 
 ***
 
@@ -24,7 +24,7 @@ to interact with the XML model using familiar methods.
 
 ##### model
 
-[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 ##### ownerDocument
 
@@ -62,7 +62,7 @@ to interact with the XML model using familiar methods.
 
 ### model
 
-> `protected` **model**: [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+> `protected` **model**: [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 ***
 
@@ -232,8 +232,8 @@ The node to append.
 
 ### getModel()
 
-> **getModel**(): [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+> **getModel**(): [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Returns
 
-[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)

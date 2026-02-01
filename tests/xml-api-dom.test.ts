@@ -1,5 +1,5 @@
 import { XMLAPI } from "@/xml-api";
-import { Document, Element } from "@/ast/dom";
+import { Document, Element } from "@/dom";
 
 describe("XMLAPI DOM Integration", () => {
   test("getDocument returns a linked Document object", () => {

@@ -1,4 +1,4 @@
-[**xml-api**](../../../README.md)
+[**xml-api**](../../README.md)
 
 ***
 
@@ -20,7 +20,7 @@ Represents an element in the XML document.
 
 ##### model
 
-[`ModelElement`](../../../model/xml-api-model/classes/ModelElement.md)
+[`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
 
 ##### ownerDocument
 
@@ -78,7 +78,7 @@ Represents an element in the XML document.
 
 ### model
 
-> `protected` **model**: [`ModelElement`](../../../model/xml-api-model/classes/ModelElement.md)
+> `protected` **model**: [`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
 
 #### Inherited from
 
@@ -364,11 +364,11 @@ The node to append.
 
 ### getModel()
 
-> **getModel**(): [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+> **getModel**(): [`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Returns
 
-[`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
 
 #### Inherited from
 
