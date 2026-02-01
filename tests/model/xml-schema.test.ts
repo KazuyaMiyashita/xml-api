@@ -1,4 +1,4 @@
-import { XMLSchema } from "./xml-schema";
+import { XMLSchema } from "@/model/xml-schema";
 
 describe("XMLSchema", () => {
   it("should identify void elements", () => {

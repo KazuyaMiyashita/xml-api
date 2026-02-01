@@ -5,8 +5,8 @@ import {
   Element,
   Text,
   createWrapper,
-} from "./dom";
-import { ModelElement, ModelText } from "../model/xml-api-model";
+} from "@/ast/dom";
+import { ModelElement, ModelText } from "@/model/xml-api-model";
 
 describe("Custom DOM Wrapper", () => {
   let doc: Document;

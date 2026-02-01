@@ -1,5 +1,5 @@
-import { AST } from "./ast/xml-ast";
-import { XMLAPI } from "./xml-api";
+import { AST } from "@/ast/xml-ast";
+import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI Context-Aware Formatting", () => {
   it("should respect surrounding indentation when replacing a node with nested content", () => {

@@ -1,5 +1,5 @@
-import { AST } from "./ast/xml-ast";
-import { XMLAPI } from "./xml-api";
+import { AST } from "@/ast/xml-ast";
+import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI Operations", () => {
   it("should set attribute on existing element", () => {

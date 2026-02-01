@@ -1,4 +1,4 @@
-import { CST } from "./xml-cst";
+import { CST } from "@/cst/xml-cst";
 
 describe("CST", () => {
   describe("getText", () => {

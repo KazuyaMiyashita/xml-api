@@ -1,7 +1,7 @@
-import { Parser } from "../cst/parser";
-import { grammar } from "../cst/xml-grammar";
-import { type ModelElement, ModelText } from "./xml-api-model";
-import { XMLBinder } from "./xml-binder";
+import { Parser } from "@/cst/parser";
+import { grammar } from "@/cst/xml-grammar";
+import { type ModelElement, ModelText } from "@/model/xml-api-model";
+import { XMLBinder } from "@/model/xml-binder";
 
 describe("XMLBinder Reconciliation", () => {
   const parser = new Parser(grammar);

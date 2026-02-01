@@ -1,7 +1,7 @@
-import { AST } from "./ast/xml-ast";
-import { GrammarBuilder, lit, opt, plus, ref, reg, seq } from "./cst/grammar";
-import type { CST } from "./cst/xml-cst";
-import { XMLAPI } from "./xml-api";
+import { AST } from "@/ast/xml-ast";
+import { GrammarBuilder, lit, opt, plus, ref, reg, seq } from "@/cst/grammar";
+import type { CST } from "@/cst/xml-cst";
+import { XMLAPI } from "@/xml-api";
 
 // Helper to define a minimum grammar for testing custom injection
 const createMinGrammar = () => {

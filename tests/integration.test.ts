@@ -1,8 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { AST, ASTCDATA, ASTComment } from "./ast/xml-ast";
-import { Formatter } from "./model/formatter";
-import { XMLAPI } from "./xml-api";
+import { AST, ASTCDATA, ASTComment } from "@/ast/xml-ast";
+import { Formatter } from "@/model/formatter";
+import { XMLAPI } from "@/xml-api";
 
 describe("Integration Tests", () => {
   let xmlContent: string;

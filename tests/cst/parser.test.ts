@@ -8,8 +8,8 @@ import {
   reg,
   rep,
   seq,
-} from "./grammar";
-import { Parser } from "./parser";
+} from "@/cst/grammar";
+import { Parser } from "@/cst/parser";
 
 describe("Parser Combinators", () => {
   describe("Literal", () => {

@@ -1,6 +1,6 @@
-import { AST } from "./ast/xml-ast";
-import { CST } from "./cst/xml-cst";
-import { XMLAPI } from "./xml-api";
+import { AST } from "@/ast/xml-ast";
+import { CST } from "@/cst/xml-cst";
+import { XMLAPI } from "@/xml-api";
 
 describe("AST-CST Mapping", () => {
   it("should attach CST node to AST element", () => {

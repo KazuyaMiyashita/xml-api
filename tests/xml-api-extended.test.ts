@@ -1,5 +1,5 @@
-import { ASTCDATA, ASTComment } from "./ast/xml-ast";
-import { XMLAPI } from "./xml-api";
+import { ASTCDATA, ASTComment } from "@/ast/xml-ast";
+import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI Extended Support (CDATA & Comment)", () => {
   it("should parse and preserve CDATA sections", () => {

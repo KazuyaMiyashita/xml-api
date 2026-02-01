@@ -1,5 +1,5 @@
-import { XMLAPI } from "./xml-api";
-import type { ChangeEvent } from "./xml-api-events";
+import { XMLAPI } from "@/xml-api";
+import type { ChangeEvent } from "@/xml-api-events";
 
 describe("XMLAPI Event System", () => {
   it("should emit event on setAttribute", () => {

@@ -1,4 +1,4 @@
-import { ModelElement, ModelText } from "./xml-api-model";
+import { ModelElement, ModelText } from "@/model/xml-api-model";
 
 describe("XMLAPIModel", () => {
   it("should build a tree structure", () => {

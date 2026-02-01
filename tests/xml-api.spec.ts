@@ -1,4 +1,4 @@
-import { XMLAPI } from "./xml-api";
+import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI Specification Requirements", () => {
   describe("updateInput(from, to, value)", () => {

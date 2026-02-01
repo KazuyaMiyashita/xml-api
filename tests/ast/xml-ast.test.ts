@@ -1,4 +1,4 @@
-import { AST } from "./xml-ast";
+import { AST } from "@/ast/xml-ast";
 
 describe("AST", () => {
   it("should create an element with attributes and children", () => {
