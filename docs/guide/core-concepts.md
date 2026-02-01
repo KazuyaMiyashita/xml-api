@@ -1,71 +1,71 @@
 # Core Concepts
 
-The project adopts a three-layer architecture to separate the concerns of text fidelity and operational ease.
+The project adopts a layered architecture to separate the concerns of text fidelity and operational ease.
 
 ## Layer Structure
 
-| Layer | Name | Role | Configuration |
+| Layer | Name | Role | Characteristics |
 | :--- | :--- | :--- | :--- |
-| **CST Layer** | CST | Represents the physical structure of the source code. | Grammar |
-| **XML API Layer** | XMLAPIModel | Represents the logical model and manages state. | XMLSchema |
-| **AST Layer** | AST | Represents the view model for the application. | - |
+| **Physical Layer** | CST | Represents the exact physical structure of the source code. | Positional data, formatting, comments. |
+| **Model Layer** | Model | The authoritative source of truth. | Persistent IDs, Reconciliation, Link to CST. |
+| **Interface Layer** | DOM | Standard-compatible wrapper for manipulation. | `setAttribute`, `textContent`, `querySelector`. |
+| **Semantic Layer** | AST | A simplified projection (Optional). | Tag names, attributes, child nodes. |
 
 ## Layer Details
 
-### CST Layer: Concrete Syntax Tree
-The CST maintains all textual information including whitespace, newlines, comments, and attribute quote types. It corresponds directly to the parse result and holds positional information within the source text.
+### Physical Layer: CST (Concrete Syntax Tree)
+The CST captures every character of the source, including "hidden" data like attribute quote styles, specific whitespace between attributes, and indentation. This layer is crucial for achieving **Full Fidelity**.
 
-### XML API Layer: XMLAPIModel
-The `XMLAPIModel` serves as the authoritative model for the system. It resolves the discrepancy between the CST and the AST. It assigns persistent identifiers to nodes to track movement and modification. It preserves formatting information to ensure that edits respect the original style of the code.
+### Model Layer: Core Model
+The Model is where the "intelligence" of the system resides. It maps CST nodes to logical elements. When the source code changes, the Model performs **Reconciliation**—it compares the new CST with the old Model and updates only the necessary parts. This preserves object identity, which is essential for UI frameworks that bind to these objects.
 
-### AST Layer: Application Abstract Syntax Tree
-The AST is the data model used by the application. It provides a simplified interface with properties such as tag names, attributes, and children. It supports standard elements, text nodes, and comments, hiding the complexity of the CST and the internal management logic of the `XMLAPIModel`.
+### Interface Layer: DOM Interface
+The DOM layer provides an industry-standard interface. It translates standard operations (like appending a child) into specific requests for the Binder to update the source code.
 
 ## Component Map
 
-The system is organized around the `XMLAPI`, which acts as a mediator.
+The system is organized around the `XMLAPI`, which acts as an orchestrator.
 
 ```mermaid
 graph TD
     User["Application"]
 
-    subgraph "XML API System Boundary"
+    subgraph "XML API System"
         Mediator["XMLAPI"]
 
-        subgraph "CST Layer"
-            Parser["Parser Engine"]
-            CST["CST Data"]
+        subgraph "Physical"
+            Parser["Parser"]
+            CST["CST"]
         end
 
-        subgraph "XML API Layer"
+        subgraph "Model / Logic"
             Binder["XMLBinder"]
-            Model["XMLAPIModel"]
-            Schema["XMLSchema"]
-            Formatter["Formatter"]
+            Model["Model"]
         end
         
-        subgraph "AST Layer"
-            AST["AST Data"]
+        subgraph "API / View"
+            DOM["DOM Interface"]
+            AST["AST"]
         end
     end
 
-    %% External Access
-    User <==>|"Init / Operation / Event"| Mediator
+    %% Interaction
+    User <==>|"DOM Operations / Events"| DOM
+    DOM <--> Mediator
+    User --> AST
 
-    %% Mediation Flows
+    %% Internal Flows
     Mediator -- "1. Parse" --> Parser
-    Parser -- "return CST" --> Mediator
+    Parser -- "return" --> CST
     
-    Mediator -- "2. Validate" --> Schema
+    Mediator -- "2. Sync" --> Binder
+    Binder -- "Hydrate / Reconcile" --> Model
+    Model -- "Link" --> CST
     
-    Mediator -- "3. Hydrate" --> Binder
-    Binder -- "return Model" --> Mediator
+    Binder -- "Project" --> AST
+    DOM -- "Wrap" --> Model
     
-    Mediator -- "4. Project" --> Binder
-    Binder -- "return AST" --> Mediator
-
-    Mediator -- "Manage" --> Model
-    Mediator -- "Expose" --> AST
-    
-    Mediator -- "Format" --> Formatter
+    DOM -- "Edit" --> Binder
+    Binder -- "Generate Patch" --> Mediator
+    Mediator -- "Update Input" --> Parser
 ```
