@@ -10,7 +10,7 @@ import {
 import { keymap } from "prosemirror-keymap";
 import { baseKeymap, toggleMark } from "prosemirror-commands";
 // @ts-ignore
-import { XMLAPI } from "@miy2/xml-api";
+import { XMLAPI, SchemaView, SchemaViewConfig } from "@miy2/xml-api";
 // @ts-ignore
 import { ChangeEvent } from "@miy2/xml-api/dist/xml-api-events";
 // @ts-ignore
@@ -20,7 +20,7 @@ import {
   ModelNode,
 } from "@miy2/xml-api/model/xml-api-model";
 // @ts-ignore
-import { Formatter } from "@miy2/xml-api/model/formatter";
+import { Element as ApiElement, Node as ApiNode } from "@miy2/xml-api/dom";
 
 import { xhtmlSubsetSchema } from "../schema/xhtml-subset";
 import "./WYSIWYGEditor.css";
@@ -37,98 +37,148 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const isUpdatingFromApi = useRef(false);
-
-  // Helper to convert xml-api model to DOM (which ProseMirror can parse)
-  const modelToDOM = useMemo(() => {
-    const convert = (node: ModelNode): Node | null => {
-      if (node.getType() === ModelNodeType.Text) {
-        return document.createTextNode((node as any).text);
+  
+  // Create SchemaView
+  const schemaView = useMemo(() => {
+    return api.createView({
+      filter: (node: ModelNode) => {
+        // Simple filter for XHTML subset
+        if (node.getType() === ModelNodeType.Element) {
+          const tagName = (node as ModelElement).tagName;
+          // Allow basic tags
+          return ["html", "body", "p", "strong", "em", "div", "span", "h1", "h2", "h3"].includes(tagName);
+        }
+        if (node.getType() === ModelNodeType.Text) return true;
+        return false;
       }
-      if (node.getType() === ModelNodeType.Element) {
-        const el = node as ModelElement;
+    });
+  }, [api]);
 
-        // Skip html/body and just convert their children for the doc
+  // Helper to convert xml-api view DOM to PM DOM (browser nodes)
+  // Since SchemaView exposes an internal DOM, we need to map it to browser DOM for PM to parse initial state
+  const viewToBrowserDOM = (viewNode: ApiNode): Node | null => {
+      if (viewNode.nodeType === 3) { // TEXT_NODE
+        return document.createTextNode(viewNode.textContent || "");
+      }
+      if (viewNode.nodeType === 1) { // ELEMENT_NODE
+        const el = viewNode as ApiElement;
+        
+        // Flatten html/body for the editor content
         if (el.tagName === "html" || el.tagName === "body") {
-          const fragment = document.createDocumentFragment();
-          el.children.forEach((child) => {
-            const childDom = convert(child);
-            if (childDom) fragment.appendChild(childDom);
-          });
-          return fragment as any;
+           const fragment = document.createDocumentFragment();
+           const children = el.childNodes;
+           for (let i = 0; i < children.length; i++) {
+             const child = viewToBrowserDOM(children.item(i)!);
+             if (child) fragment.appendChild(child);
+           }
+           return fragment as any;
         }
 
         const dom = document.createElement(el.tagName);
-        el.attributes.forEach((v, k) => dom.setAttribute(k, v));
-        el.children.forEach((child) => {
-          const childDom = convert(child);
-          if (childDom) dom.appendChild(childDom);
-        });
+        // Attributes
+        // ApiElement doesn't expose attributes array easily in public DOM API yet?
+        // But ModelElement does.
+        const model = (el as any).getModel() as ModelElement;
+        model.attributes.forEach((v, k) => dom.setAttribute(k, v));
+        
+        const children = el.childNodes;
+        for (let i = 0; i < children.length; i++) {
+             const child = viewToBrowserDOM(children.item(i)!);
+             if (child) dom.appendChild(child);
+        }
         return dom;
       }
       return null;
-    };
-    return convert;
-  }, []);
+  };
 
-  // Helper to convert ProseMirror Document back to XML string for xml-api
-  const pmToXml = (pmDoc: PMNode): string => {
-    const serializer = DOMSerializer.fromSchema(xhtmlSubsetSchema);
-    const fragment = serializer.serializeFragment(pmDoc.content);
-    const div = document.createElement("div");
-    div.appendChild(fragment);
+  // Sync ProseMirror state TO SchemaView (XML)
+  const syncToXml = (pmDoc: PMNode) => {
+      if (!api.cst || !api.cst.wellFormed) return;
 
-    // Use XMLAPI's Formatter to prettify the body content
-    // We create a temporary API instance just to parse and format the body content
-    // This ensures we respect the library's formatting logic
-    const tempBodyXml = `<body>${div.innerHTML}</body>`;
-    const tempApi = new XMLAPI(tempBodyXml);
-
-    // We want to format the *children* of the body, not the body itself necessarily,
-    // or we format the body and strip the tag.
-    // Let's format the body and see.
-    const formatter = new Formatter({ indent: "  " }); // Default indent
-    let formattedBodyContent = "";
-
-    if (tempApi.model && tempApi.model.children.length > 0) {
-      // Assuming tempApi.model is the root, which might be implied <html> or just the element we passed?
-      // XMLAPI usually expects full doc or at least root.
-      // If we pass `<body>...</body>`, model will be `<body>`.
-
-      // We want to format the *content* of the body.
-      // Formatter formats a node.
-      const formattedBody = formatter.format(tempApi.model);
-
-      // Strip <body> and </body>
-      // formattedBody is like "<body>\n  <h1>...</h1>\n</body>"
-      const match = formattedBody.match(/<body[^>]*>([\s\S]*?)<\/body>/);
-      if (match) {
-        formattedBodyContent = match[1];
-        // If the content starts with newline, we might want to keep it or adjust
-        // But let's trust the formatter's indentation relative to body
-      } else {
-        formattedBodyContent = div.innerHTML; // Fallback
+      const root = schemaView.getRoot();
+      let body = root;
+      if (root.tagName === "html") {
+          const found = root.querySelector("body");
+          if (found) body = found;
       }
-    } else {
-      formattedBodyContent = div.innerHTML;
-    }
-
-    // Get the current source and replace only the body content to preserve head/comments
-    const currentSource = api.source;
-    const bodyMatch = currentSource.match(/(<body[^>]*>)([\s\S]*?)(<\/body>)/i);
-
-    if (bodyMatch) {
-      const before = currentSource.substring(
-        0,
-        bodyMatch.index! + bodyMatch[1].length,
-      );
-      const after = currentSource.substring(
-        bodyMatch.index! + bodyMatch[0].length - bodyMatch[3].length,
-      );
-      const result = `${before}${formattedBodyContent}${after}`;
-      return result;
-    }
-
-    return `<html><body>${formattedBodyContent}</body></html>`;
+      
+      // Use DOMSerializer to get a standard DOM fragment from current PM doc
+      const serializer = DOMSerializer.fromSchema(xhtmlSubsetSchema);
+      const fragment = serializer.serializeFragment(pmDoc.content);
+      
+      // Simple Reconciliation between Browser DOM (fragment) and SchemaView DOM (body)
+      const reconcile = (bParent: Node, vParent: ApiElement) => {
+          const bChildren = Array.from(bParent.childNodes);
+          const vChildren = Array.from(vParent.childNodes);
+          
+          // Match by index (simple for now)
+          const maxLength = Math.max(bChildren.length, vChildren.length);
+          
+          for (let i = 0; i < maxLength; i++) {
+              const bNode = bChildren[i];
+              const vNode = vChildren[i];
+              
+              if (!bNode && vNode) {
+                  // Removed from Browser -> Remove from View
+                  vParent.removeChild(vNode);
+              } else if (bNode && !vNode) {
+                  // Added to Browser -> Add to View
+                  if (bNode.nodeType === Node.TEXT_NODE) {
+                      vParent.appendChild(schemaView.getDocument().createTextNode(bNode.textContent || ""));
+                  } else if (bNode.nodeType === Node.ELEMENT_NODE) {
+                      const bEl = bNode as HTMLElement;
+                      const vNew = schemaView.getDocument().createElement(bEl.tagName.toLowerCase());
+                      // Initial attributes
+                      for (let j = 0; j < bEl.attributes.length; j++) {
+                          vNew.setAttribute(bEl.attributes[j].name, bEl.attributes[j].value);
+                      }
+                      vParent.appendChild(vNew);
+                      // Recursively sync children
+                      reconcile(bNode, vNew);
+                  }
+              } else if (bNode && vNode) {
+                  // Both exist -> Update if needed
+                  if (bNode.nodeType !== vNode.nodeType) {
+                      // Different type -> Replace
+                      vParent.removeChild(vNode);
+                      // Next iteration will handle addition
+                      i--; 
+                      continue;
+                  }
+                  
+                  if (bNode.nodeType === Node.TEXT_NODE) {
+                      if (bNode.textContent !== vNode.textContent) {
+                          vNode.textContent = bNode.textContent;
+                      }
+                  } else if (bNode.nodeType === Node.ELEMENT_NODE) {
+                      const bEl = bNode as HTMLElement;
+                      const vEl = vNode as ApiElement;
+                      
+                      if (bEl.tagName.toLowerCase() !== vEl.tagName.toLowerCase()) {
+                          // Different tag -> Replace
+                          vParent.removeChild(vNode);
+                          i--;
+                          continue;
+                      }
+                      
+                      // Update Attributes
+                      const bAttrs = bEl.attributes;
+                      // Set/Update
+                      for (let j = 0; j < bAttrs.length; j++) {
+                          if (vEl.getAttribute(bAttrs[j].name) !== bAttrs[j].value) {
+                              vEl.setAttribute(bAttrs[j].name, bAttrs[j].value);
+                          }
+                      }
+                      // Remove missing (simplified: only handle known attributes if needed, or clear all and reset)
+                      
+                      // Recursively reconcile children
+                      reconcile(bNode, vEl);
+                  }
+              }
+          }
+      };
+      
+      reconcile(fragment, body);
   };
 
   useEffect(() => {
@@ -136,13 +186,22 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
 
     // Initial state
     const updateInitialState = () => {
-      const docModel = api.model;
-      if (docModel && viewRef.current) {
+      if (viewRef.current) {
         isUpdatingFromApi.current = true;
-        const tempDom = modelToDOM(docModel);
-        const pmDoc = PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(
-          tempDom as any,
-        );
+        const root = schemaView.getRoot();
+        const browserDom = viewToBrowserDOM(root);
+        
+        // Wrap in a div if it's a fragment, or just parse
+        // PMDOMParser expects a node
+        let parseTarget: Node = browserDom!;
+        if (parseTarget.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+            const div = document.createElement("div");
+            div.appendChild(parseTarget);
+            parseTarget = div;
+        }
+
+        const pmDoc = PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(parseTarget);
+        
         const tr = viewRef.current.state.tr.replaceWith(
           0,
           viewRef.current.state.doc.content.size,
@@ -175,11 +234,9 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
         view.updateState(newState);
 
         if (tr.docChanged && !isUpdatingFromApi.current) {
-          // Sync back to xml-api
-          const newXml = pmToXml(newState.doc);
+          // Sync back to xml-api via SchemaView
           try {
-            // Full update for now as ProseMirror -> XML mapping is complex for incremental
-            api.updateSource(0, api.source.length, newXml);
+            syncToXml(newState.doc);
             if (onExternalChange) onExternalChange();
           } catch (e) {
             console.error("Sync to XML API failed:", e);
@@ -194,32 +251,39 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
     return () => {
       view.destroy();
     };
-  }, [api, modelToDOM]);
+  }, [schemaView]); // Depend on schemaView
 
-  // Sync from xml-api to ProseMirror
+  // Sync from xml-api to ProseMirror (listen to View events)
   useEffect(() => {
-    return api.on((_event: ChangeEvent) => {
-      if (viewRef.current && !isUpdatingFromApi.current && api.model) {
-        isUpdatingFromApi.current = true;
-        const tempDom = modelToDOM(api.model);
-        const newPmDoc = PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(
-          tempDom as any,
-        );
+    return schemaView.on((_event) => {
+        // For now, on any structural change, reload.
+        // Granular updates are optimizing.
+        if (viewRef.current && !isUpdatingFromApi.current) {
+            isUpdatingFromApi.current = true;
+            const root = schemaView.getRoot();
+            const browserDom = viewToBrowserDOM(root);
+            
+            let parseTarget: Node = browserDom!;
+            if (parseTarget.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+                const div = document.createElement("div");
+                div.appendChild(parseTarget);
+                parseTarget = div;
+            }
 
-        // Only update if actually different to avoid selection loss
-        if (!newPmDoc.eq(viewRef.current.state.doc)) {
-          const tr = viewRef.current.state.tr.replaceWith(
-            0,
-            viewRef.current.state.doc.content.size,
-            newPmDoc,
-          );
-          // Preserve selection if possible? (Simplified for now)
-          viewRef.current.dispatch(tr);
+            const newPmDoc = PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(parseTarget);
+
+            if (!newPmDoc.eq(viewRef.current.state.doc)) {
+              const tr = viewRef.current.state.tr.replaceWith(
+                0,
+                viewRef.current.state.doc.content.size,
+                newPmDoc,
+              );
+              viewRef.current.dispatch(tr);
+            }
+            isUpdatingFromApi.current = false;
         }
-        isUpdatingFromApi.current = false;
-      }
     });
-  }, [api, modelToDOM]);
+  }, [schemaView]);
 
   return (
     <div className="wysiwyg-container">

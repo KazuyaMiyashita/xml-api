@@ -29,6 +29,7 @@ function App() {
 
   const handleVersionUpdate = useCallback(() => {
     setVersion((v) => v + 1);
+    // Logs are updated via api.on listener automatically
   }, []);
 
   const addLog = useCallback((event: ChangeEvent) => {
