@@ -6,7 +6,7 @@
     "build": "pnpm -r --if-present build",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
-    "format": "pnpm -r --if-present format"
+    "format": "biome format --write ."
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.13"
