@@ -29,8 +29,8 @@ const nodeName = computed(() => (props.node ? props.node.nodeName : ""));
 const attributes = computed(() => {
   if (!isElement.value) return [];
   const el = props.node as Element;
-  const model = (el as any).getModel();
-  const attrs: { key: string; value: string }[] = [];
+  const model = el.getModel();
+  const attributes = Array.from(model.attributes.entries());
   if (model.attributes) {
     model.attributes.forEach((v: string, k: string) => {
       attrs.push({ key: k, value: v });

@@ -151,9 +151,19 @@ export class SyncEngine {
    * Apply a programmatic change derived from Model operations.
    * This is the "Application -> Source" flow.
    */
-  public applyPatch(start: number, end: number, text: string): void {
+  public applyPatch(
+    start: number,
+    end: number,
+    text: string,
+    meta?: Record<string, any>,
+  ): void {
     // Uses dispatch via updateSource logic, but conceptually distinct
     const tr = new Transaction(this._state);
+    if (meta) {
+      for (const [key, value] of Object.entries(meta)) {
+        tr.setMeta(key, value);
+      }
+    }
     tr.replace(start, end, text);
     this.dispatch(tr);
   }
@@ -190,23 +200,32 @@ export class SyncEngine {
     modelNode: ModelElement,
     key: string,
     value: string,
+    meta?: Record<string, any>,
   ): void {
     if (!modelNode.cst) throw new Error("Model node not linked to CST");
     const patch = this.binder.calcSetAttributePatch(modelNode, key, value);
     if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
+      this.applyPatch(patch.start, patch.end, patch.text, meta);
     }
   }
 
-  public updateText(modelNode: ModelElement, text: string): void {
+  public updateText(
+    modelNode: ModelElement,
+    text: string,
+    meta?: Record<string, any>,
+  ): void {
     if (!modelNode.cst) throw new Error("Model node not linked to CST");
     const patch = this.binder.calcUpdateTextPatch(modelNode, text);
     if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
+      this.applyPatch(patch.start, patch.end, patch.text, meta);
     }
   }
 
-  public replaceNode(target: ModelNode, content: ModelNode): void {
+  public replaceNode(
+    target: ModelNode,
+    content: ModelNode,
+    meta?: Record<string, any>,
+  ): void {
     if (!target.cst) throw new Error("Model node not linked to CST");
 
     // Formatting logic
@@ -237,7 +256,7 @@ export class SyncEngine {
 
     const patch = this.binder.calcReplaceNodePatch(target, newXml);
     if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
+      this.applyPatch(patch.start, patch.end, patch.text, meta);
     }
   }
 
@@ -245,6 +264,7 @@ export class SyncEngine {
     parent: ModelElement,
     child: ModelNode,
     index: number,
+    meta?: Record<string, any>,
   ): void {
     if (!parent.cst) throw new Error("Parent node not linked to CST");
 
@@ -318,15 +338,19 @@ export class SyncEngine {
 
     const patch = this.binder.calcInsertNodePatch(parent, index, insertText);
     if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
+      this.applyPatch(patch.start, patch.end, patch.text, meta);
     }
   }
 
-  public removeNode(parent: ModelElement, child: ModelNode): void {
-    if (!child.cst) throw new Error("Target node not linked to CST");
+  public removeNode(
+    parent: ModelElement,
+    child: ModelNode,
+    meta?: Record<string, any>,
+  ): void {
+    if (!parent.cst) throw new Error("Parent node not linked to CST");
     const patch = this.binder.calcRemoveNodePatch(child);
     if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
+      this.applyPatch(patch.start, patch.end, patch.text, meta);
     }
   }
 
@@ -424,7 +448,7 @@ export class SyncEngine {
       }
       this.events.emit({
         type: "full", // Or structure? Full implies root changed/updated
-        target: reconciled,
+        target: reconciled || undefined,
         transaction: tr,
       });
       return;

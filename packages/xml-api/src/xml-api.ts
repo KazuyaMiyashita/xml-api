@@ -204,3 +204,24 @@ export class XMLAPI {
 }
 
 export { SchemaView, type SchemaViewConfig };
+export {
+  ModelNode,
+  ModelElement,
+  ModelText,
+  ModelComment,
+  ModelCDATA,
+  ModelNodeType,
+} from "./model/xml-api-model";
+export {
+  Node,
+  Element,
+  Text,
+  Comment,
+  CDATASection,
+  Document,
+  NodeList,
+} from "./dom";
+export { type ChangeEvent, EventEmitter, type EventHandler } from "./xml-api-events";
+export { Transaction, type TextPatch } from "./engine/transaction";
+export { EditorState } from "./engine/editor-state";
+export { CST } from "./cst/xml-cst";

@@ -1,8 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-// @ts-ignore
-import { XMLAPI } from "@miy2/xml-api";
-// @ts-ignore
-import { ChangeEvent } from "@miy2/xml-api/dist/xml-api-events";
+import { XMLAPI, ChangeEvent } from "@miy2/xml-api";
 import CodeEditor from "./components/CodeEditor";
 import WYSIWYGEditor from "./components/WYSIWYGEditor";
 import MeiEditor from "./components/MeiEditor";

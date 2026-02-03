@@ -87,7 +87,6 @@ function refreshTree() {
 
 // --- Selection Management ---
 function findNodeById(root: Node, id: string): Node | null {
-  // @ts-ignore: Accessing internal model for ID check
   if (root.getModel().id === id) {
     return root;
   }
@@ -105,7 +104,6 @@ function findNodeById(root: Node, id: string): Node | null {
 
 function onSelect(node: Node) {
   selectedNode.value = node;
-  // @ts-ignore: Accessing internal model
   selectedId.value = node.getModel().id;
 }
 
@@ -114,7 +112,7 @@ function onUpdateAttr(key: string, value: string) {
   if (!api || !selectedNode.value || selectedNode.value.nodeType !== 1) return;
 
   const el = selectedNode.value as Element;
-  const model = (el as any).getModel();
+  const model = el.getModel();
   const binder = (api as any).engine.binder as XMLBinder;
 
   const patch = binder.calcSetAttributePatch(model, key, value);
@@ -145,7 +143,7 @@ function onRemoveAttr(key: string) {
 function onUpdateText(value: string) {
   if (!api || !selectedNode.value) return;
   const binder = (api as any).engine.binder as XMLBinder;
-  const model = (selectedNode.value as any).getModel();
+  const model = selectedNode.value.getModel();
 
   // Instant update via replacing the whole node or text content
   if (selectedNode.value.nodeType === 3) {

@@ -1,4 +1,4 @@
-import { ModelElement, ModelNode } from "../model/xml-api-model";
+import { ModelElement, ModelNode, ModelText, ModelComment, ModelCDATA } from "../model/xml-api-model";
 import { Document, Element, createWrapper, Node, DOMObserver, CharacterData } from "../dom";
 import { SyncEngine } from "../engine/sync-engine";
 import { ChangeEvent, EventEmitter } from "../xml-api-events";
@@ -30,13 +30,18 @@ export type ViewChangeEvent =
     };
 
 export class SchemaView {
-  private document: Document;
+  private document!: Document;
   private events = new EventEmitter<ViewChangeEvent>();
 
   constructor(private model: ModelElement, private engine: SyncEngine, private config: SchemaViewConfig = {}) {
+    this.initDocument();
+    this.engine.on(this.handleEngineEvent.bind(this));
+  }
+
+  private initDocument() {
     this.document = new Document();
-    if (config.filter) {
-      this.document.nodeFilter = config.filter;
+    if (this.config.filter) {
+      this.document.nodeFilter = this.config.filter;
     }
     
     const rootWrapper = createWrapper(this.model, this.document);
@@ -48,9 +53,8 @@ export class SchemaView {
       onAttributeChange: (element: Element, name: string, value: string | null) => {
         const model = element.getModel();
         if (model instanceof ModelElement && model.cst) {
-           // Handle null value (removal) if supported, else empty string or skip
            if (value !== null) {
-             this.engine.setAttribute(model, name, value);
+             this.engine.setAttribute(model, name, value, { origin: "schema-view" });
            }
         }
       },
@@ -58,35 +62,40 @@ export class SchemaView {
          const parentModel = parent.getModel();
          const childModel = child.getModel();
          if (parentModel instanceof ModelElement && parentModel.cst) {
-            this.engine.insertNode(parentModel, childModel, index);
+            this.engine.insertNode(parentModel, childModel, index, { origin: "schema-view" });
          }
       },
       onChildRemoved: (parent: Node, child: Node, index: number) => {
          const parentModel = parent.getModel();
          const childModel = child.getModel();
          if (parentModel instanceof ModelElement && parentModel.cst) {
-            // child must have CST to be removed via patch
             if (childModel.cst) {
-                this.engine.removeNode(parentModel, childModel);
+                this.engine.removeNode(parentModel, childModel, { origin: "schema-view" });
             }
          }
       },
       onTextChange: (node: CharacterData, text: string) => {
-         // Direct text node update.
-         // SyncEngine doesn't have updateTextNode yet?
-         // It has updateText(ModelElement, text).
-         // If we modify ModelText, we might need a new method or use replaceNode.
-         console.warn("Direct text node update not implemented in SchemaView sync");
+         const modelNode = node.getModel();
+         if (modelNode instanceof ModelText && modelNode.cst) {
+             const newTextNode = new ModelText(text);
+             this.engine.replaceNode(modelNode, newTextNode, { origin: "schema-view" });
+         } else if (modelNode instanceof ModelComment && modelNode.cst) {
+             const newComment = new ModelComment(text);
+             this.engine.replaceNode(modelNode, newComment, { origin: "schema-view" });
+         } else if (modelNode instanceof ModelCDATA && modelNode.cst) {
+             const newCDATA = new ModelCDATA(text);
+             this.engine.replaceNode(modelNode, newCDATA, { origin: "schema-view" });
+         } else {
+             console.warn("Direct text node update not supported for this node or missing CST");
+         }
       },
       onElementTextChange: (element: Element, text: string) => {
          const model = element.getModel();
          if (model instanceof ModelElement && model.cst) {
-             this.engine.updateText(model, text);
+             this.engine.updateText(model, text, { origin: "schema-view" });
          }
       }
     });
-
-    this.engine.on(this.handleEngineEvent.bind(this));
   }
 
   public on(handler: (event: ViewChangeEvent) => void): () => void {
@@ -94,8 +103,18 @@ export class SchemaView {
   }
 
   private handleEngineEvent(event: ChangeEvent) {
+    // Ignore events that originated from this view (or any SchemaView)
+    // Ideally we should check if it's *this specific* view, but for now 'schema-view' covers self-cycles.
+    if (event.transaction && event.transaction.getMeta("origin") === "schema-view") {
+        return;
+    }
+
     if (event.type === "full") {
-      // Full reload, emit full
+      // Update local model reference from engine if root changed
+      if (this.engine.model && this.engine.model !== this.model) {
+          this.model = this.engine.model;
+          this.initDocument();
+      }
       this.events.emit({ type: "full", transaction: event.transaction });
       return;
     }

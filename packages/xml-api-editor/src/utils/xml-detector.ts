@@ -1,7 +1,4 @@
-// @ts-ignore
-import { XMLAPI } from "@miy2/xml-api";
-// @ts-ignore
-import { ModelElement } from "@miy2/xml-api/model/xml-api-model";
+import { XMLAPI, ModelElement, ModelNodeType } from "@miy2/xml-api";
 
 export enum DocumentType {
   XHTML = "XHTML",
@@ -21,12 +18,14 @@ export interface DocumentInfo {
  */
 export function detectDocumentType(api: XMLAPI): DocumentInfo {
   const model = api.model;
-  if (!model || !(model instanceof ModelElement)) {
+  if (!model || model.getType() !== ModelNodeType.Element) {
     return { type: DocumentType.UNKNOWN, rootTag: "" };
   }
 
-  const rootTag = model.tagName;
-  let namespace = model.attributes.get("xmlns");
+  // model is ModelElement when getType() is Element
+  const element = model as ModelElement;
+  const rootTag = element.tagName;
+  let namespace = element.attributes.get("xmlns");
 
   // Basic detection logic
   if (rootTag === "html") {

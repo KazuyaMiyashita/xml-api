@@ -23,8 +23,8 @@ export abstract class ModelNode {
   public cst: CST | null = null;
   public formatting: ModelFormatting = { indent: null };
 
-  constructor() {
-    this.id = crypto.randomUUID();
+  constructor(id?: NodeId) {
+    this.id = id ?? crypto.randomUUID();
   }
 
   abstract getType(): ModelNodeType;
@@ -36,11 +36,7 @@ export abstract class ModelNode {
     return null;
   }
 
-  protected cloneBase(target: ModelNode, preserveId: boolean): void {
-    if (preserveId) {
-      // @ts-ignore
-      target.id = this.id;
-    }
+  protected cloneBase(target: ModelNode, _preserveId: boolean): void {
     target.cst = this.cst;
     target.formatting = { ...this.formatting };
   }
@@ -51,8 +47,8 @@ export class ModelElement extends ModelNode {
   public attributes: Map<string, string> = new Map();
   public children: ModelNode[] = [];
 
-  constructor(tagName: string) {
-    super();
+  constructor(tagName: string, id?: NodeId) {
+    super(id);
     this.tagName = tagName;
   }
 
@@ -61,7 +57,7 @@ export class ModelElement extends ModelNode {
   }
 
   clone(preserveId = false): ModelElement {
-    const clone = new ModelElement(this.tagName);
+    const clone = new ModelElement(this.tagName, preserveId ? this.id : undefined);
     this.cloneBase(clone, preserveId);
     clone.attributes = new Map(this.attributes);
     clone.children = this.children.map((c) => {
@@ -118,8 +114,8 @@ export class ModelElement extends ModelNode {
 export class ModelText extends ModelNode {
   public text: string;
 
-  constructor(text: string) {
-    super();
+  constructor(text: string, id?: NodeId) {
+    super(id);
     this.text = text;
   }
 
@@ -128,7 +124,7 @@ export class ModelText extends ModelNode {
   }
 
   clone(preserveId = false): ModelText {
-    const clone = new ModelText(this.text);
+    const clone = new ModelText(this.text, preserveId ? this.id : undefined);
     this.cloneBase(clone, preserveId);
     return clone;
   }
@@ -137,8 +133,8 @@ export class ModelText extends ModelNode {
 export class ModelComment extends ModelNode {
   public content: string;
 
-  constructor(content: string) {
-    super();
+  constructor(content: string, id?: NodeId) {
+    super(id);
     this.content = content;
   }
 
@@ -147,7 +143,7 @@ export class ModelComment extends ModelNode {
   }
 
   clone(preserveId = false): ModelComment {
-    const clone = new ModelComment(this.content);
+    const clone = new ModelComment(this.content, preserveId ? this.id : undefined);
     this.cloneBase(clone, preserveId);
     return clone;
   }
@@ -156,8 +152,8 @@ export class ModelComment extends ModelNode {
 export class ModelCDATA extends ModelNode {
   public content: string;
 
-  constructor(content: string) {
-    super();
+  constructor(content: string, id?: NodeId) {
+    super(id);
     this.content = content;
   }
 
@@ -166,7 +162,7 @@ export class ModelCDATA extends ModelNode {
   }
 
   clone(preserveId = false): ModelCDATA {
-    const clone = new ModelCDATA(this.content);
+    const clone = new ModelCDATA(this.content, preserveId ? this.id : undefined);
     this.cloneBase(clone, preserveId);
     return clone;
   }

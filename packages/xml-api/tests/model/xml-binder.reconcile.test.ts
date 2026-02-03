@@ -22,7 +22,7 @@ describe("XMLBinder Reconciliation", () => {
     const newModel = binder2.reconcile(model1, cst2!);
 
     expect(newModel).toBe(model1); // Instance preserved
-    expect(newModel.id).toBe(rootId);
+    expect(newModel!.id).toBe(rootId);
     expect((newModel as ModelElement).attributes.get("id")).toBe("2"); // Attribute updated
   });
 

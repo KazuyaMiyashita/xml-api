@@ -8,12 +8,7 @@ import {
   ViewUpdate,
 } from "@codemirror/view";
 import { basicSetup } from "codemirror";
-// @ts-ignore
-import { XMLAPI } from "@miy2/xml-api";
-// @ts-ignore
-import { CST } from "@miy2/xml-api/cst/xml-cst";
-// @ts-ignore
-import { ChangeEvent } from "@miy2/xml-api/dist/xml-api-events";
+import { XMLAPI, ChangeEvent, CST } from "@miy2/xml-api";
 import "./CodeEditor.css";
 
 interface CodeEditorProps {

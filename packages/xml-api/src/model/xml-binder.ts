@@ -146,8 +146,7 @@ export class XMLBinder {
     return result;
   }
 
-  public reconcile(currentModel: ModelNode, newCst: CST): ModelNode {
-    // 1. Try to hydrate the new CST to see what it *should* look like.
+  public reconcile(currentModel: ModelNode, newCst: CST): ModelNode | null {
     // This is inefficient (double parsing) but robust for a first implementation.
     // A better way would be to traverse CST and update Model in one pass.
     // But since `hydrate` logic is complex (handling grammar rules), duplicating it for reconcile is risky.
@@ -164,7 +163,7 @@ export class XMLBinder {
       // For now, assume strict mapping.
       // But hydrate returns null for Comments/PIs.
       // If currentModel was something else, it's a replacement.
-      return newModel as any; // Should handle null better in caller?
+      return newModel;
     }
 
     if (this.canReconcile(currentModel, newModel)) {
@@ -252,8 +251,10 @@ export class XMLBinder {
           // Found a match (keyed or non-keyed)
           // Use CST from new node to update existing node
           const reconciled = this.reconcile(matchedNode, sChild.cst!);
-          reconciled.parent = t;
-          newChildren.push(reconciled);
+          if (reconciled) {
+            newChildren.push(reconciled);
+            reconciled.parent = t;
+          }
         } else {
           // No match found, use new node
           sChild.parent = t;

@@ -2,25 +2,19 @@ import React, { useEffect, useRef, useMemo } from "react";
 import { EditorState, Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import {
-  Schema,
   DOMParser as PMDOMParser,
   DOMSerializer,
   Node as PMNode,
 } from "prosemirror-model";
 import { keymap } from "prosemirror-keymap";
 import { baseKeymap, toggleMark } from "prosemirror-commands";
-// @ts-ignore
-import { XMLAPI, SchemaView, SchemaViewConfig } from "@miy2/xml-api";
-// @ts-ignore
-import { ChangeEvent } from "@miy2/xml-api/dist/xml-api-events";
-// @ts-ignore
 import {
+  XMLAPI,
   ModelElement,
-  ModelNodeType,
   ModelNode,
-} from "@miy2/xml-api/model/xml-api-model";
-// @ts-ignore
-import { Element as ApiElement, Node as ApiNode } from "@miy2/xml-api/dom";
+  Element as ApiElement,
+  Node as ApiNode,
+} from "@miy2/xml-api";
 
 import { xhtmlSubsetSchema } from "../schema/xhtml-subset";
 import "./WYSIWYGEditor.css";
@@ -36,19 +30,18 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
-  const isUpdatingFromApi = useRef(false);
   
   // Create SchemaView
   const schemaView = useMemo(() => {
     return api.createView({
       filter: (node: ModelNode) => {
         // Simple filter for XHTML subset
-        if (node.getType() === ModelNodeType.Element) {
+        if (node.getType() === "Element") {
           const tagName = (node as ModelElement).tagName;
           // Allow basic tags
-          return ["html", "body", "p", "strong", "em", "div", "span", "h1", "h2", "h3"].includes(tagName);
+          return ["html", "body", "p", "strong", "em", "div", "span", "h1", "h2", "h3", "section"].includes(tagName);
         }
-        if (node.getType() === ModelNodeType.Text) return true;
+        if (node.getType() === "Text") return true;
         return false;
       }
     });
@@ -71,15 +64,15 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
              const child = viewToBrowserDOM(children.item(i)!);
              if (child) fragment.appendChild(child);
            }
-           return fragment as any;
+           return fragment;
         }
 
         const dom = document.createElement(el.tagName);
         // Attributes
         // ApiElement doesn't expose attributes array easily in public DOM API yet?
         // But ModelElement does.
-        const model = (el as any).getModel() as ModelElement;
-        model.attributes.forEach((v, k) => dom.setAttribute(k, v));
+        const model = el.getModel() as ModelElement;
+        model.attributes.forEach((v: string, k: string) => dom.setAttribute(k, v));
         
         const children = el.childNodes;
         for (let i = 0; i < children.length; i++) {
@@ -105,75 +98,90 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
       // Use DOMSerializer to get a standard DOM fragment from current PM doc
       const serializer = DOMSerializer.fromSchema(xhtmlSubsetSchema);
       const fragment = serializer.serializeFragment(pmDoc.content);
+
+      const createFromBrowser = (bNode: Node): ApiNode | null => {
+           if (bNode.nodeType === Node.TEXT_NODE) {
+               return schemaView.getDocument().createTextNode(bNode.textContent || "");
+           } else if (bNode.nodeType === Node.ELEMENT_NODE) {
+               const bEl = bNode as HTMLElement;
+               const vNew = schemaView.getDocument().createElement(bEl.tagName.toLowerCase());
+               for (let j = 0; j < bEl.attributes.length; j++) {
+                   vNew.setAttribute(bEl.attributes[j].name, bEl.attributes[j].value);
+               }
+               const children = bEl.childNodes;
+               for(let k=0; k<children.length; k++) {
+                   const child = createFromBrowser(children[k]);
+                   if(child) vNew.appendChild(child);
+               }
+               return vNew;
+           }
+           return null;
+      };
+      
+      const isSameType = (bNode: Node, vNode: ApiNode): boolean => {
+          if (bNode.nodeType === Node.TEXT_NODE && vNode.nodeType === 3) return true;
+          if (bNode.nodeType === Node.ELEMENT_NODE && vNode.nodeType === 1) {
+              return (bNode as HTMLElement).tagName.toLowerCase() === (vNode as ApiElement).tagName.toLowerCase();
+          }
+          return false;
+      };
+
+      const updateNode = (vNode: ApiNode, bNode: Node) => {
+          if (vNode.nodeType === 3) { // Text
+              if (vNode.textContent !== bNode.textContent) {
+                  vNode.textContent = bNode.textContent;
+              }
+          } else if (vNode.nodeType === 1) { // Element
+              const vEl = vNode as ApiElement;
+              const bEl = bNode as HTMLElement;
+               const bAttrs = bEl.attributes;
+               for (let j = 0; j < bAttrs.length; j++) {
+                   if (vEl.getAttribute(bAttrs[j].name) !== bAttrs[j].value) {
+                       vEl.setAttribute(bAttrs[j].name, bAttrs[j].value);
+                   }
+               }
+          }
+      };
       
       // Simple Reconciliation between Browser DOM (fragment) and SchemaView DOM (body)
       const reconcile = (bParent: Node, vParent: ApiElement) => {
           const bChildren = Array.from(bParent.childNodes);
-          const vChildren = Array.from(vParent.childNodes);
+          const vChildrenSnapshot = Array.from(vParent.childNodes);
           
-          // Match by index (simple for now)
-          const maxLength = Math.max(bChildren.length, vChildren.length);
+          let bI = 0;
+          let vI = 0;
           
-          for (let i = 0; i < maxLength; i++) {
-              const bNode = bChildren[i];
-              const vNode = vChildren[i];
+          while (bI < bChildren.length || vI < vChildrenSnapshot.length) {
+              const bNode = bChildren[bI];
+              const vNode = vChildrenSnapshot[vI];
               
               if (!bNode && vNode) {
-                  // Removed from Browser -> Remove from View
+                  // Browser exhausted, remove remaining View nodes
                   vParent.removeChild(vNode);
-              } else if (bNode && !vNode) {
-                  // Added to Browser -> Add to View
-                  if (bNode.nodeType === Node.TEXT_NODE) {
-                      vParent.appendChild(schemaView.getDocument().createTextNode(bNode.textContent || ""));
-                  } else if (bNode.nodeType === Node.ELEMENT_NODE) {
-                      const bEl = bNode as HTMLElement;
-                      const vNew = schemaView.getDocument().createElement(bEl.tagName.toLowerCase());
-                      // Initial attributes
-                      for (let j = 0; j < bEl.attributes.length; j++) {
-                          vNew.setAttribute(bEl.attributes[j].name, bEl.attributes[j].value);
-                      }
-                      vParent.appendChild(vNew);
-                      // Recursively sync children
-                      reconcile(bNode, vNew);
+                  vI++;
+                  continue;
+              }
+              
+              if (bNode && !vNode) {
+                  // View exhausted, append remaining Browser nodes
+                  const newNode = createFromBrowser(bNode);
+                  if (newNode) vParent.appendChild(newNode);
+                  bI++;
+                  continue;
+              }
+              
+              // Both exist
+              if (isSameType(bNode, vNode)) {
+                  updateNode(vNode, bNode);
+                  if (bNode.nodeType === Node.ELEMENT_NODE) {
+                      reconcile(bNode, vNode as ApiElement);
                   }
-              } else if (bNode && vNode) {
-                  // Both exist -> Update if needed
-                  if (bNode.nodeType !== vNode.nodeType) {
-                      // Different type -> Replace
-                      vParent.removeChild(vNode);
-                      // Next iteration will handle addition
-                      i--; 
-                      continue;
-                  }
-                  
-                  if (bNode.nodeType === Node.TEXT_NODE) {
-                      if (bNode.textContent !== vNode.textContent) {
-                          vNode.textContent = bNode.textContent;
-                      }
-                  } else if (bNode.nodeType === Node.ELEMENT_NODE) {
-                      const bEl = bNode as HTMLElement;
-                      const vEl = vNode as ApiElement;
-                      
-                      if (bEl.tagName.toLowerCase() !== vEl.tagName.toLowerCase()) {
-                          // Different tag -> Replace
-                          vParent.removeChild(vNode);
-                          i--;
-                          continue;
-                      }
-                      
-                      // Update Attributes
-                      const bAttrs = bEl.attributes;
-                      // Set/Update
-                      for (let j = 0; j < bAttrs.length; j++) {
-                          if (vEl.getAttribute(bAttrs[j].name) !== bAttrs[j].value) {
-                              vEl.setAttribute(bAttrs[j].name, bAttrs[j].value);
-                          }
-                      }
-                      // Remove missing (simplified: only handle known attributes if needed, or clear all and reset)
-                      
-                      // Recursively reconcile children
-                      reconcile(bNode, vEl);
-                  }
+                  bI++;
+                  vI++;
+              } else {
+                  // Type mismatch: assume removal of current vNode and retry bNode against next vNode
+                  vParent.removeChild(vNode);
+                  vI++;
               }
           }
       };
@@ -181,13 +189,13 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
       reconcile(fragment, body);
   };
 
+
   useEffect(() => {
     if (!editorRef.current) return;
 
     // Initial state
     const updateInitialState = () => {
       if (viewRef.current) {
-        isUpdatingFromApi.current = true;
         const root = schemaView.getRoot();
         const browserDom = viewToBrowserDOM(root);
         
@@ -208,7 +216,6 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
           pmDoc,
         );
         viewRef.current.dispatch(tr);
-        isUpdatingFromApi.current = false;
       }
     };
 
@@ -233,7 +240,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
         const newState = view.state.apply(tr);
         view.updateState(newState);
 
-        if (tr.docChanged && !isUpdatingFromApi.current) {
+        if (tr.docChanged) {
           // Sync back to xml-api via SchemaView
           try {
             syncToXml(newState.doc);
@@ -255,11 +262,10 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
 
   // Sync from xml-api to ProseMirror (listen to View events)
   useEffect(() => {
-    return schemaView.on((_event) => {
+    return schemaView.on((_event: any) => {
         // For now, on any structural change, reload.
         // Granular updates are optimizing.
-        if (viewRef.current && !isUpdatingFromApi.current) {
-            isUpdatingFromApi.current = true;
+        if (viewRef.current) {
             const root = schemaView.getRoot();
             const browserDom = viewToBrowserDOM(root);
             
@@ -280,7 +286,6 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
               );
               viewRef.current.dispatch(tr);
             }
-            isUpdatingFromApi.current = false;
         }
     });
   }, [schemaView]);
