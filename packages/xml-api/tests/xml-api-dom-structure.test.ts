@@ -6,7 +6,7 @@ describe("XMLAPI DOM Structure Sync", () => {
     const xml = "<root><a/></root>";
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    
+
     const newChild = doc.createElement("b");
     doc.documentElement?.appendChild(newChild);
 
@@ -18,10 +18,10 @@ describe("XMLAPI DOM Structure Sync", () => {
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
     const root = doc.documentElement!;
-    
+
     const refNode = root.firstChild!; // <c/>
     const newChild = doc.createElement("a");
-    
+
     root.insertBefore(newChild, refNode);
 
     expect(api.source).toContain("<root><a /><c/></root>");
@@ -32,7 +32,7 @@ describe("XMLAPI DOM Structure Sync", () => {
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
     const root = doc.documentElement!;
-    
+
     const childToRemove = root.firstChild!; // <a/>
     root.removeChild(childToRemove);
 
@@ -44,7 +44,7 @@ describe("XMLAPI DOM Structure Sync", () => {
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
     const p = doc.documentElement!;
-    
+
     const newText = doc.createTextNode("Hello ");
     p.insertBefore(newText, p.firstChild);
 

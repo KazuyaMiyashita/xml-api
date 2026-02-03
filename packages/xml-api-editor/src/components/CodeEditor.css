@@ -10,10 +10,25 @@
 }
 
 /* Syntax Highlighting */
-.syntax-tag { color: #e06c75; } /* Reddish */
-.syntax-name { color: #d19a66; } /* Orange */
-.syntax-attr-name { color: #d19a66; } /* Orange */
-.syntax-attr-value { color: #98c379; } /* Green */
-.syntax-comment { color: #5c6370; font-style: italic; }
-.syntax-char-data { color: #abb2bf; }
-.syntax-error { text-decoration: underline wavy red; }
+.syntax-tag {
+  color: #e06c75;
+} /* Reddish */
+.syntax-name {
+  color: #d19a66;
+} /* Orange */
+.syntax-attr-name {
+  color: #d19a66;
+} /* Orange */
+.syntax-attr-value {
+  color: #98c379;
+} /* Green */
+.syntax-comment {
+  color: #5c6370;
+  font-style: italic;
+}
+.syntax-char-data {
+  color: #abb2bf;
+}
+.syntax-error {
+  text-decoration: underline wavy red;
+}

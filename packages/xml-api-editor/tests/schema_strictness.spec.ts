@@ -1,13 +1,15 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Schema Strictness', () => {
+test.describe("Schema Strictness", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173');
+    await page.goto("http://localhost:5173");
   });
 
-  test('Unsupported elements (ul/li) are not rendered as structural nodes', async ({ page }) => {
-    const wysiwyg = page.locator('.ProseMirror');
-    const codeEditor = page.locator('.cm-content');
+  test("Unsupported elements (ul/li) are not rendered as structural nodes", async ({
+    page,
+  }) => {
+    const wysiwyg = page.locator(".ProseMirror");
+    const codeEditor = page.locator(".cm-content");
 
     // Inject unsupported XML via CodeEditor
     const xmlWithList = `<?xml version="1.0" encoding="UTF-8"?>
@@ -24,12 +26,14 @@ test.describe('Schema Strictness', () => {
 </html>`;
 
     await codeEditor.click();
-    await page.keyboard.press('Meta+a');
-    await page.keyboard.press('Delete');
+    await page.keyboard.press("Meta+a");
+    await page.keyboard.press("Delete");
     await page.keyboard.insertText(xmlWithList);
 
     // Wait for WYSIWYG update
-    await expect(wysiwyg.locator('h1')).toHaveText('List Test', { timeout: 5000 });
+    await expect(wysiwyg.locator("h1")).toHaveText("List Test", {
+      timeout: 5000,
+    });
 
     // Check that UL/LI are NOT present in WYSIWYG DOM
     // ProseMirror should have stripped them or unwrapped them.
@@ -40,16 +44,16 @@ test.describe('Schema Strictness', () => {
     // If it's not wrapped in a block (p, h1, section), it might be dropped if 'doc' doesn't allow top-level text.
     // Our schema: doc: { content: "block+" }.
     // So text at top level (body children) is invalid.
-    
-    // Expectation: The list items might be lost or wrapped in a default block if PM is smart? 
+
+    // Expectation: The list items might be lost or wrapped in a default block if PM is smart?
     // Or dropped.
-    
-    const ul = wysiwyg.locator('ul');
+
+    const ul = wysiwyg.locator("ul");
     await expect(ul).toBeHidden();
-    
-    const li = wysiwyg.locator('li');
+
+    const li = wysiwyg.locator("li");
     await expect(li).toBeHidden();
-    
+
     // Check if text is present?
     // This depends on PM parser behavior.
     // If it drops them, that's "strictness" applied.

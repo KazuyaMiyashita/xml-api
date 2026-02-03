@@ -1,12 +1,12 @@
 // @ts-ignore
-import { XMLAPI } from '@miy2/xml-api';
+import { XMLAPI } from "@miy2/xml-api";
 // @ts-ignore
-import { ModelElement } from '@miy2/xml-api/model/xml-api-model';
+import { ModelElement } from "@miy2/xml-api/model/xml-api-model";
 
 export enum DocumentType {
-  XHTML = 'XHTML',
-  MEI = 'MEI', // Music Encoding Initiative
-  UNKNOWN = 'UNKNOWN'
+  XHTML = "XHTML",
+  MEI = "MEI", // Music Encoding Initiative
+  UNKNOWN = "UNKNOWN",
 }
 
 export interface DocumentInfo {
@@ -22,21 +22,21 @@ export interface DocumentInfo {
 export function detectDocumentType(api: XMLAPI): DocumentInfo {
   const model = api.model;
   if (!model || !(model instanceof ModelElement)) {
-    return { type: DocumentType.UNKNOWN, rootTag: '' };
+    return { type: DocumentType.UNKNOWN, rootTag: "" };
   }
 
   const rootTag = model.tagName;
-  let namespace = model.attributes.get('xmlns');
-  
+  let namespace = model.attributes.get("xmlns");
+
   // Basic detection logic
-  if (rootTag === 'html') {
-    if (namespace === 'http://www.w3.org/1999/xhtml' || !namespace) {
+  if (rootTag === "html") {
+    if (namespace === "http://www.w3.org/1999/xhtml" || !namespace) {
       return { type: DocumentType.XHTML, rootTag, namespace };
     }
   }
 
-  if (rootTag === 'mei' || rootTag === 'mei:mei') {
-    if (namespace && namespace.includes('music-encoding.org')) {
+  if (rootTag === "mei" || rootTag === "mei:mei") {
+    if (namespace && namespace.includes("music-encoding.org")) {
       return { type: DocumentType.MEI, rootTag, namespace };
     }
     // Assume MEI if tag is mei

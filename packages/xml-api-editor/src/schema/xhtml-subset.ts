@@ -1,4 +1,4 @@
-import { Schema } from 'prosemirror-model';
+import { Schema } from "prosemirror-model";
 
 // Define the schema for the strict subset of XHTML5 we support
 // Supported Elements:
@@ -12,14 +12,16 @@ export const xhtmlSubsetSchema = new Schema({
   nodes: {
     // The document root must contain one or more blocks
     doc: { content: "block+" },
-    
+
     paragraph: {
       content: "inline*",
       group: "block",
       parseDOM: [{ tag: "p" }],
-      toDOM() { return ["p", 0]; }
+      toDOM() {
+        return ["p", 0];
+      },
     },
-    
+
     heading: {
       attrs: { level: { default: 1 } },
       content: "inline*",
@@ -31,33 +33,41 @@ export const xhtmlSubsetSchema = new Schema({
         { tag: "h3", attrs: { level: 3 } },
         { tag: "h4", attrs: { level: 4 } },
         { tag: "h5", attrs: { level: 5 } },
-        { tag: "h6", attrs: { level: 6 } }
+        { tag: "h6", attrs: { level: 6 } },
       ],
-      toDOM(node) { return ["h" + node.attrs.level, 0]; }
+      toDOM(node) {
+        return ["h" + node.attrs.level, 0];
+      },
     },
-    
+
     section: {
       content: "block+",
       group: "block",
       parseDOM: [{ tag: "section" }],
-      toDOM() { return ["section", 0]; }
+      toDOM() {
+        return ["section", 0];
+      },
     },
-    
+
     text: { group: "inline" },
-    
+
     hard_break: {
       inline: true,
       group: "inline",
       selectable: false,
       parseDOM: [{ tag: "br" }],
-      toDOM() { return ["br"]; }
-    }
+      toDOM() {
+        return ["br"];
+      },
+    },
   },
-  
+
   marks: {
     strong: {
       parseDOM: [{ tag: "strong" }, { tag: "b" }],
-      toDOM() { return ["strong", 0]; }
-    }
-  }
+      toDOM() {
+        return ["strong", 0];
+      },
+    },
+  },
 });

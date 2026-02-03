@@ -13,10 +13,10 @@ export interface TextPatch {
 export class Transaction {
   public readonly patches: TextPatch[] = [];
   public docChanged = false;
-  
+
   /** Indicates if this transaction originated from a remote source (collaboration). */
   public isRemote = false;
-  
+
   // Placeholder for future selection and metadata
   // public selection: Selection | null = null;
   // public meta: Map<string, any> = new Map();
@@ -51,7 +51,9 @@ export class Transaction {
     for (const p of sorted) {
       // Validate range
       if (p.from > source.length || p.to > source.length) {
-        throw new Error(`Invalid patch range: ${p.from}-${p.to} (Length: ${source.length})`);
+        throw new Error(
+          `Invalid patch range: ${p.from}-${p.to} (Length: ${source.length})`,
+        );
       }
       source = source.slice(0, p.from) + p.text + source.slice(p.to);
     }
