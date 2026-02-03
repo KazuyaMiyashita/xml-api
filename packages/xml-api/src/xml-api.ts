@@ -11,6 +11,7 @@ import type { CST } from "./cst/xml-cst";
 import { SyncEngine } from "./engine/sync-engine";
 import { ModelElement, type ModelNode } from "./model/xml-api-model";
 import { type EventHandler } from "./xml-api-events";
+import { SchemaView, type SchemaViewConfig } from "./view/schema-view";
 
 /**
  * The primary entry point for the XML API.
@@ -60,6 +61,17 @@ export class XMLAPI {
   }
 
   // --- Operations ---
+
+  /**
+   * Creates a schema-specific view of the document.
+   * @param config Configuration for the view (e.g., filter).
+   */
+  public createView(config: SchemaViewConfig = {}): SchemaView {
+    if (!this.engine.model) {
+      throw new Error("Cannot create view: Model not initialized");
+    }
+    return new SchemaView(this.engine.model, this.engine, config);
+  }
 
   /**
    * Updates the source code directly (e.g. from a text editor).
@@ -190,3 +202,5 @@ export class XMLAPI {
     this.engine.replaceNode(target, content);
   }
 }
+
+export { SchemaView, type SchemaViewConfig };

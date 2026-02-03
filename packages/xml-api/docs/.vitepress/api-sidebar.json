@@ -24,6 +24,16 @@
     "collapsed": true,
     "items": [
       {
+        "text": "cst-utils",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "detectIndent",
+            "link": "/api/reference/cst/cst-utils/functions/detectIndent"
+          }
+        ]
+      },
+      {
         "text": "grammar",
         "collapsed": true,
         "items": [
@@ -262,6 +272,10 @@
             "link": "/api/reference/model/xml-api-model/classes/ModelElement"
           },
           {
+            "text": "ModelFormatting",
+            "link": "/api/reference/model/xml-api-model/interfaces/ModelFormatting"
+          },
+          {
             "text": "ModelNode",
             "link": "/api/reference/model/xml-api-model/classes/ModelNode"
           },
@@ -308,6 +322,30 @@
   {
     "text": "modules",
     "link": "/api/reference/modules"
+  },
+  {
+    "text": "view",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "schema-view",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "SchemaView",
+            "link": "/api/reference/view/schema-view/classes/SchemaView"
+          },
+          {
+            "text": "SchemaViewConfig",
+            "link": "/api/reference/view/schema-view/interfaces/SchemaViewConfig"
+          },
+          {
+            "text": "ViewChangeEvent",
+            "link": "/api/reference/view/schema-view/type-aliases/ViewChangeEvent"
+          }
+        ]
+      }
+    ]
   },
   {
     "text": "xml-api",

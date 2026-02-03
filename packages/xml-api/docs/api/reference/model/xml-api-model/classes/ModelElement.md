@@ -52,6 +52,16 @@
 
 ***
 
+### formatting
+
+> **formatting**: [`ModelFormatting`](../interfaces/ModelFormatting.md)
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`formatting`](ModelNode.md#formatting)
+
+***
+
 ### id
 
 > `readonly` **id**: `string`
@@ -151,6 +161,26 @@
 #### Returns
 
 `ModelElement`[]
+
+***
+
+### findNodeById()
+
+> **findNodeById**(`id`): [`ModelNode`](ModelNode.md) \| `null`
+
+#### Parameters
+
+##### id
+
+`string`
+
+#### Returns
+
+[`ModelNode`](ModelNode.md) \| `null`
+
+#### Overrides
+
+[`ModelNode`](ModelNode.md).[`findNodeById`](ModelNode.md#findnodebyid)
 
 ***
 

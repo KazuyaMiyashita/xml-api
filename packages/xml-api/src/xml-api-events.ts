@@ -33,24 +33,24 @@ export type EventHandler = (event: ChangeEvent) => void;
 /**
  * Internal event emitter for managing listeners.
  */
-export class EventEmitter {
-  private listeners: EventHandler[] = [];
+export class EventEmitter<E = ChangeEvent> {
+  private listeners: ((event: E) => void)[] = [];
 
   /**
    * Registers an event handler.
    * @param handler The callback function.
    * @returns A function to unsubscribe the handler.
    */
-  on(handler: EventHandler): () => void {
+  on(handler: (event: E) => void): () => void {
     this.listeners.push(handler);
     return () => this.off(handler);
   }
 
-  off(handler: EventHandler): void {
+  off(handler: (event: E) => void): void {
     this.listeners = this.listeners.filter((h) => h !== handler);
   }
 
-  emit(event: ChangeEvent): void {
+  emit(event: E): void {
     for (const handler of this.listeners) {
       handler(event);
     }

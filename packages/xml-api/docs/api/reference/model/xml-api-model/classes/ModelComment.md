@@ -46,6 +46,16 @@
 
 ***
 
+### formatting
+
+> **formatting**: [`ModelFormatting`](../interfaces/ModelFormatting.md)
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`formatting`](ModelNode.md#formatting)
+
+***
+
 ### id
 
 > `readonly` **id**: `string`
@@ -107,6 +117,26 @@
 #### Inherited from
 
 [`ModelNode`](ModelNode.md).[`cloneBase`](ModelNode.md#clonebase)
+
+***
+
+### findNodeById()
+
+> **findNodeById**(`id`): [`ModelNode`](ModelNode.md) \| `null`
+
+#### Parameters
+
+##### id
+
+`string`
+
+#### Returns
+
+[`ModelNode`](ModelNode.md) \| `null`
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`findNodeById`](ModelNode.md#findnodebyid)
 
 ***
 

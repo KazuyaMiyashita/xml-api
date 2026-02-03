@@ -9,17 +9,20 @@ import {
 export interface FormatterOptions {
   indent?: string; // e.g. "  ", "\t"
   newline?: string; // e.g. "\n"
+  baseIndent?: string; // Indentation of the root node being formatted
   force?: boolean; // If true, re-format even if existing formatting is present
 }
 
 export class Formatter {
   private indent: string;
   private newline: string;
+  private baseIndent: string;
   private force: boolean;
 
   constructor(options: FormatterOptions = {}) {
     this.indent = options.indent ?? "  ";
     this.newline = options.newline ?? "\n";
+    this.baseIndent = options.baseIndent ?? "";
     this.force = options.force ?? false;
   }
 
@@ -126,7 +129,7 @@ export class Formatter {
   }
 
   private getIndent(level: number): string {
-    return this.indent.repeat(level);
+    return this.baseIndent + this.indent.repeat(level);
   }
 
   private escape(str: string): string {

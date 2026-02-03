@@ -2,19 +2,25 @@
 
 ***
 
-# Class: EventEmitter
+# Class: EventEmitter\<E\>
 
 Internal event emitter for managing listeners.
+
+## Type Parameters
+
+### E
+
+`E` = [`ChangeEvent`](../type-aliases/ChangeEvent.md)
 
 ## Constructors
 
 ### Constructor
 
-> **new EventEmitter**(): `EventEmitter`
+> **new EventEmitter**\<`E`\>(): `EventEmitter`\<`E`\>
 
 #### Returns
 
-`EventEmitter`
+`EventEmitter`\<`E`\>
 
 ## Methods
 
@@ -26,7 +32,7 @@ Internal event emitter for managing listeners.
 
 ##### event
 
-[`ChangeEvent`](../type-aliases/ChangeEvent.md)
+`E`
 
 #### Returns
 
@@ -42,7 +48,7 @@ Internal event emitter for managing listeners.
 
 ##### handler
 
-[`EventHandler`](../type-aliases/EventHandler.md)
+(`event`) => `void`
 
 #### Returns
 
@@ -60,7 +66,7 @@ Registers an event handler.
 
 ##### handler
 
-[`EventHandler`](../type-aliases/EventHandler.md)
+(`event`) => `void`
 
 The callback function.
 

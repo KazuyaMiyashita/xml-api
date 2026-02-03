@@ -109,6 +109,26 @@ The current source code string.
 
 ## Methods
 
+### createView()
+
+> **createView**(`config`): [`SchemaView`](../../view/schema-view/classes/SchemaView.md)
+
+Creates a schema-specific view of the document.
+
+#### Parameters
+
+##### config
+
+[`SchemaViewConfig`](../../view/schema-view/interfaces/SchemaViewConfig.md) = `{}`
+
+Configuration for the view (e.g., filter).
+
+#### Returns
+
+[`SchemaView`](../../view/schema-view/classes/SchemaView.md)
+
+***
+
 ### getDocument()
 
 > **getDocument**(): [`Document`](../../dom/classes/Document.md)

@@ -72,6 +72,26 @@ Output:
 api.updateInput(14, 28, "New Content");
 ```
 
+### Schema Projection (New in v0.9.1)
+
+Create a filtered view of the document that adheres to a specific schema (e.g. XHTML).
+The view preserves the underlying model's full fidelity (including comments and custom tags) while presenting a simplified DOM for editing.
+
+```typescript
+const api = new XMLAPI(source);
+const view = api.createView({
+  // Only show 'p' and 'div' elements
+  filter: (node) => 
+    node.getType() === 'Element' && 
+    ['p', 'div'].includes((node as ModelElement).tagName)
+});
+
+const root = view.getRoot(); // Returns a filtered DOM-like element
+const p = view.getDocument().createElement('p');
+p.textContent = "New Paragraph";
+root.appendChild(p); // Updates source automatically with smart formatting
+```
+
 ## Documentation
 
 - **[Getting Started](docs/guide/getting-started.md)**: Installation and detailed usage.

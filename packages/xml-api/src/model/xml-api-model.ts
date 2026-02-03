@@ -9,10 +9,19 @@ export enum ModelNodeType {
   CDATA = "CDATA",
 }
 
+export interface ModelFormatting {
+  /**
+   * The whitespace preceding the node, if it starts on a new line.
+   * Null if the node is inline (preceded by non-whitespace content).
+   */
+  indent: string | null;
+}
+
 export abstract class ModelNode {
   public readonly id: NodeId;
   public parent: ModelElement | null = null;
   public cst: CST | null = null;
+  public formatting: ModelFormatting = { indent: null };
 
   constructor() {
     this.id = crypto.randomUUID();
@@ -22,12 +31,18 @@ export abstract class ModelNode {
 
   abstract clone(preserveId?: boolean): ModelNode;
 
+  findNodeById(id: string): ModelNode | null {
+    if (this.id === id) return this;
+    return null;
+  }
+
   protected cloneBase(target: ModelNode, preserveId: boolean): void {
     if (preserveId) {
       // @ts-ignore
       target.id = this.id;
     }
     target.cst = this.cst;
+    target.formatting = { ...this.formatting };
   }
 }
 
@@ -77,6 +92,15 @@ export class ModelElement extends ModelNode {
       }
     }
     return results;
+  }
+
+  override findNodeById(id: string): ModelNode | null {
+    if (this.id === id) return this;
+    for (const child of this.children) {
+      const found = child.findNodeById(id);
+      if (found) return found;
+    }
+    return null;
   }
 
   text(): string {

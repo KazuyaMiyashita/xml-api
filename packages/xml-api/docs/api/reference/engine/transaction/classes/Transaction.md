@@ -39,6 +39,12 @@ Indicates if this transaction originated from a remote source (collaboration).
 
 ***
 
+### metadata
+
+> **metadata**: `Map`\<`string`, `any`\>
+
+***
+
 ### patches
 
 > `readonly` **patches**: [`TextPatch`](../interfaces/TextPatch.md)[] = `[]`
@@ -66,6 +72,22 @@ Handles multiple patches by sorting them in reverse order of position.
 
 ## Methods
 
+### getMeta()
+
+> **getMeta**(`key`): `any`
+
+#### Parameters
+
+##### key
+
+`string`
+
+#### Returns
+
+`any`
+
+***
+
 ### replace()
 
 > **replace**(`from`, `to`, `text`): `this`
@@ -91,6 +113,26 @@ End index
 `string`
 
 New text
+
+#### Returns
+
+`this`
+
+***
+
+### setMeta()
+
+> **setMeta**(`key`, `value`): `this`
+
+#### Parameters
+
+##### key
+
+`string`
+
+##### value
+
+`any`
 
 #### Returns
 

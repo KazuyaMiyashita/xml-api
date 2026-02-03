@@ -1,4 +1,5 @@
 import type { CST } from "../cst/xml-cst";
+import { detectIndent } from "../cst/cst-utils";
 import {
   ModelCDATA,
   ModelComment,
@@ -137,6 +138,9 @@ export class XMLBinder {
       if (!result.cst) {
         result.cst = node;
       }
+      if (result.cst) {
+        result.formatting.indent = detectIndent(result.cst, this.input);
+      }
     }
 
     return result;
@@ -182,6 +186,7 @@ export class XMLBinder {
 
   private applyReconciliation(target: ModelNode, source: ModelNode): void {
     target.cst = source.cst; // Update CST reference
+    target.formatting = { ...source.formatting };
 
     if (target.getType() === ModelNodeType.Text) {
       (target as ModelText).text = (source as ModelText).text;

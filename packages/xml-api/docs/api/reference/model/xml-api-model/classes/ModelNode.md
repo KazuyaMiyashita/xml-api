@@ -29,6 +29,12 @@
 
 ***
 
+### formatting
+
+> **formatting**: [`ModelFormatting`](../interfaces/ModelFormatting.md)
+
+***
+
 ### id
 
 > `readonly` **id**: `string`
@@ -74,6 +80,22 @@
 #### Returns
 
 `void`
+
+***
+
+### findNodeById()
+
+> **findNodeById**(`id`): `ModelNode` \| `null`
+
+#### Parameters
+
+##### id
+
+`string`
+
+#### Returns
+
+`ModelNode` \| `null`
 
 ***
 

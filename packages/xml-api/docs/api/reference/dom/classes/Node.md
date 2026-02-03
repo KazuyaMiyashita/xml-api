@@ -84,7 +84,7 @@ to interact with the XML model using familiar methods.
 
 > **get** **childNodes**(): [`NodeList`](NodeList.md)
 
-Returns a NodeList containing all children of this node.
+Returns a NodeList containing all children of this node, respecting the document's filter.
 
 ##### Returns
 

@@ -93,12 +93,16 @@ export abstract class Node {
   }
 
   /**
-   * Returns a NodeList containing all children of this node.
+   * Returns a NodeList containing all children of this node, respecting the document's filter.
    */
   get childNodes(): NodeList {
     if (this.model instanceof ModelElement) {
+      let children = this.model.children;
+      if (this.ownerDocument && this.ownerDocument.nodeFilter) {
+        children = children.filter((c) => this.ownerDocument!.accepts(c));
+      }
       return new NodeList(
-        this.model.children.map((c) => createWrapper(c, this.ownerDocument)),
+        children.map((c) => createWrapper(c, this.ownerDocument)),
       );
     }
     return new NodeList([]);
@@ -117,9 +121,14 @@ export abstract class Node {
   get nextSibling(): Node | null {
     const parent = this.model.parent;
     if (!parent) return null;
-    const index = parent.children.indexOf(this.model);
-    if (index >= 0 && index < parent.children.length - 1) {
-      return createWrapper(parent.children[index + 1], this.ownerDocument);
+    let index = parent.children.indexOf(this.model);
+    
+    while (index < parent.children.length - 1) {
+      index++;
+      const sibling = parent.children[index];
+      if (!this.ownerDocument || this.ownerDocument.accepts(sibling)) {
+        return createWrapper(sibling, this.ownerDocument);
+      }
     }
     return null;
   }
@@ -127,9 +136,14 @@ export abstract class Node {
   get previousSibling(): Node | null {
     const parent = this.model.parent;
     if (!parent) return null;
-    const index = parent.children.indexOf(this.model);
-    if (index > 0) {
-      return createWrapper(parent.children[index - 1], this.ownerDocument);
+    let index = parent.children.indexOf(this.model);
+    
+    while (index > 0) {
+      index--;
+      const sibling = parent.children[index];
+      if (!this.ownerDocument || this.ownerDocument.accepts(sibling)) {
+        return createWrapper(sibling, this.ownerDocument);
+      }
     }
     return null;
   }
@@ -382,6 +396,7 @@ export class Element extends Node {
 export class Document extends Node {
   private _documentElement: Element | null = null;
   private observer: DOMObserver | null = null;
+  public nodeFilter: ((node: ModelNode) => boolean) | null = null;
 
   constructor() {
     // Document doesn't strictly have a ModelNode parent in this simplified architecture
@@ -389,6 +404,13 @@ export class Document extends Node {
     // For now, we'll create a dummy root model or handle it differently
     super(new ModelElement("#document"), null);
     this.ownerDocument = this; // Document owns itself
+  }
+
+  /**
+   * Checks if a node is accepted by the current filter.
+   */
+  accepts(node: ModelNode): boolean {
+    return this.nodeFilter ? this.nodeFilter(node) : true;
   }
 
   /**

@@ -17,11 +17,18 @@ export class Transaction {
   /** Indicates if this transaction originated from a remote source (collaboration). */
   public isRemote = false;
 
-  // Placeholder for future selection and metadata
-  // public selection: Selection | null = null;
-  // public meta: Map<string, any> = new Map();
+  public metadata: Map<string, any> = new Map();
 
   constructor(public readonly startState: EditorState) {}
+
+  public setMeta(key: string, value: any): this {
+    this.metadata.set(key, value);
+    return this;
+  }
+
+  public getMeta(key: string): any {
+    return this.metadata.get(key);
+  }
 
   /**
    * Adds a text change to the transaction.

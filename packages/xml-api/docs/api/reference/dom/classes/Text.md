@@ -112,7 +112,7 @@ Base class for Text, Comment, and CDATASection nodes.
 
 > **get** **childNodes**(): [`NodeList`](NodeList.md)
 
-Returns a NodeList containing all children of this node.
+Returns a NodeList containing all children of this node, respecting the document's filter.
 
 ##### Returns
 

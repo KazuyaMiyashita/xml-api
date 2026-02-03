@@ -76,6 +76,12 @@ Represents the entire XML document.
 
 ***
 
+### nodeFilter
+
+> **nodeFilter**: (`node`) => `boolean` \| `null` = `null`
+
+***
+
 ### ownerDocument
 
 > **ownerDocument**: `Document` \| `null`
@@ -102,7 +108,7 @@ Represents the entire XML document.
 
 > **get** **childNodes**(): [`NodeList`](NodeList.md)
 
-Returns a NodeList containing all children of this node.
+Returns a NodeList containing all children of this node, respecting the document's filter.
 
 ##### Returns
 
@@ -283,6 +289,24 @@ Returns the parent of this node.
 [`Element`](Element.md).[`textContent`](Element.md#textcontent)
 
 ## Methods
+
+### accepts()
+
+> **accepts**(`node`): `boolean`
+
+Checks if a node is accepted by the current filter.
+
+#### Parameters
+
+##### node
+
+[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
+
+#### Returns
+
+`boolean`
+
+***
 
 ### appendChild()
 
