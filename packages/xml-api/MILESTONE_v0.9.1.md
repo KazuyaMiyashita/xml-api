@@ -29,6 +29,19 @@ import { XMLAPI, Formatter } from '@miy2/xml-api';
 const formatter = new Formatter({ indent: "  " });
 ```
 
+### 1.2 Clarify Recommended Update Path
+
+**Context:**
+`XMLAPI.updateText` is deprecated in favor of the DOM interface. However, directly manipulating the `xml-api` DOM (virtual) requires bridging from the browser's real DOM events. A clear guide or helper method to bridge "Real DOM Event -> xml-api DOM Update" would be beneficial, especially for `contentEditable` scenarios.
+
+**Ideal Outcome:**
+Provide clear documentation or a helper utility to bridge these events.
+
+```typescript
+// Example Helper Concept
+api.domBridge.applyInputEvent(realDomEvent);
+```
+
 ---
 
 ## 2. Robust Incremental Updates
@@ -181,4 +194,27 @@ Events should carry delta information similar to `MutationRecord`.
   removedNodes: [ ... ],
   previousSibling: ...
 }
+```
+
+---
+
+## 7. Schema & Validation
+
+### 7.1 Strict Schema Definition Support
+
+**Context:**
+`xml-api` currently accepts arbitrary XML. For building specialized editors (e.g. an XHTML5 subset editor), we need to distinguish between "supported/editable" nodes and "unknown/read-only" nodes.
+
+**Current Behavior:**
+All well-formed XML nodes are treated equally.
+
+**Ideal Interface:**
+Allow defining a schema or validator that tags nodes as `valid` or `invalid`. This would allow the DOM interface to expose invalid nodes as generic `UnknownElement` wrappers.
+
+```typescript
+const api = new XMLAPI(source, {
+  schema: {
+    isValid: (node) => ['p', 'div', 'span'].includes(node.tagName)
+  }
+});
 ```
