@@ -1,6 +1,6 @@
 # Milestone v0.9.1: Triple-Layer Reconciliation Architecture
 
-**Status:** Draft
+**Status:** Finalized
 **Target Release:** v0.9.1
 **Primary Focus:** Stabilizing the core SyncEngine and introducing the "Schema Projection" layer to support domain-specific editors (XHTML, MEI).
 
