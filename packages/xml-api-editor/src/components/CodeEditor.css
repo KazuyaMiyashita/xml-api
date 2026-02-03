@@ -1,0 +1,19 @@
+.code-editor-container {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: #282c34;
+}
+
+.code-editor-container .cm-editor {
+  height: 100%;
+}
+
+/* Syntax Highlighting */
+.syntax-tag { color: #e06c75; } /* Reddish */
+.syntax-name { color: #d19a66; } /* Orange */
+.syntax-attr-name { color: #d19a66; } /* Orange */
+.syntax-attr-value { color: #98c379; } /* Green */
+.syntax-comment { color: #5c6370; font-style: italic; }
+.syntax-char-data { color: #abb2bf; }
+.syntax-error { text-decoration: underline wavy red; }
