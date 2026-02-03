@@ -435,7 +435,7 @@ export class XMLBinder {
       structural.children[0].name === "STag"
     ) {
       // content -> seq(opt(CharData), rep(seq(alt(...), opt(CharData))))
-      
+
       let insertPos: number;
 
       // Look for the next sibling that has a CST (stable anchor)

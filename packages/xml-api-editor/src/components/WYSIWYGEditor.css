@@ -1,0 +1,76 @@
+.wysiwyg-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: white;
+}
+
+.wysiwyg-toolbar {
+  padding: 5px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.wysiwyg-toolbar button {
+  padding: 4px 8px;
+  margin-right: 5px;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid #999;
+  border-radius: 3px;
+}
+
+.wysiwyg-toolbar button:hover {
+  background-color: #e0e0e0;
+}
+
+.wysiwyg-editor {
+  flex-grow: 1;
+  overflow-y: auto;
+  box-sizing: border-box;
+  background-color: white;
+  color: black;
+  position: relative;
+}
+
+/* ProseMirror specific styles */
+.ProseMirror {
+  padding: 20px;
+  min-height: 100%;
+  outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: sans-serif;
+  line-height: 1.5;
+}
+
+.ProseMirror p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.ProseMirror h1 {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0.67em 0;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0.83em 0;
+}
+
+.wysiwyg-section {
+  border: 1px dashed #ddd;
+  padding: 10px;
+  margin: 10px 0;
+  display: block;
+}
+
+.ProseMirror strong {
+  font-weight: bold;
+}

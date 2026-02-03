@@ -1,64 +1,14 @@
 {
-  "name": "@miy2/xml-api",
-  "version": "0.9.0",
-  "description": "An XML library that faithfully synchronizes documents and AST.",
-  "main": "dist/xml-api.js",
-  "exports": {
-    ".": {
-      "types": "./dist/xml-api.d.ts",
-      "default": "./dist/xml-api.js"
-    },
-    "./*": {
-      "types": "./dist/*.d.ts",
-      "default": "./dist/*.js"
-    }
-  },
-  "types": "dist/xml-api.d.ts",
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "dist"
-  ],
+  "name": "xml-api-workspace",
+  "private": true,
+  "packageManager": "pnpm@10.23.0",
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "npm run build",
-    "typecheck": "tsc --noEmit",
-    "docs:typecheck": "vue-tsc --noEmit -p docs/tsconfig.json",
-    "test": "jest",
-    "test:all": "jest",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:gen-api": "typedoc && ts-node scripts/generate-sidebar.ts",
-    "docs:preview": "vitepress preview docs",
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
     "format": "biome format --write ."
   },
-  "keywords": [
-    "xml",
-    "ast",
-    "code",
-    "parser"
-  ],
-  "author": "Kazuya Miyashita <miy1924@gmail.com> (https://miy2.com/)",
-  "license": "MIT",
-  "packageManager": "pnpm@10.23.0",
   "devDependencies": {
-    "@biomejs/biome": "2.3.13",
-    "@types/jest": "^30.0.0",
-    "@types/jsdom": "^27.0.0",
-    "@types/node": "^25.0.10",
-    "esbuild": "^0.27.2",
-    "jest": "^30.2.0",
-    "jsdom": "^27.4.0",
-    "mermaid": "^11.12.2",
-    "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
-    "typedoc": "^0.28.16",
-    "typedoc-plugin-markdown": "^4.9.0",
-    "typescript": "^5.9.3",
-    "vitepress": "^1.6.4",
-    "vitepress-plugin-mermaid": "^2.0.17",
-    "vue": "^3.5.27",
-    "vue-tsc": "^3.2.4"
+    "@biomejs/biome": "2.3.13"
   }
 }

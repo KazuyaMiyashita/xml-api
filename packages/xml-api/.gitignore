@@ -1,0 +1,8 @@
+node_modules
+.pnpm-store
+/worktrees/
+.taskrc
+.task
+/dist/
+docs/.vitepress/dist/
+docs/.vitepress/cache/

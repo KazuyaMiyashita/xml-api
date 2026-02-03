@@ -77,7 +77,7 @@ export class SyncEngine {
       // Since Transaction can have multiple patches, simple history push is harder.
       // We'll approximate by storing the full undo/redo for the range covered.
       // Ideally, HistoryManager should handle Transaction objects.
-      
+
       // Temporary: Only support history for single-patch transactions or reconstruct simple history
       if (tr.patches.length === 1) {
         const p = tr.patches[0];
@@ -95,16 +95,16 @@ export class SyncEngine {
     }
 
     this._state = this._state.update({ source: newSource });
-    
+
     // Core Update Logic (Parser / Binder)
     this.binder = new XMLBinder(newSource);
-    
+
     // Optimization: If single patch, try incremental. Else full parse.
     let handled = false;
     if (tr.patches.length === 1 && oldState.cst) {
       const p = tr.patches[0];
       const delta = p.text.length - (p.to - p.from);
-      
+
       const incrementalResult = this.tryIncrementalUpdate(p.from, p.to, delta);
       if (incrementalResult) {
         if (oldState.model) {
@@ -116,10 +116,10 @@ export class SyncEngine {
         } else {
           this.events.emit({ type: "full", transaction: tr });
         }
-        
+
         if (this._state.cst && !this._state.cst.wellFormed) {
-           this._state = this._state.update({ model: null });
-           this.events.emit({ type: "full", transaction: tr });
+          this._state = this._state.update({ model: null });
+          this.events.emit({ type: "full", transaction: tr });
         }
         handled = true;
       }
@@ -278,7 +278,7 @@ export class SyncEngine {
     try {
       const cst = this.parser.parse(this._state.source);
       let model: ModelElement | null = null;
-      
+
       if (cst?.wellFormed) {
         // Hydrate full model
         const newModel = this.binder.hydrate(cst);
@@ -286,7 +286,7 @@ export class SyncEngine {
           model = newModel;
         }
       }
-      
+
       this._state = this._state.update({ cst, model });
     } catch (e) {
       console.error("Parse error:", e);
