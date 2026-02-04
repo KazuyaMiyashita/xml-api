@@ -3,9 +3,9 @@ import type {
   Node as ApiNode,
   ModelElement,
   ModelNode,
-  ViewChangeEvent,
   XMLAPI,
 } from "@miy2/xml-api";
+import type { ViewChangeEvent } from "@miy2/xml-api/view/schema-view";
 import { baseKeymap, toggleMark } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
 import {
