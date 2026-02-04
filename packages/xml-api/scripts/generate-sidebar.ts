@@ -12,6 +12,7 @@ const outputFile = path.resolve(
 );
 
 function getSidebarItems(dir: string, baseLink: string) {
+  // biome-ignore lint/suspicious/noExplicitAny: Dynamic sidebar item structure
   const items: any[] = [];
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 

@@ -153,6 +153,7 @@ export class SyncEngine {
     from: number,
     to: number,
     text: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
   ): void {
     const tr = new Transaction(this._state);
@@ -174,6 +175,7 @@ export class SyncEngine {
     start: number,
     end: number,
     text: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
   ): void {
     // Uses dispatch via updateSource logic, but conceptually distinct
@@ -222,6 +224,7 @@ export class SyncEngine {
     modelNode: ModelElement,
     key: string,
     value: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
   ): void {
     const builder = new TransactionBuilder(this._state, this.binder);
@@ -240,6 +243,7 @@ export class SyncEngine {
   public updateText(
     modelNode: ModelElement,
     text: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
   ): void {
     const builder = new TransactionBuilder(this._state, this.binder);
@@ -258,6 +262,7 @@ export class SyncEngine {
   public replaceNode(
     target: ModelNode,
     content: ModelNode,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
   ): void {
     const builder = new TransactionBuilder(this._state, this.binder);
@@ -277,6 +282,7 @@ export class SyncEngine {
     parent: ModelElement,
     child: ModelNode,
     index: number,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
   ): void {
     const builder = new TransactionBuilder(this._state, this.binder);
@@ -295,6 +301,7 @@ export class SyncEngine {
   public removeNode(
     parent: ModelElement,
     child: ModelNode,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
   ): void {
     const builder = new TransactionBuilder(this._state, this.binder);

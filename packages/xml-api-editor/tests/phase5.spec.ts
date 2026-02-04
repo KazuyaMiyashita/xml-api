@@ -20,11 +20,11 @@ test.describe("Phase 5: Quality & Stability", () => {
     await page.keyboard.type("After");
 
     // Get text content
-    const text = await codeEditor.innerText();
+    const _text = await codeEditor.innerText();
 
     // Check if it contains newline (CodeMirror usually renders lines as separate divs, but innerText might join them)
     // Actually, CodeMirror structure: .cm-line
-    const lines = await codeEditor.locator(".cm-line").allInnerTexts();
+    const _lines = await codeEditor.locator(".cm-line").allInnerTexts();
 
     // We expect "Before" and "After" to be on different lines or at least separated
     // Since we are appending to the end of the file (or wherever the cursor was), let's be more specific.
@@ -55,7 +55,7 @@ test.describe("Phase 5: Quality & Stability", () => {
     // Wait a bit to see if any magic happens
     await page.waitForTimeout(500);
 
-    const text = await codeEditor.innerText();
+    const _text = await codeEditor.innerText();
     // Should be just "<" (or maybe invisible char for line), but definitely not "<p>&gt;</p>"
     // CodeMirror line text:
     const lineText = await codeEditor.locator(".cm-line").first().innerText();
@@ -63,7 +63,7 @@ test.describe("Phase 5: Quality & Stability", () => {
     expect(lineText.trim()).toBe("<");
 
     // Also check WYSIWYG side -> Should show error or broken state, NOT render garbage
-    const wysiwyg = page.locator(".pane-left .pane-body");
+    const _wysiwyg = page.locator(".pane-left .pane-body");
     // Depending on implementation, it might show "XML Error" or similar.
     // For now, let's just assert it doesn't crash or show weird <p> tags if the model is broken.
   });

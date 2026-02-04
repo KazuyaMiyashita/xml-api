@@ -55,6 +55,6 @@ test.describe("Phase 2.5: Bug Fixes & Improvements", () => {
     const fontWeight = await strong.evaluate(
       (el) => window.getComputedStyle(el).fontWeight,
     );
-    expect(parseInt(fontWeight) >= 600 || fontWeight === "bold").toBe(true);
+    expect(parseInt(fontWeight, 10) >= 600 || fontWeight === "bold").toBe(true);
   });
 });

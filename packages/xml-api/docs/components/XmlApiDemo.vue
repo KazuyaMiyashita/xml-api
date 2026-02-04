@@ -110,6 +110,7 @@ function onUpdateAttr(key: string, value: string) {
 
   const el = selectedNode.value as Element;
   const model = el.getModel();
+  // biome-ignore lint/suspicious/noExplicitAny: Access internal engine for demo purposes
   const binder = (api as any).engine.binder as XMLBinder;
 
   const patch = binder.calcSetAttributePatch(model, key, value);
@@ -139,6 +140,7 @@ function onRemoveAttr(key: string) {
 
 function onUpdateText(value: string) {
   if (!api || !selectedNode.value) return;
+  // biome-ignore lint/suspicious/noExplicitAny: Access internal engine for demo purposes
   const binder = (api as any).engine.binder as XMLBinder;
   const model = selectedNode.value.getModel();
 

@@ -76,6 +76,7 @@ export class XMLAPI {
     from: number,
     to: number,
     text: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
   ): void {
     this.engine.updateSource(from, to, text, meta);

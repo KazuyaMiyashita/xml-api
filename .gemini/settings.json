@@ -18,6 +18,7 @@
       "run_shell_command(pnpm test)",
       "run_shell_command(pnpm jest)",
       "run_shell_command(pnpm format)",
+      "run_shell_command(pnpm lint)",
       "run_shell_command(pnpm docs:gen-api)",
       "run_shell_command(pnpm start)",
       "run_shell_command(task info)"

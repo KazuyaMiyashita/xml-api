@@ -27,6 +27,7 @@ async function run() {
     await scenarioData.value.run((msg: string) => {
       output.value.push(msg);
     });
+    // biome-ignore lint/suspicious/noExplicitAny: Simple error handling
   } catch (e: any) {
     output.value.push(`Error: ${e.message}`);
     console.error(e);

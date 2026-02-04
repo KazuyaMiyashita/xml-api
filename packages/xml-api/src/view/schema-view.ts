@@ -46,6 +46,7 @@ export type ViewChangeEvent =
 export class SchemaView {
   private document!: Document;
   private events = new EventEmitter<ViewChangeEvent>();
+  // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
   private currentMeta: Record<string, any> = { origin: "schema-view" };
 
   constructor(
@@ -218,6 +219,7 @@ export class SchemaView {
 
   public reconcile(
     externalDomNode: ExternalNode,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
     target?: Element,
   ): void {

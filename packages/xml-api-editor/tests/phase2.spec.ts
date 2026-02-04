@@ -9,7 +9,7 @@ test.describe("Phase 2: Synchronization Validation", () => {
   test("DOM mutation observation (WYSIWYG -> Code sync)", async ({ page }) => {
     const wysiwyg = page.locator(".ProseMirror");
     const codeEditor = page.locator(".cm-content");
-    const eventLog = page.locator(".pane-footer");
+    const _eventLog = page.locator(".pane-footer");
 
     // Find a paragraph to edit
     const firstP = wysiwyg.locator("p").first();

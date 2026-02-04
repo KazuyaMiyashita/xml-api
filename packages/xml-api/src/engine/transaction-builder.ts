@@ -122,7 +122,7 @@ export class TransactionBuilder {
 
     if (refNode && refNode.formatting.indent !== null) {
       baseIndent = refNode.formatting.indent;
-      prefix = newlineFound ? baseIndent : "\n" + baseIndent;
+      prefix = newlineFound ? baseIndent : `\n${baseIndent}`;
     } else if (!refNode) {
       // Empty or first significant child
       // Check next sibling to decide mode
@@ -141,7 +141,7 @@ export class TransactionBuilder {
         // If parent has indent, assume block.
         if (parent.formatting.indent !== null) {
           baseIndent = parent.formatting.indent + indentUnit;
-          prefix = "\n" + baseIndent;
+          prefix = `\n${baseIndent}`;
         }
       }
     }
@@ -151,7 +151,7 @@ export class TransactionBuilder {
     // Simple heuristic: if we added a newline prefix (block mode), add a newline suffix
     if (prefix.includes("\n") || newlineFound) {
       // Use parent's indent for the closing tag
-      suffix = "\n" + (parent.formatting.indent || "");
+      suffix = `\n${parent.formatting.indent || ""}`;
     }
 
     const formatter = new Formatter({ indent: indentUnit, baseIndent });

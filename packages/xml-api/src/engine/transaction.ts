@@ -17,15 +17,18 @@ export class Transaction {
   /** Indicates if this transaction originated from a remote source (collaboration). */
   public isRemote = false;
 
+  // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
   public metadata: Map<string, any> = new Map();
 
   constructor(public readonly startState: EditorState) {}
 
+  // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
   public setMeta(key: string, value: any): this {
     this.metadata.set(key, value);
     return this;
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
   public getMeta(key: string): any {
     return this.metadata.get(key);
   }
