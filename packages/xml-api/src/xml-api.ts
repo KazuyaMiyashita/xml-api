@@ -70,9 +70,15 @@ export class XMLAPI {
    * @param from Start index of the range to replace.
    * @param to End index of the range.
    * @param text The new text to insert.
+   * @param meta (Optional) Metadata for the transaction.
    */
-  public updateSource(from: number, to: number, text: string): void {
-    this.engine.updateSource(from, to, text);
+  public updateSource(
+    from: number,
+    to: number,
+    text: string,
+    meta?: Record<string, any>,
+  ): void {
+    this.engine.updateSource(from, to, text, meta);
   }
 
   /**

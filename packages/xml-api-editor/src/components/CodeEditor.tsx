@@ -141,7 +141,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
             update.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
               const text = inserted.toString();
               try {
-                api.updateSource(fromA, toA, text);
+                api.updateSource(fromA, toA, text, { origin: "code-editor" });
               } catch (e) {
                 console.error("Incremental update failed:", e);
               }
@@ -188,7 +188,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
   }, [api, cstHighlight]);
 
   useEffect(() => {
-    return api.on((_event: ChangeEvent) => {
+    return api.on((event: ChangeEvent) => {
+      if (event.transaction?.getMeta("origin") === "code-editor") {
+        return;
+      }
       checkForUpdates();
     });
   }, [api]);

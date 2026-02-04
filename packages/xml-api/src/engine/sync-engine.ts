@@ -149,8 +149,18 @@ export class SyncEngine {
    * Update the source code (e.g. from text editor).
    * Handles history recording and incremental parsing.
    */
-  public updateSource(from: number, to: number, text: string): void {
+  public updateSource(
+    from: number,
+    to: number,
+    text: string,
+    meta?: Record<string, any>,
+  ): void {
     const tr = new Transaction(this._state);
+    if (meta) {
+      for (const [key, value] of Object.entries(meta)) {
+        tr.setMeta(key, value);
+      }
+    }
     tr.replace(from, to, text);
     this.dispatch(tr);
   }

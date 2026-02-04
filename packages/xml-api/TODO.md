@@ -228,3 +228,31 @@
     * **Requirement**: Small edits in either the Code Editor or WYSIWYG Editor should only produce events corresponding to the specific nodes modified.
     * **Check**: No "Full update" or unrelated "Structure changed" events during minor text edits.
 
+---
+
+## Phase 9: Stability & Raw Mode Hardening
+
+**Goal**: Resolve performance issues (excess logging) and synchronization bugs (CST drift, cursor jumps) identified during editor integration.
+
+* [x] **[Event Noise Reduction]**:
+    * **Goal**: Minimize redundant "Full update" events.
+    * **Task**:
+        * Audit `SyncEngine` and `SchemaView` initialization to identify why multiple full updates are emitted at startup.
+        * Ensure initial hydration emits exactly zero or one "full" event depending on the lifecycle.
+* [x] **[CST Sync Robustness]**:
+    * **Goal**: Prevent CST/Model drift during rapid edits.
+    * **Task**:
+        * Fix the issue where `CodeEditor` highlighting becomes misaligned after rapid typing.
+        * Ensure `CST.shift` and incremental parsing correctly handle partial syntax (e.g., typing `<` or `&`).
+* [x] **[Strict Error State Management]**:
+    * **Goal**: Prevent the UI from attempting to render invalid XML.
+    * **Task**:
+        * Ensure `SyncEngine` reliably sets `wellFormed: false` when parsing fails.
+        * Verify that `SchemaView` correctly reports its error state to consumers instead of providing a stale or broken model.
+* [x] **[CodeEditor Input Handling]**:
+    * **Goal**: Ensure "Raw" mode behaves predictably.
+    * **Task**:
+        * Investigate and fix the issue where Enter key inserts spaces instead of newlines.
+        * Fix cursor jumping to the start of the document after `api.updateSource` calls.
+
+

@@ -70,16 +70,16 @@ This project follows an iterative cycle:
 - [x] **Implementation Report**: Create a detailed report summarizing the architecture, validation results, known limitations (waiting for library fixes), and future recommendations. This marks the completion of the `xml-api-editor` validation project.
 
 ### Phase 5: Quality & Stability (Current)
-- [ ] **Fix Excess Logging**: Reduce the number of "Full update" logs at startup (currently ~8).
-- [ ] **Fix CodeEditor Sync Issues**:
-    - [ ] Solve the "Enter key inserts space/doesn't break line" issue.
-    - [ ] Fix cursor jumping to start after edits.
-    - [ ] Fix incorrect syntax highlighting/CST sync lag.
-    - [ ] Prevent unwanted tag auto-completion/modification (e.g., `<` -> `<p>&gt;</p>`).
-- [ ] **Strict Raw Mode & Error Handling**:
-    - [ ] Ensure `CodeEditor` is the source of truth ("Raw" mode).
-    - [ ] Disable automatic model repair for non-well-formed XML.
-    - [ ] **WYSIWYG Behavior**: If XML is not well-formed, show an error state instead of attempting to render a broken model.
-- [ ] **Testing**:
-    - [ ] Add reproduction tests for CodeEditor input quirks.
-    - [ ] Add tests for invalid XML handling in WYSIWYG.
+- [x] **Fix Excess Logging**: Reduce the number of "Full update" logs at startup (currently ~8).
+- [x] **Fix CodeEditor Sync Issues**:
+    - [x] Solve the "Enter key inserts space/doesn't break line" issue.
+    - [x] Fix cursor jumping to start after edits.
+    - [x] Fix incorrect syntax highlighting/CST sync lag.
+    - [x] Prevent unwanted tag auto-completion/modification (e.g., `<` -> `<p>&gt;</p>`).
+- [x] **Strict Raw Mode & Error Handling**:
+    - [x] Ensure `CodeEditor` is the source of truth ("Raw" mode).
+    - [x] Disable automatic model repair for non-well-formed XML.
+    - [x] **WYSIWYG Behavior**: If XML is not well-formed, show an error state instead of attempting to render a broken model.
+- [x] **Testing**:
+    - [x] Add reproduction tests for CodeEditor input quirks.
+    - [x] Add tests for invalid XML handling in WYSIWYG.
