@@ -38,7 +38,9 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
   useEffect(() => {
     // Listen for model changes to update well-formed status
     return api.on((_event) => {
-      const wellFormed = api.cst ? api.cst.wellFormed : api.source.trim() === "";
+      const wellFormed = api.cst
+        ? api.cst.wellFormed
+        : api.source.trim() === "";
       setIsWellFormed(wellFormed);
     });
   }, [api]);
@@ -93,7 +95,9 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
       }
       const dom = document.createElement(el.tagName);
       const model = el.getModel() as ModelElement;
-      model.attributes.forEach((v: string, k: string) => dom.setAttribute(k, v));
+      model.attributes.forEach((v: string, k: string) =>
+        dom.setAttribute(k, v),
+      );
       const children = el.childNodes;
       for (let i = 0; i < children.length; i++) {
         const child = viewToBrowserDOM(children.item(i)!);
@@ -131,18 +135,30 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
           div.appendChild(parseTarget);
           parseTarget = div;
         }
-        const pmDoc = PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(parseTarget);
-        const tr = viewRef.current.state.tr.replaceWith(0, viewRef.current.state.doc.content.size, pmDoc);
+        const pmDoc =
+          PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(parseTarget);
+        const tr = viewRef.current.state.tr.replaceWith(
+          0,
+          viewRef.current.state.doc.content.size,
+          pmDoc,
+        );
         viewRef.current.dispatch(tr);
       }
     };
 
     const state = EditorState.create({
       doc: xhtmlSubsetSchema.node("doc", null, [
-        xhtmlSubsetSchema.node("paragraph", null, [xhtmlSubsetSchema.text("Loading...")]),
+        xhtmlSubsetSchema.node("paragraph", null, [
+          xhtmlSubsetSchema.text("Loading..."),
+        ]),
       ]),
       schema: xhtmlSubsetSchema,
-      plugins: [keymap({ "Mod-b": toggleMark(xhtmlSubsetSchema.marks.strong), ...baseKeymap })],
+      plugins: [
+        keymap({
+          "Mod-b": toggleMark(xhtmlSubsetSchema.marks.strong),
+          ...baseKeymap,
+        }),
+      ],
     });
 
     const view = new EditorView(editorRef.current, {
@@ -164,8 +180,12 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
     viewRef.current = view;
     isInitializing.current = true;
     updateInitialState();
-    setTimeout(() => { isInitializing.current = false; }, 0);
-    return () => { view.destroy(); };
+    setTimeout(() => {
+      isInitializing.current = false;
+    }, 0);
+    return () => {
+      view.destroy();
+    };
   }, [schemaView]);
 
   useEffect(() => {
@@ -184,9 +204,14 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
           div.appendChild(parseTarget);
           parseTarget = div;
         }
-        const newPmDoc = PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(parseTarget);
+        const newPmDoc =
+          PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(parseTarget);
         if (!newPmDoc.eq(viewRef.current.state.doc)) {
-          const tr = viewRef.current.state.tr.replaceWith(0, viewRef.current.state.doc.content.size, newPmDoc);
+          const tr = viewRef.current.state.tr.replaceWith(
+            0,
+            viewRef.current.state.doc.content.size,
+            newPmDoc,
+          );
           viewRef.current.dispatch(tr);
         }
         isInitializing.current = false;
@@ -216,7 +241,10 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
         <button
           onClick={() => {
             if (viewRef.current) {
-              toggleMark(xhtmlSubsetSchema.marks.strong)(viewRef.current.state, viewRef.current.dispatch);
+              toggleMark(xhtmlSubsetSchema.marks.strong)(
+                viewRef.current.state,
+                viewRef.current.dispatch,
+              );
               viewRef.current.focus();
             }
           }}
