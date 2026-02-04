@@ -1,4 +1,4 @@
-import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
+import { defaultKeymap } from "@codemirror/commands";
 import { EditorState, type Range, StateEffect } from "@codemirror/state";
 import {
   Decoration,
@@ -144,8 +144,24 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, onChange }) => {
         highlightActiveLineGutter(),
         highlightActiveLine(),
         drawSelection(),
-        history(),
-        keymap.of([...defaultKeymap, ...historyKeymap]),
+        keymap.of([
+          {
+            key: "Mod-z",
+            run: () => {
+              api.undo();
+              return true;
+            },
+          },
+          {
+            key: "Mod-y",
+            mac: "Mod-Shift-z",
+            run: () => {
+              api.redo();
+              return true;
+            },
+          },
+          ...defaultKeymap,
+        ]),
         cstHighlight,
         EditorView.updateListener.of((update) => {
           if (update.docChanged && !isUpdatingFromApi.current) {

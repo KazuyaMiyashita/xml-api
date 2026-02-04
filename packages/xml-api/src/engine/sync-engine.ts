@@ -84,6 +84,7 @@ export class SyncEngine {
         const oldText = oldState.source.slice(p.from, p.to);
         const newEnd = p.from + p.text.length;
         this.history.push({
+          timestamp: Date.now(),
           redo: { from: p.from, to: p.to, text: p.text },
           undo: { from: p.from, to: newEnd, text: oldText },
         });

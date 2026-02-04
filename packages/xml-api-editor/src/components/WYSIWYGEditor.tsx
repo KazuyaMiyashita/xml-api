@@ -472,6 +472,18 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ api }) => {
         plugins: [
           idPlugin,
           keymap({
+            "Mod-z": () => {
+              api.undo();
+              return true;
+            },
+            "Mod-y": () => {
+              api.redo();
+              return true;
+            },
+            "Mod-Shift-z": () => {
+              api.redo();
+              return true;
+            },
             "Mod-b": toggleMark(xhtmlSubsetSchema.marks.strong),
             ...baseKeymap,
           }),
