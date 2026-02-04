@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Bug Reproduction & Feature Verification", () => {
   test.beforeEach(async ({ page }) => {
     page.on("console", (msg) => console.log(`BROWSER: ${msg.text()}`));
-    await page.goto("http://localhost:5173");
+    await page.goto("/");
     // Wait for the editors to load (assuming content loads from fetch)
     await expect(page.locator(".cm-content").first()).toBeVisible();
     await expect(page.locator(".ProseMirror").first()).toBeVisible();

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Phase 5: Quality & Stability", () => {
   test.beforeEach(async ({ page }) => {
     page.on("console", (msg) => console.log(`BROWSER: ${msg.text()}`));
-    await page.goto("http://localhost:5173");
+    await page.goto("/");
   });
 
   test("CodeEditor: Enter key should create new line", async ({ page }) => {

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("History Synchronization (Undo/Redo)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("http://localhost:5173/");
+    await page.goto("/");
     // Wait for editors to load
     await expect(page.locator(".cm-content")).toBeVisible();
     await expect(page.locator(".ProseMirror")).toBeVisible();

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("WYSIWYG Recovery from Invalid XML", () => {
   test("should restore content after Invalid XML state", async ({ page }) => {
-    await page.goto("http://localhost:5173");
+    await page.goto("/");
 
     const codeEditor = page.locator(".cm-content");
     const wysiwyg = page.locator(".ProseMirror");

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Phase 1: Foundation", () => {
   test.beforeEach(async ({ page }) => {
     page.on("console", (msg) => console.log(`BROWSER: ${msg.text()}`));
-    await page.goto("http://localhost:5173");
+    await page.goto("/");
   });
 
   test("Setup Basic Split-Pane UI", async ({ page }) => {

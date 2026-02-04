@@ -5,7 +5,7 @@ test.describe("CodeEditor Highlight Sync", () => {
     page,
   }) => {
     // 1. Setup
-    await page.goto("http://localhost:5173");
+    await page.goto("/");
 
     // Wait for editor to load
     await expect(page.locator(".cm-content")).toBeVisible();

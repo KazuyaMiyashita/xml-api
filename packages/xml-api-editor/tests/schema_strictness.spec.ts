@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Schema Strictness", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("http://localhost:5173");
+    await page.goto("/");
   });
 
   test("Unsupported elements (ul/li) are not rendered as structural nodes", async ({

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("ID Persistence & Purity", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("http://localhost:5173");
+    await page.goto("/");
   });
 
   test("Source code should NOT contain data-model-id after WYSIWYG edit", async ({
