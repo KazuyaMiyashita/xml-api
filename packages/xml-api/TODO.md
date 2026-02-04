@@ -8,6 +8,7 @@
 
 2. **Commit Granularity**:
    * Create a separate commit for each checkbox (task) item.
+   * Ensure no pending items remain; if any work is left unfinished, add a note to the corresponding TODO.
 
 3. **Quality Checks**:
    * Before every commit, always perform the following to ensure quality:
@@ -112,14 +113,22 @@
 
 ## Phase 5: Refactoring for 3-Layer Architecture
 
-**Goal**: Align the codebase with the "Triple-Layer Reconciliation" architecture (Source-CST, CST-Model, Model-View) by unifying reconciliation patterns and clarifying responsibilities.
+**Goal**: 
+    - Standardize code quality tools and remove legacy API surface. 
+    - Align the codebase with the "Triple-Layer Reconciliation" architecture (Source-CST, CST-Model, Model-View) by unifying reconciliation patterns and clarifying responsibilities.
 
-* [ ] **[Project Infrastructure & Cleanup]**:
-    * **Goal**: Standardize code quality tools and remove legacy API surface.
-    * **Task**:
-        * Add a `lint` script to `package.json` using Biome.
-        * Run `pnpm format` and `pnpm lint` across the workspace to ensure consistency.
-        * Identify and remove methods marked as `@deprecated` in `XMLAPI` and other core classes (e.g., `updateInput`, `input`, legacy `setAttribute`/`updateText` shortcuts).
+* [ ] **[Linting] Establish Static Analysis**
+    * Add a `lint` script to `package.json` using Biome.
+    * Run `pnpm lint` across the workspace to identify and fix code smell or logic inconsistencies.
+
+* [ ] **[Formatting] Global Code Style Unification**
+    * Execute `pnpm format` across the entire workspace to ensure consistent styling (indentation, quotes, etc.).
+    * Ensure the formatting baseline is established before proceeding with heavy refactoring.
+
+* [ ] **[Deprecation] Legacy API Removal**
+    * Identify and remove all methods marked as `@deprecated` in `XMLAPI` and other core classes.
+    * **Targets**: `updateInput`, `input`, and legacy `setAttribute`/`updateText` shortcuts.
+    * Ensure all call sites have been migrated to the new 3-layer reconciliation patterns.
 
 * [ ] **[Model Refactoring: Formatting Trivia]**:
     * **Goal**: Explicitly distinguish between "content" and "formatting" in the Model layer.
