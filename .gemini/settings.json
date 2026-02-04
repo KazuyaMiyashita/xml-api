@@ -4,6 +4,11 @@
     "approvalMode": "auto_edit",
     "allowed": [
       "run_shell_command(ls)",
+      "run_shell_command(find)",
+      "run_shell_command(grep)",
+      "run_shell_command(cat)",
+      "run_shell_command(mkdir)",
+      "run_shell_command(touch)",
       "run_shell_command(git add)",
       "run_shell_command(git status)",
       "run_shell_command(git diff)",
@@ -12,6 +17,8 @@
       "run_shell_command(pnpm typecheck)",
       "run_shell_command(pnpm test)",
       "run_shell_command(pnpm jest)",
+      "run_shell_command(pnpm format)",
+      "run_shell_command(pnpm docs:gen-api)",
       "run_shell_command(pnpm start)",
       "run_shell_command(task info)"
     ]
