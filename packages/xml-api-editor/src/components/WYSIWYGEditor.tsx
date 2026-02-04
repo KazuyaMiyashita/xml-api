@@ -100,120 +100,24 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
     return null;
   };
 
-  // Sync ProseMirror state TO SchemaView (XML)
-  const syncToXml = (pmDoc: PMNode) => {
-    if (!api.cst || !api.cst.wellFormed) return;
-
-    const root = schemaView.getRoot();
-    let body = root;
-    if (root.tagName === "html") {
-      const found = root.querySelector("body");
-      if (found) body = found;
-    }
-
-    // Use DOMSerializer to get a standard DOM fragment from current PM doc
-    const serializer = DOMSerializer.fromSchema(xhtmlSubsetSchema);
-    const fragment = serializer.serializeFragment(pmDoc.content);
-
-    const createFromBrowser = (bNode: Node): ApiNode | null => {
-      if (bNode.nodeType === Node.TEXT_NODE) {
-        return schemaView.getDocument().createTextNode(bNode.textContent || "");
-      } else if (bNode.nodeType === Node.ELEMENT_NODE) {
-        const bEl = bNode as HTMLElement;
-        const vNew = schemaView
-          .getDocument()
-          .createElement(bEl.tagName.toLowerCase());
-        for (let j = 0; j < bEl.attributes.length; j++) {
-          vNew.setAttribute(bEl.attributes[j].name, bEl.attributes[j].value);
-        }
-        const children = bEl.childNodes;
-        for (let k = 0; k < children.length; k++) {
-          const child = createFromBrowser(children[k]);
-          if (child) vNew.appendChild(child);
-        }
-        return vNew;
-      }
-      return null;
-    };
-
-    const isSameType = (bNode: Node, vNode: ApiNode): boolean => {
-      if (bNode.nodeType === Node.TEXT_NODE && vNode.nodeType === 3)
-        return true;
-      if (bNode.nodeType === Node.ELEMENT_NODE && vNode.nodeType === 1) {
-        return (
-          (bNode as HTMLElement).tagName.toLowerCase() ===
-          (vNode as ApiElement).tagName.toLowerCase()
-        );
-      }
-      return false;
-    };
-
-    const updateNode = (vNode: ApiNode, bNode: Node) => {
-      if (vNode.nodeType === 3) {
-        // Text
-        if (vNode.textContent !== bNode.textContent) {
-          vNode.textContent = bNode.textContent;
-        }
-      } else if (vNode.nodeType === 1) {
-        // Element
-        const vEl = vNode as ApiElement;
-        const bEl = bNode as HTMLElement;
-        const bAttrs = bEl.attributes;
-        for (let j = 0; j < bAttrs.length; j++) {
-          if (vEl.getAttribute(bAttrs[j].name) !== bAttrs[j].value) {
-            vEl.setAttribute(bAttrs[j].name, bAttrs[j].value);
-          }
-        }
-      }
-    };
-
-    // Simple Reconciliation between Browser DOM (fragment) and SchemaView DOM (body)
-    const reconcile = (bParent: Node, vParent: ApiElement) => {
-      const bChildren = Array.from(bParent.childNodes);
-      const vChildrenSnapshot = Array.from(vParent.childNodes);
-
-      let bI = 0;
-      let vI = 0;
-
-      while (bI < bChildren.length || vI < vChildrenSnapshot.length) {
-        const bNode = bChildren[bI];
-        const vNode = vChildrenSnapshot[vI];
-
-        if (!bNode && vNode) {
-          // Browser exhausted, remove remaining View nodes
-          vParent.removeChild(vNode);
-          vI++;
-          continue;
-        }
-
-        if (bNode && !vNode) {
-          // View exhausted, append remaining Browser nodes
-          const newNode = createFromBrowser(bNode);
-          if (newNode) vParent.appendChild(newNode);
-          bI++;
-          continue;
-        }
-
-        // Both exist
-        if (isSameType(bNode, vNode)) {
-          updateNode(vNode, bNode);
-          if (bNode.nodeType === Node.ELEMENT_NODE) {
-            reconcile(bNode, vNode as ApiElement);
-          }
-          bI++;
-          vI++;
-        } else {
-          // Type mismatch: assume removal of current vNode and retry bNode against next vNode
-          vParent.removeChild(vNode);
-          vI++;
-        }
-      }
-    };
-
-    reconcile(fragment, body);
-  };
-
-  useEffect(() => {
+          // Sync ProseMirror state TO SchemaView (XML)
+          const syncToXml = (pmDoc: PMNode) => {
+            if (!api.cst || !api.cst.wellFormed) return;
+      
+            const root = schemaView.getRoot();
+            let body = root;
+            if (root.tagName === "html") {
+              const found = root.querySelector("body");
+              if (found) body = found;
+            }
+      
+            // Use DOMSerializer to get a standard DOM fragment from current PM doc
+            const serializer = DOMSerializer.fromSchema(xhtmlSubsetSchema);
+            const fragment = serializer.serializeFragment(pmDoc.content);
+      
+            // Reconcile using SchemaView (preserves formatting)
+            schemaView.reconcile(fragment as any, { origin: "wysiwyg-editor" }, body);
+          };  useEffect(() => {
     if (!editorRef.current) return;
 
     // Initial state

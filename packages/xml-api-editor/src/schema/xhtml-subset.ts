@@ -45,7 +45,7 @@ export const xhtmlSubsetSchema = new Schema({
       group: "block",
       parseDOM: [{ tag: "section" }],
       toDOM() {
-        return ["section", { class: "wysiwyg-section" }, 0];
+        return ["section", 0];
       },
     },
 

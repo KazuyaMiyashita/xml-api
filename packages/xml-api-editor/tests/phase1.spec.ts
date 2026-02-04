@@ -86,7 +86,7 @@ test.describe("Phase 1: Foundation", () => {
     await expect(h1).toContainText("りんごの選び方");
 
     // section (custom class in our schema)
-    const section = wysiwyg.locator("section.wysiwyg-section").first();
+    const section = wysiwyg.locator("section").first();
     await expect(section).toBeVisible();
     const h2 = section.locator("h2");
     await expect(h2).toContainText("はじめに");

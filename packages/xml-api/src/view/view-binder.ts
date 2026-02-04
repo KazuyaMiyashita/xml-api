@@ -59,17 +59,9 @@ export class ViewBinder implements Reconciler {
 
       // Case 3: Both exist
       if (this.isPreservableWhitespace(vNode)) {
-        // If vNode is whitespace, we check if bNode matches it.
-        // If bNode is also whitespace (text node with whitespace), we might match.
-        // But usually external DOM might merge whitespace or ignore it.
-        // If we want to preserve vNode, we skip vNode and retry bNode.
-        // Unless bNode IS that whitespace?
-        // Simple heuristic: If types mismatch, or if bNode is an Element, skip vNode.
-        // If bNode is Text, we compare?
-        if (
-          !this.isSameType(bNode, vNode) ||
-          (bNode.nodeType === 1 && vNode.nodeType === 3)
-        ) {
+        // If vNode is formatting whitespace, and bNode is an Element,
+        // we skip the whitespace to find the matching Element.
+        if (bNode.nodeType === 1) {
           vI++;
           continue;
         }

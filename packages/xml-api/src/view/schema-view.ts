@@ -219,6 +219,7 @@ export class SchemaView {
   public reconcile(
     externalDomNode: ExternalNode,
     meta?: Record<string, any>,
+    target?: Element,
   ): void {
     const previousMeta = this.currentMeta;
     if (meta) {
@@ -226,8 +227,8 @@ export class SchemaView {
     }
     try {
       const binder = new ViewBinder(this.document);
-      // The external node corresponds to the root of the view
-      binder.reconcile(externalDomNode, this.getRoot());
+      // The external node corresponds to the root of the view (or the provided target)
+      binder.reconcile(externalDomNode, target || this.getRoot());
     } finally {
       this.currentMeta = previousMeta;
     }
