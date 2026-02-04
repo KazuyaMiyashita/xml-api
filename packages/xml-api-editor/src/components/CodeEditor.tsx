@@ -1,5 +1,5 @@
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { EditorState, type Range } from "@codemirror/state";
+import { EditorState, type Range, StateEffect } from "@codemirror/state";
 import {
   Decoration,
   type DecorationSet,
@@ -22,6 +22,8 @@ interface CodeEditorProps {
   onChange?: (newSource: string) => void;
 }
 
+const forceHighlightUpdate = StateEffect.define<null>();
+
 const CodeEditor: React.FC<CodeEditorProps> = ({ api, onChange }) => {
   const editorParentRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -38,7 +40,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, onChange }) => {
         }
 
         update(update: ViewUpdate) {
-          if (update.docChanged || update.viewportChanged) {
+          if (
+            update.docChanged ||
+            update.viewportChanged ||
+            update.transactions.some((tr) =>
+              tr.effects.some((e) => e.is(forceHighlightUpdate)),
+            )
+          ) {
             this.decorations = this.getDecorations(update.view);
           }
         }
@@ -193,6 +201,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, onChange }) => {
   useEffect(() => {
     return api.on((event: ChangeEvent) => {
       if (event.transaction?.getMeta("origin") === "code-editor") {
+        if (viewRef.current) {
+          viewRef.current.dispatch({
+            effects: forceHighlightUpdate.of(null),
+          });
+        }
         return;
       }
       checkForUpdates();

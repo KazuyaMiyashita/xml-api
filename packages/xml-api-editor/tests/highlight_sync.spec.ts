@@ -29,10 +29,22 @@ test.describe('CodeEditor Highlight Sync', () => {
 
     // 3. Verify immediate state
     // "A" should NOT have 'syntax-tag' class.
-    // However, if CST is outdated (still thinks tag starts at 0), "A" will inherit the tag color.
+    // If it's plain text, it might not be wrapped in a span at all.
     
-    const spanWithA = firstLine.locator('span').filter({ hasText: 'A' }).first();
-    await expect(spanWithA).not.toHaveClass(/syntax-tag/);
+    // Check all elements with 'syntax-tag' class in the first line
+    const syntaxTags = firstLine.locator('.syntax-tag');
+    
+    // If there are any syntax tags, the FIRST one should be "<" (the start of <root>)
+    // It should NOT be "A" or start with "A"
+    
+    if (await syntaxTags.count() > 0) {
+      await expect(syntaxTags.first()).not.toHaveText(/^A/);
+    } else {
+      // If no syntax tags, that's also fine (means A is definitely not highlighted as tag)
+    }
+
+    // Additionally, verify that 'A' is present in the line (sanity check)
+    await expect(firstLine).toHaveText(/^A<root>text<\/root>$/);
     
     // Debug info
     const html = await firstLine.innerHTML();
