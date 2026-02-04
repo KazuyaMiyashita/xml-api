@@ -319,7 +319,7 @@ Use `dispatch(new TransactionBuilder(engine.state, engine.binder).setAttribute(.
 
 ### updateSource()
 
-> **updateSource**(`from`, `to`, `text`): `void`
+> **updateSource**(`from`, `to`, `text`, `meta?`): `void`
 
 Update the source code (e.g. from text editor).
 Handles history recording and incremental parsing.
@@ -337,6 +337,10 @@ Handles history recording and incremental parsing.
 ##### text
 
 `string`
+
+##### meta?
+
+`Record`\<`string`, `any`\>
 
 #### Returns
 

@@ -37,7 +37,7 @@ test.describe("Phase 2: Synchronization Validation", () => {
     // Note: ProseMirror schema defines how it parses HTML.
     const newXml =
       "<html><body><h1>New Heading</h1><p>New Paragraph content</p></body></html>";
-    await page.keyboard.type(newXml);
+    await page.keyboard.insertText(newXml);
 
     // Verify WYSIWYG reflects the new structure
     await expect(wysiwyg.locator("h1")).toContainText("New Heading", {

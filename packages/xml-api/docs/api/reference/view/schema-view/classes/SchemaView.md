@@ -104,7 +104,7 @@
 
 ### reconcile()
 
-> **reconcile**(`externalDomNode`, `meta?`): `void`
+> **reconcile**(`externalDomNode`, `meta?`, `target?`): `void`
 
 #### Parameters
 
@@ -115,6 +115,10 @@
 ##### meta?
 
 `Record`\<`string`, `any`\>
+
+##### target?
+
+[`Element`](../../../dom/classes/Element.md)
 
 #### Returns
 

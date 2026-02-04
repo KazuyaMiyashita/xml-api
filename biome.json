@@ -33,7 +33,11 @@
       "includes": ["**/*.vue"],
       "linter": {
         "rules": {
-          "correctness": {}
+          "correctness": {
+            "noUnusedVariables": "off",
+            "noUnusedImports": "off",
+            "noUnusedFunctionParameters": "off"
+          }
         }
       }
     },

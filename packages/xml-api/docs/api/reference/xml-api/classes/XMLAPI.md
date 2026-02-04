@@ -168,7 +168,7 @@ Registers an event handler to listen for model changes.
 
 ### updateSource()
 
-> **updateSource**(`from`, `to`, `text`): `void`
+> **updateSource**(`from`, `to`, `text`, `meta?`): `void`
 
 Updates the source code directly (e.g. from a text editor).
 Attempts an optimized incremental update, falling back to full re-parse if needed.
@@ -192,6 +192,12 @@ End index of the range.
 `string`
 
 The new text to insert.
+
+##### meta?
+
+`Record`\<`string`, `any`\>
+
+(Optional) Metadata for the transaction.
 
 #### Returns
 
