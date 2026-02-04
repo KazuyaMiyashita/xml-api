@@ -196,9 +196,10 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
       isInitializing.current = false;
     }, 0);
     return () => {
+      viewRef.current = null;
       view.destroy();
     };
-  }, [schemaView, syncToXml]);
+  }, [schemaView, syncToXml, isWellFormed]);
 
   useEffect(() => {
     if (!schemaView) return;
@@ -207,6 +208,11 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
         if (event.transaction?.getMeta("origin") === "wysiwyg-editor") {
           return;
         }
+        // Skip update if XML is not well-formed
+        if (!api.cst || !api.cst.wellFormed) {
+          return;
+        }
+
         if (viewRef.current && schemaView) {
           isInitializing.current = true;
           const root = schemaView.getRoot();
