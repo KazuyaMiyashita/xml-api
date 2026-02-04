@@ -1,16 +1,26 @@
+import type { CollabBridge } from "../collab/bridge";
 import type { Grammar } from "../cst/grammar";
 import { Parser } from "../cst/parser";
 import type { CST } from "../cst/xml-cst";
 import { grammar as defaultGrammar } from "../cst/xml-grammar";
 import { HistoryManager } from "../history-manager";
-import { Formatter } from "../model/formatter";
 import { ModelElement, type ModelNode } from "../model/xml-api-model";
 import { XMLBinder } from "../model/xml-binder";
 import { EventEmitter, type EventHandler } from "../xml-api-events";
-import type { CollabBridge } from "../collab/bridge";
 import { EditorState } from "./editor-state";
 import { Transaction } from "./transaction";
+import { TransactionBuilder } from "./transaction-builder";
 
+/**
+ * The core engine that manages the editor state and coordinates synchronization.
+ *
+ * It implements a transaction-based update cycle:
+ * 1. Receives a `Transaction` describing changes.
+ * 2. Updates the `EditorState` (Source).
+ * 3. Triggers the `Parser` (Source -> CST).
+ * 4. Triggers the `XMLBinder` (CST -> Model).
+ * 5. Notifies listeners (including `SchemaView`s) of changes.
+ */
 export class SyncEngine {
   private _state: EditorState;
   private parser: Parser;
@@ -63,6 +73,15 @@ export class SyncEngine {
 
   /**
    * Applies a transaction to the engine, updating the state and notifying listeners.
+   * This is the single point of truth for all state transitions in the system.
+   *
+   * It handles:
+   * - History recording (Undo/Redo)
+   * - Incremental Parsing and Reconciliation
+   * - Event Dispatching
+   * - Collaboration hooks
+   *
+   * @param tr The transaction to apply.
    */
   public dispatch(tr: Transaction): void {
     if (!tr.docChanged) return;
@@ -84,6 +103,7 @@ export class SyncEngine {
         const oldText = oldState.source.slice(p.from, p.to);
         const newEnd = p.from + p.text.length;
         this.history.push({
+          timestamp: Date.now(),
           redo: { from: p.from, to: p.to, text: p.text },
           undo: { from: p.from, to: newEnd, text: oldText },
         });
@@ -107,8 +127,9 @@ export class SyncEngine {
 
       const incrementalResult = this.tryIncrementalUpdate(p.from, p.to, delta);
       if (incrementalResult) {
+        let success = true;
         if (oldState.model) {
-          this.updateModelIncremental(
+          success = this.updateModelIncremental(
             incrementalResult.oldNode,
             incrementalResult.newNode,
             tr,
@@ -117,11 +138,15 @@ export class SyncEngine {
           this.events.emit({ type: "full", transaction: tr });
         }
 
-        if (this._state.cst && !this._state.cst.wellFormed) {
-          this._state = this._state.update({ model: null });
-          this.events.emit({ type: "full", transaction: tr });
+        if (success) {
+          if (this._state.cst && !this._state.cst.wellFormed) {
+            this._state = this._state.update({ model: null });
+            this.events.emit({ type: "full", transaction: tr });
+          }
+          handled = true;
+        } else {
+          handled = false;
         }
-        handled = true;
       }
     }
 
@@ -140,8 +165,19 @@ export class SyncEngine {
    * Update the source code (e.g. from text editor).
    * Handles history recording and incremental parsing.
    */
-  public updateSource(from: number, to: number, text: string): void {
+  public updateSource(
+    from: number,
+    to: number,
+    text: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
+    meta?: Record<string, any>,
+  ): void {
     const tr = new Transaction(this._state);
+    if (meta) {
+      for (const [key, value] of Object.entries(meta)) {
+        tr.setMeta(key, value);
+      }
+    }
     tr.replace(from, to, text);
     this.dispatch(tr);
   }
@@ -149,10 +185,22 @@ export class SyncEngine {
   /**
    * Apply a programmatic change derived from Model operations.
    * This is the "Application -> Source" flow.
+   * @deprecated Use `dispatch(new Transaction(state).replace(...))` instead.
    */
-  public applyPatch(start: number, end: number, text: string): void {
+  public applyPatch(
+    start: number,
+    end: number,
+    text: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
+    meta?: Record<string, any>,
+  ): void {
     // Uses dispatch via updateSource logic, but conceptually distinct
     const tr = new Transaction(this._state);
+    if (meta) {
+      for (const [key, value] of Object.entries(meta)) {
+        tr.setMeta(key, value);
+      }
+    }
     tr.replace(start, end, text);
     this.dispatch(tr);
   }
@@ -185,91 +233,101 @@ export class SyncEngine {
 
   // --- High-Level Model Operations (delegated to Binder) ---
 
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).setAttribute(...))` instead.
+   */
   public setAttribute(
     modelNode: ModelElement,
     key: string,
     value: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
+    meta?: Record<string, any>,
   ): void {
-    if (!modelNode.cst) throw new Error("Model node not linked to CST");
-    const patch = this.binder.calcSetAttributePatch(modelNode, key, value);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
-    }
-  }
-
-  public updateText(modelNode: ModelElement, text: string): void {
-    if (!modelNode.cst) throw new Error("Model node not linked to CST");
-    const patch = this.binder.calcUpdateTextPatch(modelNode, text);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
-    }
-  }
-
-  public replaceNode(target: ModelNode, content: ModelNode): void {
-    if (!target.cst) throw new Error("Model node not linked to CST");
-
-    // Formatting logic
-    let indentUnit = "  ";
-    let currentIndent = "";
-    if (target.cst) {
-      currentIndent = this.detectIndent(target.cst);
-      if (target.parent?.cst) {
-        const parentIndent = this.detectIndent(target.parent.cst);
-        if (currentIndent.startsWith(parentIndent)) {
-          const diff = currentIndent.slice(parentIndent.length);
-          if (diff.length > 0 && !diff.includes("\n")) {
-            indentUnit = diff;
-          }
-        }
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.setAttribute(modelNode, key, value);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
       }
     }
-
-    const formatter = new Formatter({ indent: indentUnit });
-    let newXml = formatter.format(content);
-
-    if (currentIndent && newXml.includes("\n")) {
-      newXml = newXml
-        .split("\n")
-        .map((line, index) => (index === 0 ? line : currentIndent + line))
-        .join("\n");
-    }
-
-    const patch = this.binder.calcReplaceNodePatch(target, newXml);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
-    }
+    this.dispatch(tr);
   }
 
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).updateText(...))` instead.
+   */
+  public updateText(
+    modelNode: ModelElement,
+    text: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
+    meta?: Record<string, any>,
+  ): void {
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.updateText(modelNode, text);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
+      }
+    }
+    this.dispatch(tr);
+  }
+
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).replaceNode(...))` instead.
+   */
+  public replaceNode(
+    target: ModelNode,
+    content: ModelNode,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
+    meta?: Record<string, any>,
+  ): void {
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.replaceNode(target, content);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
+      }
+    }
+    this.dispatch(tr);
+  }
+
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).insertNode(...))` instead.
+   */
   public insertNode(
     parent: ModelElement,
     child: ModelNode,
     index: number,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
+    meta?: Record<string, any>,
   ): void {
-    if (!parent.cst) throw new Error("Parent node not linked to CST");
-
-    // Determine basic indentation (simplistic)
-    let indentUnit = "  ";
-    if (parent.cst) {
-      const parentIndent = this.detectIndent(parent.cst);
-      // Try to find a child to detect indent step
-      // ... skipping complex logic for now
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.insertNode(parent, child, index);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
+      }
     }
-
-    const formatter = new Formatter({ indent: indentUnit });
-    const insertText = formatter.format(child);
-
-    const patch = this.binder.calcInsertNodePatch(parent, index, insertText);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
-    }
+    this.dispatch(tr);
   }
 
-  public removeNode(parent: ModelElement, child: ModelNode): void {
-    if (!child.cst) throw new Error("Target node not linked to CST");
-    const patch = this.binder.calcRemoveNodePatch(child);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text);
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).removeNode(...))` instead.
+   */
+  public removeNode(
+    parent: ModelElement,
+    child: ModelNode,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
+    meta?: Record<string, any>,
+  ): void {
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.removeNode(parent, child);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
+      }
     }
+    this.dispatch(tr);
   }
 
   // --- Internal Logic ---
@@ -280,10 +338,18 @@ export class SyncEngine {
       let model: ModelElement | null = null;
 
       if (cst?.wellFormed) {
-        // Hydrate full model
-        const newModel = this.binder.hydrate(cst);
-        if (newModel instanceof ModelElement) {
-          model = newModel;
+        if (this._state.model) {
+          // Attempt to reconcile with existing model to preserve identity
+          const result = this.binder.reconcile(this._state.model, cst);
+          if (result.node instanceof ModelElement) {
+            model = result.node;
+          }
+        } else {
+          // Initial hydration
+          const newModel = this.binder.hydrate(cst);
+          if (newModel instanceof ModelElement) {
+            model = newModel;
+          }
         }
       }
 
@@ -346,26 +412,29 @@ export class SyncEngine {
     oldNode: CST,
     newNode: CST,
     tr?: Transaction,
-  ): void {
+  ): boolean {
     const currentModel = this._state.model;
-    if (!currentModel) return;
+    if (!currentModel) return false;
 
     if (currentModel.cst === oldNode) {
-      const newModelNode = this.binder.hydrate(newNode);
-      if (newModelNode instanceof ModelElement) {
-        this._state = this._state.update({ model: newModelNode });
-        this.events.emit({
-          type: "full",
-          target: newModelNode,
-          transaction: tr,
-        });
+      // Reconcile root to preserve identity
+      const result = this.binder.reconcile(currentModel, newNode);
+      const reconciled = result.node;
+      if (reconciled !== currentModel) {
+        this._state = this._state.update({ model: reconciled as ModelElement });
       }
-      return;
+      this.events.emit({
+        type: "full", // Or structure? Full implies root changed/updated
+        target: reconciled || undefined,
+        transaction: tr,
+      });
+      return true;
     }
 
     const modelPath = this.findModelNodePath(currentModel, oldNode);
     if (modelPath) {
-      const reconciledModel = this.binder.reconcile(modelPath.node, newNode);
+      const result = this.binder.reconcile(modelPath.node, newNode);
+      const reconciledModel = result.node;
       if (reconciledModel) {
         if (reconciledModel !== modelPath.node) {
           modelPath.parent.children[modelPath.index] = reconciledModel;
@@ -375,8 +444,13 @@ export class SyncEngine {
           type: "structure",
           target: reconciledModel,
           transaction: tr,
+          addedNodes: result.diff?.addedNodes,
+          removedNodes: result.diff?.removedNodes,
         });
       }
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -454,20 +528,5 @@ export class SyncEngine {
       current.wellFormed = selfWellFormed;
       current = current.parent;
     }
-  }
-
-  private detectIndent(node: CST): string {
-    const input = this._state.source;
-    let i = node.start - 1;
-    while (i >= 0) {
-      if (input[i] === "\n") {
-        return input.slice(i + 1, node.start);
-      }
-      if (input[i] !== " " && input[i] !== "\t") {
-        return "";
-      }
-      i--;
-    }
-    return "";
   }
 }

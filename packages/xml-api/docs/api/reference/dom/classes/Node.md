@@ -84,7 +84,7 @@ to interact with the XML model using familiar methods.
 
 > **get** **childNodes**(): [`NodeList`](NodeList.md)
 
-Returns a NodeList containing all children of this node.
+Returns a NodeList containing all children of this node, respecting the document's filter.
 
 ##### Returns
 
@@ -291,6 +291,38 @@ Removes a child node from the DOM and returns the removed node.
 `T`
 
 The child node to remove.
+
+#### Returns
+
+`T`
+
+***
+
+### replaceChild()
+
+> **replaceChild**\<`T`\>(`newChild`, `oldChild`): `T`
+
+Replaces a child node with a new node.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* `Node`
+
+#### Parameters
+
+##### newChild
+
+`T`
+
+The new node to add.
+
+##### oldChild
+
+`Node`
+
+The child node to be replaced.
 
 #### Returns
 

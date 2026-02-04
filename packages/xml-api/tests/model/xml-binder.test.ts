@@ -1,7 +1,7 @@
-import { ModelElement, type ModelNode } from "@/model/xml-api-model";
 import { Parser } from "@/cst/parser";
 import { CST } from "@/cst/xml-cst";
 import { grammar } from "@/cst/xml-grammar";
+import { ModelElement, type ModelNode } from "@/model/xml-api-model";
 import { XMLBinder } from "@/model/xml-binder";
 
 function convert(node: CST, input: string): ModelNode | null {

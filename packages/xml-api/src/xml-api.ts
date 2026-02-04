@@ -1,23 +1,28 @@
-import {
-  type CharacterData,
-  Document,
-  type DOMObserver,
-  Element,
-  type Node,
-  createWrapper,
-} from "./dom";
 import type { Grammar } from "./cst/grammar";
 import type { CST } from "./cst/xml-cst";
+import {
+  type CharacterData,
+  createWrapper,
+  Document,
+  Element,
+  type Node,
+} from "./dom";
 import { SyncEngine } from "./engine/sync-engine";
-import { ModelElement, type ModelNode } from "./model/xml-api-model";
-import { type EventHandler } from "./xml-api-events";
+import { ModelElement } from "./model/xml-api-model";
+import { SchemaView, type SchemaViewConfig } from "./view/schema-view";
+import type { EventHandler } from "./xml-api-events";
 
 /**
  * The primary entry point for the XML API.
- * Orchestrates the synchronization between source code (CST) and the logical Model.
+ * Orchestrates the synchronization between source code (CST), the logical Model, and Schema Views.
+ *
+ * This class serves as the central hub for the "Three-Level Reconciliation" architecture:
+ * 1. Source <-> CST: Incremental parsing.
+ * 2. CST <-> Model: Logical binding and identity preservation.
+ * 3. Model <-> View: Schema projection and filtering (via `createView`).
  */
 export class XMLAPI {
-  private engine: SyncEngine;
+  private _engine: SyncEngine;
   private document: Document | null = null;
 
   /**
@@ -26,40 +31,54 @@ export class XMLAPI {
    * @param grammar (Optional) Custom grammar definition.
    */
   constructor(source: string, grammar?: Grammar) {
-    this.engine = new SyncEngine(source, grammar);
+    this._engine = new SyncEngine(source, grammar);
   }
 
   // --- Read-only State Access ---
 
-  /** The current source code string. */
-  public get source(): string {
-    return this.engine.source;
+  /** The underlying synchronization engine. */
+  public get engine(): SyncEngine {
+    return this._engine;
   }
 
-  /**
-   * Alias for `source` to maintain compatibility with existing tests/demos temporarily.
-   * @deprecated Use `source` instead.
-   */
-  public get input(): string {
-    return this.engine.source;
+  /** The current source code string. */
+  public get source(): string {
+    return this._engine.source;
   }
 
   /** The authoritative logical model. */
   public get model(): ModelElement | null {
-    return this.engine.model;
+    return this._engine.model;
   }
 
   /** The Concrete Syntax Tree (Physical layer). */
   public get cst(): CST | null {
-    return this.engine.cst;
+    return this._engine.cst;
   }
 
   /** The grammar used for parsing. */
   public get grammar(): Grammar {
-    return this.engine.grammar;
+    return this._engine.grammar;
   }
 
   // --- Operations ---
+
+  /**
+   * Creates a projected view of the document.
+   *
+   * A SchemaView allows you to work with a filtered subset of the document (e.g., only XHTML tags)
+   * while the underlying system maintains full fidelity of the original source (including comments,
+   * custom tags, and formatting) in the background.
+   *
+   * @param config Configuration for the view, including filter logic.
+   * @returns A `SchemaView` instance providing a DOM-like interface for the projected content.
+   */
+  public createView(config: SchemaViewConfig = {}): SchemaView {
+    if (!this._engine.model) {
+      throw new Error("Cannot create view: Model not initialized");
+    }
+    return new SchemaView(this._engine.model, this._engine, config);
+  }
 
   /**
    * Updates the source code directly (e.g. from a text editor).
@@ -67,17 +86,16 @@ export class XMLAPI {
    * @param from Start index of the range to replace.
    * @param to End index of the range.
    * @param text The new text to insert.
+   * @param meta (Optional) Metadata for the transaction.
    */
-  public updateSource(from: number, to: number, text: string): void {
-    this.engine.updateSource(from, to, text);
-  }
-
-  /**
-   * Alias for `updateSource` to maintain compatibility.
-   * @deprecated Use `updateSource` instead.
-   */
-  public updateInput(from: number, to: number, text: string): void {
-    this.updateSource(from, to, text);
+  public updateSource(
+    from: number,
+    to: number,
+    text: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
+    meta?: Record<string, any>,
+  ): void {
+    this._engine.updateSource(from, to, text, meta);
   }
 
   /**
@@ -105,16 +123,16 @@ export class XMLAPI {
         value: string | null,
       ) => {
         const model = element.getModel();
-        if (model instanceof ModelElement) {
+        if (model instanceof ModelElement && model.cst) {
           if (value === null) {
             // Attribute removal support needed in Engine/Binder
             console.warn("Attribute removal not fully supported yet");
           } else {
-            this.engine.setAttribute(model, name, value);
+            this._engine.setAttribute(model, name, value);
           }
         }
       },
-      onTextChange: (node: CharacterData, text: string) => {
+      onTextChange: (_node: CharacterData, _text: string) => {
         // Direct text update on CharacterData
         // Need to find parent element to update properly or support direct node replacement
         // For now, simple text node update via parent if available
@@ -127,22 +145,33 @@ export class XMLAPI {
       },
       onElementTextChange: (element: Element, text: string) => {
         const model = element.getModel();
-        if (model instanceof ModelElement) {
-          this.engine.updateText(model, text);
+        if (model instanceof ModelElement && model.cst) {
+          this._engine.updateText(model, text);
         }
       },
       onChildAdded: (parent: Node, child: Node, index: number) => {
         const parentModel = parent.getModel();
         const childModel = child.getModel();
-        if (parentModel instanceof ModelElement) {
-          this.engine.insertNode(parentModel, childModel, index);
+        if (parentModel instanceof ModelElement && parentModel.cst) {
+          this._engine.insertNode(parentModel, childModel, index);
         }
       },
-      onChildRemoved: (parent: Node, child: Node, index: number) => {
+      onChildRemoved: (parent: Node, child: Node, _index: number) => {
         const parentModel = parent.getModel();
         const childModel = child.getModel();
-        if (parentModel instanceof ModelElement) {
-          this.engine.removeNode(parentModel, childModel);
+        if (parentModel instanceof ModelElement && parentModel.cst) {
+          if (childModel.cst) {
+            this._engine.removeNode(parentModel, childModel);
+          }
+        }
+      },
+      onChildReplaced: (_parent: Node, newChild: Node, oldChild: Node) => {
+        const newModel = newChild.getModel();
+        const oldModel = oldChild.getModel();
+        // Use replaceNode on the engine.
+        // Even if oldModel is detached from parent, it retains CST info needed for replacement.
+        if (oldModel.cst) {
+          this._engine.replaceNode(oldModel, newModel);
         }
       },
     });
@@ -156,37 +185,45 @@ export class XMLAPI {
    * Registers an event handler to listen for model changes.
    */
   public on(handler: EventHandler): () => void {
-    return this.engine.on(handler);
+    return this._engine.on(handler);
   }
 
   // --- History ---
 
   public undo(): void {
-    this.engine.undo();
+    this._engine.undo();
   }
 
   public redo(): void {
-    this.engine.redo();
-  }
-
-  // --- Advanced/Legacy Operation Shortcuts (Proxy to Engine) ---
-
-  /** @deprecated Use DOM interface or Engine directly if needed. */
-  public setAttribute(
-    modelNode: ModelElement,
-    key: string,
-    value: string,
-  ): void {
-    this.engine.setAttribute(modelNode, key, value);
-  }
-
-  /** @deprecated Use DOM interface or Engine directly if needed. */
-  public updateText(modelNode: ModelElement, text: string): void {
-    this.engine.updateText(modelNode, text);
-  }
-
-  /** @deprecated Use DOM interface or Engine directly if needed. */
-  public replaceNode(target: ModelNode, content: ModelNode): void {
-    this.engine.replaceNode(target, content);
+    this._engine.redo();
   }
 }
+
+export { CST } from "./cst/xml-cst";
+export {
+  CDATASection,
+  Comment,
+  Document,
+  Element,
+  Node,
+  NodeList,
+  Text,
+} from "./dom";
+export { EditorState } from "./engine/editor-state";
+export { type TextPatch, Transaction } from "./engine/transaction";
+export {
+  ModelCDATA,
+  ModelComment,
+  ModelElement,
+  ModelNode,
+  ModelNodeType,
+  ModelText,
+} from "./model/xml-api-model";
+export { XMLBinder } from "./model/xml-binder";
+export { SchemaView, type SchemaViewConfig } from "./view/schema-view";
+export { type ExternalNode, ViewBinder } from "./view/view-binder";
+export {
+  type ChangeEvent,
+  EventEmitter,
+  type EventHandler,
+} from "./xml-api-events";

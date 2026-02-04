@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import type { Node, Element, CharacterData } from "@/dom";
+import type { CharacterData, Element, Node } from "@/dom";
 
 const props = defineProps<{
   node: Node;
@@ -32,7 +32,7 @@ const tagName = computed(() =>
 const textPreview = computed(() => {
   if (isText.value || isComment.value) {
     const t = asText.value.data;
-    return t.length > 20 ? t.slice(0, 20) + "..." : t;
+    return t.length > 20 ? `${t.slice(0, 20)}...` : t;
   }
   return "";
 });

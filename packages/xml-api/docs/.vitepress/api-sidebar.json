@@ -24,6 +24,16 @@
     "collapsed": true,
     "items": [
       {
+        "text": "cst-utils",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "detectIndent",
+            "link": "/api/reference/cst/cst-utils/functions/detectIndent"
+          }
+        ]
+      },
+      {
         "text": "grammar",
         "collapsed": true,
         "items": [
@@ -210,6 +220,16 @@
             "link": "/api/reference/engine/transaction/classes/Transaction"
           }
         ]
+      },
+      {
+        "text": "transaction-builder",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "TransactionBuilder",
+            "link": "/api/reference/engine/transaction-builder/classes/TransactionBuilder"
+          }
+        ]
       }
     ]
   },
@@ -262,6 +282,10 @@
             "link": "/api/reference/model/xml-api-model/classes/ModelElement"
           },
           {
+            "text": "ModelFormatting",
+            "link": "/api/reference/model/xml-api-model/interfaces/ModelFormatting"
+          },
+          {
             "text": "ModelNode",
             "link": "/api/reference/model/xml-api-model/classes/ModelNode"
           },
@@ -283,6 +307,10 @@
         "text": "xml-binder",
         "collapsed": true,
         "items": [
+          {
+            "text": "ReconcileResult",
+            "link": "/api/reference/model/xml-binder/interfaces/ReconcileResult"
+          },
           {
             "text": "XMLBinder",
             "link": "/api/reference/model/xml-binder/classes/XMLBinder"
@@ -308,6 +336,48 @@
   {
     "text": "modules",
     "link": "/api/reference/modules"
+  },
+  {
+    "text": "view",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "schema-view",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "SchemaView",
+            "link": "/api/reference/view/schema-view/classes/SchemaView"
+          },
+          {
+            "text": "SchemaViewConfig",
+            "link": "/api/reference/view/schema-view/interfaces/SchemaViewConfig"
+          },
+          {
+            "text": "ViewChangeEvent",
+            "link": "/api/reference/view/schema-view/type-aliases/ViewChangeEvent"
+          }
+        ]
+      },
+      {
+        "text": "view-binder",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "ExternalNode",
+            "link": "/api/reference/view/view-binder/interfaces/ExternalNode"
+          },
+          {
+            "text": "Reconciler",
+            "link": "/api/reference/view/view-binder/interfaces/Reconciler"
+          },
+          {
+            "text": "ViewBinder",
+            "link": "/api/reference/view/view-binder/classes/ViewBinder"
+          }
+        ]
+      }
+    ]
   },
   {
     "text": "xml-api",

@@ -1,5 +1,9 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const docsRoot = path.resolve(__dirname, "../docs/api/reference");
 const outputFile = path.resolve(
@@ -8,6 +12,7 @@ const outputFile = path.resolve(
 );
 
 function getSidebarItems(dir: string, baseLink: string) {
+  // biome-ignore lint/suspicious/noExplicitAny: Dynamic sidebar item structure
   const items: any[] = [];
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -68,5 +73,5 @@ const sidebar = [
   ...getSidebarItems(docsRoot, "/api/reference"),
 ];
 
-fs.writeFileSync(outputFile, JSON.stringify(sidebar, null, 2));
+fs.writeFileSync(outputFile, `${JSON.stringify(sidebar, null, 2)}\n`);
 console.log("API Sidebar generated at", outputFile);

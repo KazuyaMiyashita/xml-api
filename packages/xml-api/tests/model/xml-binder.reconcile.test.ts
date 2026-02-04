@@ -10,7 +10,8 @@ describe("XMLBinder Reconciliation", () => {
     const input1 = '<root id="1">Text</root>';
     const binder1 = new XMLBinder(input1);
     const cst1 = parser.parse(input1, "element");
-    const model1 = binder1.hydrate(cst1!) as ModelElement;
+    if (!cst1) throw new Error("Parse failed");
+    const model1 = binder1.hydrate(cst1) as ModelElement;
     const rootId = model1.id;
 
     // Simulate update: id="2"
@@ -19,10 +20,11 @@ describe("XMLBinder Reconciliation", () => {
     const cst2 = parser.parse(input2, "element");
 
     // Reconcile model1 with cst2
-    const newModel = binder2.reconcile(model1, cst2!);
+    if (!cst2) throw new Error("Parse failed");
+    const newModel = binder2.reconcile(model1, cst2).node;
 
     expect(newModel).toBe(model1); // Instance preserved
-    expect(newModel.id).toBe(rootId);
+    expect(newModel?.id).toBe(rootId);
     expect((newModel as ModelElement).attributes.get("id")).toBe("2"); // Attribute updated
   });
 
@@ -30,7 +32,8 @@ describe("XMLBinder Reconciliation", () => {
     const input1 = "<root><a>A</a><b>B</b></root>";
     const binder1 = new XMLBinder(input1);
     const cst1 = parser.parse(input1, "element");
-    const model1 = binder1.hydrate(cst1!) as ModelElement;
+    if (!cst1) throw new Error("Parse failed");
+    const model1 = binder1.hydrate(cst1) as ModelElement;
 
     const childA = model1.children[0] as ModelElement;
     const childB = model1.children[1] as ModelElement;
@@ -42,7 +45,8 @@ describe("XMLBinder Reconciliation", () => {
     const binder2 = new XMLBinder(input2);
     const cst2 = parser.parse(input2, "element");
 
-    const newModel = binder2.reconcile(model1, cst2!) as ModelElement;
+    if (!cst2) throw new Error("Parse failed");
+    const newModel = binder2.reconcile(model1, cst2).node as ModelElement;
 
     expect(newModel).toBe(model1);
 
@@ -65,14 +69,16 @@ describe("XMLBinder Reconciliation", () => {
     const input1 = "<root><old/></root>";
     const binder1 = new XMLBinder(input1);
     const cst1 = parser.parse(input1, "element");
-    const model1 = binder1.hydrate(cst1!) as ModelElement;
+    if (!cst1) throw new Error("Parse failed");
+    const model1 = binder1.hydrate(cst1) as ModelElement;
     const oldNode = model1.children[0];
 
     const input2 = "<root><new/></root>";
     const binder2 = new XMLBinder(input2);
     const cst2 = parser.parse(input2, "element");
 
-    const newModel = binder2.reconcile(model1, cst2!) as ModelElement;
+    if (!cst2) throw new Error("Parse failed");
+    const newModel = binder2.reconcile(model1, cst2).node as ModelElement;
 
     expect(newModel).toBe(model1);
     expect(newModel.children[0]).not.toBe(oldNode);

@@ -1,12 +1,11 @@
+import { Formatter } from "@/model/formatter";
 import {
-  ModelElement,
-  ModelText,
   ModelComment,
-  ModelCDATA,
+  ModelElement,
   type ModelNode,
+  ModelText,
 } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
-import { Formatter } from "@/model/formatter";
 
 function h(
   tagName: string,
@@ -79,7 +78,8 @@ describe("Formatter", () => {
 
     const formatter4 = new Formatter({ indent: "    ", force: true });
     // api.model is the root element
-    const output = formatter4.format(api.model!);
+    if (!api.model) throw new Error("Model is null");
+    const output = formatter4.format(api.model);
 
     expect(output).toContain("\n    <child>");
     expect(output).toContain("\n        <content />");
@@ -89,7 +89,8 @@ describe("Formatter", () => {
     const original = `<root>\n  <child />\n</root>`;
     const api = new XMLAPI(original);
     const formatterCRLF = new Formatter({ newline: "\r\n", force: true });
-    const output = formatterCRLF.format(api.model!);
+    if (!api.model) throw new Error("Model is null");
+    const output = formatterCRLF.format(api.model);
     expect(output).toContain("\r\n");
   });
 });

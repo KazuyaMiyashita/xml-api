@@ -12,11 +12,15 @@
 
 ### Constructor
 
-> **new ModelElement**(`tagName`): `ModelElement`
+> **new ModelElement**(`tagName`, `id?`): `ModelElement`
 
 #### Parameters
 
 ##### tagName
+
+`string`
+
+##### id?
 
 `string`
 
@@ -49,6 +53,16 @@
 #### Inherited from
 
 [`ModelNode`](ModelNode.md).[`cst`](ModelNode.md#cst)
+
+***
+
+### formatting
+
+> **formatting**: [`ModelFormatting`](../interfaces/ModelFormatting.md)
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`formatting`](ModelNode.md#formatting)
 
 ***
 
@@ -116,7 +130,7 @@
 
 ### cloneBase()
 
-> `protected` **cloneBase**(`target`, `preserveId`): `void`
+> `protected` **cloneBase**(`target`, `_preserveId`): `void`
 
 #### Parameters
 
@@ -124,7 +138,7 @@
 
 [`ModelNode`](ModelNode.md)
 
-##### preserveId
+##### \_preserveId
 
 `boolean`
 
@@ -151,6 +165,26 @@
 #### Returns
 
 `ModelElement`[]
+
+***
+
+### findNodeById()
+
+> **findNodeById**(`id`): [`ModelNode`](ModelNode.md) \| `null`
+
+#### Parameters
+
+##### id
+
+`string`
+
+#### Returns
+
+[`ModelNode`](ModelNode.md) \| `null`
+
+#### Overrides
+
+[`ModelNode`](ModelNode.md).[`findNodeById`](ModelNode.md#findnodebyid)
 
 ***
 

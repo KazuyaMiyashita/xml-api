@@ -112,7 +112,7 @@ Represents an element in the XML document.
 
 > **get** **childNodes**(): [`NodeList`](NodeList.md)
 
-Returns a NodeList containing all children of this node.
+Returns a NodeList containing all children of this node, respecting the document's filter.
 
 ##### Returns
 
@@ -503,6 +503,42 @@ The child node to remove.
 #### Inherited from
 
 [`Node`](Node.md).[`removeChild`](Node.md#removechild)
+
+***
+
+### replaceChild()
+
+> **replaceChild**\<`T`\>(`newChild`, `oldChild`): `T`
+
+Replaces a child node with a new node.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* [`Node`](Node.md)
+
+#### Parameters
+
+##### newChild
+
+`T`
+
+The new node to add.
+
+##### oldChild
+
+[`Node`](Node.md)
+
+The child node to be replaced.
+
+#### Returns
+
+`T`
+
+#### Inherited from
+
+[`Node`](Node.md).[`replaceChild`](Node.md#replacechild)
 
 ***
 

@@ -24,6 +24,12 @@
 
 ***
 
+### timestamp
+
+> **timestamp**: `number`
+
+***
+
 ### undo
 
 > **undo**: `object`

@@ -4,6 +4,15 @@
 
 # Class: SyncEngine
 
+The core engine that manages the editor state and coordinates synchronization.
+
+It implements a transaction-based update cycle:
+1. Receives a `Transaction` describing changes.
+2. Updates the `EditorState` (Source).
+3. Triggers the `Parser` (Source -> CST).
+4. Triggers the `XMLBinder` (CST -> Model).
+5. Notifies listeners (including `SchemaView`s) of changes.
+
 ## Constructors
 
 ### Constructor
@@ -86,9 +95,9 @@
 
 ## Methods
 
-### applyPatch()
+### ~~applyPatch()~~
 
-> **applyPatch**(`start`, `end`, `text`): `void`
+> **applyPatch**(`start`, `end`, `text`, `meta?`): `void`
 
 Apply a programmatic change derived from Model operations.
 This is the "Application -> Source" flow.
@@ -107,9 +116,17 @@ This is the "Application -> Source" flow.
 
 `string`
 
+##### meta?
+
+`Record`\<`string`, `any`\>
+
 #### Returns
 
 `void`
+
+#### Deprecated
+
+Use `dispatch(new Transaction(state).replace(...))` instead.
 
 ***
 
@@ -118,6 +135,13 @@ This is the "Application -> Source" flow.
 > **dispatch**(`tr`): `void`
 
 Applies a transaction to the engine, updating the state and notifying listeners.
+This is the single point of truth for all state transitions in the system.
+
+It handles:
+- History recording (Undo/Redo)
+- Incremental Parsing and Reconciliation
+- Event Dispatching
+- Collaboration hooks
 
 #### Parameters
 
@@ -125,15 +149,17 @@ Applies a transaction to the engine, updating the state and notifying listeners.
 
 [`Transaction`](../../transaction/classes/Transaction.md)
 
+The transaction to apply.
+
 #### Returns
 
 `void`
 
 ***
 
-### insertNode()
+### ~~insertNode()~~
 
-> **insertNode**(`parent`, `child`, `index`): `void`
+> **insertNode**(`parent`, `child`, `index`, `meta?`): `void`
 
 #### Parameters
 
@@ -149,9 +175,17 @@ Applies a transaction to the engine, updating the state and notifying listeners.
 
 `number`
 
+##### meta?
+
+`Record`\<`string`, `any`\>
+
 #### Returns
 
 `void`
+
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).insertNode(...))` instead.
 
 ***
 
@@ -187,9 +221,9 @@ Subscribe to model changes.
 
 ***
 
-### removeNode()
+### ~~removeNode()~~
 
-> **removeNode**(`parent`, `child`): `void`
+> **removeNode**(`parent`, `child`, `meta?`): `void`
 
 #### Parameters
 
@@ -201,15 +235,23 @@ Subscribe to model changes.
 
 [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
 
+##### meta?
+
+`Record`\<`string`, `any`\>
+
 #### Returns
 
 `void`
 
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).removeNode(...))` instead.
+
 ***
 
-### replaceNode()
+### ~~replaceNode()~~
 
-> **replaceNode**(`target`, `content`): `void`
+> **replaceNode**(`target`, `content`, `meta?`): `void`
 
 #### Parameters
 
@@ -221,15 +263,23 @@ Subscribe to model changes.
 
 [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
 
+##### meta?
+
+`Record`\<`string`, `any`\>
+
 #### Returns
 
 `void`
 
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).replaceNode(...))` instead.
+
 ***
 
-### setAttribute()
+### ~~setAttribute()~~
 
-> **setAttribute**(`modelNode`, `key`, `value`): `void`
+> **setAttribute**(`modelNode`, `key`, `value`, `meta?`): `void`
 
 #### Parameters
 
@@ -245,9 +295,17 @@ Subscribe to model changes.
 
 `string`
 
+##### meta?
+
+`Record`\<`string`, `any`\>
+
 #### Returns
 
 `void`
+
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).setAttribute(...))` instead.
 
 ***
 
@@ -279,7 +337,7 @@ Subscribe to model changes.
 
 ### updateSource()
 
-> **updateSource**(`from`, `to`, `text`): `void`
+> **updateSource**(`from`, `to`, `text`, `meta?`): `void`
 
 Update the source code (e.g. from text editor).
 Handles history recording and incremental parsing.
@@ -298,15 +356,19 @@ Handles history recording and incremental parsing.
 
 `string`
 
+##### meta?
+
+`Record`\<`string`, `any`\>
+
 #### Returns
 
 `void`
 
 ***
 
-### updateText()
+### ~~updateText()~~
 
-> **updateText**(`modelNode`, `text`): `void`
+> **updateText**(`modelNode`, `text`, `meta?`): `void`
 
 #### Parameters
 
@@ -318,6 +380,14 @@ Handles history recording and incremental parsing.
 
 `string`
 
+##### meta?
+
+`Record`\<`string`, `any`\>
+
 #### Returns
 
 `void`
+
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).updateText(...))` instead.

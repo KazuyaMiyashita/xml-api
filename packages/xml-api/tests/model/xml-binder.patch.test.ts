@@ -10,8 +10,8 @@ describe("XMLBinder Patch Generation", () => {
     const input = '<root id="1" />';
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    expect(cst).not.toBeNull();
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     const patch = binder.calcSetAttributePatch(model, "id", "2");
     // <root id="1" />
@@ -36,8 +36,8 @@ describe("XMLBinder Patch Generation", () => {
     const input = "<root/>";
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    expect(cst).not.toBeNull();
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     const patch = binder.calcSetAttributePatch(model, "id", "1");
     // <root/>
@@ -57,7 +57,8 @@ describe("XMLBinder Patch Generation", () => {
     const input = "<root></root>";
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     const patch = binder.calcSetAttributePatch(model, "id", "1");
     // <root>

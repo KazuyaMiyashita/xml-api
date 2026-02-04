@@ -3,7 +3,6 @@ import {
   ModelComment,
   ModelElement,
   type ModelNode,
-  ModelNodeType,
   ModelText,
 } from "./model/xml-api-model";
 
@@ -62,6 +61,14 @@ export interface DOMObserver {
    * @param index The index from which the child was removed.
    */
   onChildRemoved(parent: Node, child: Node, index: number): void;
+
+  /**
+   * Called when a child node is replaced.
+   * @param parent The parent node.
+   * @param newChild The new child node.
+   * @param oldChild The replaced child node.
+   */
+  onChildReplaced(parent: Node, newChild: Node, oldChild: Node): void;
 }
 
 /**
@@ -93,12 +100,16 @@ export abstract class Node {
   }
 
   /**
-   * Returns a NodeList containing all children of this node.
+   * Returns a NodeList containing all children of this node, respecting the document's filter.
    */
   get childNodes(): NodeList {
     if (this.model instanceof ModelElement) {
+      let children = this.model.children;
+      if (this.ownerDocument?.nodeFilter) {
+        children = children.filter((c) => this.ownerDocument?.accepts(c));
+      }
       return new NodeList(
-        this.model.children.map((c) => createWrapper(c, this.ownerDocument)),
+        children.map((c) => createWrapper(c, this.ownerDocument)),
       );
     }
     return new NodeList([]);
@@ -117,9 +128,14 @@ export abstract class Node {
   get nextSibling(): Node | null {
     const parent = this.model.parent;
     if (!parent) return null;
-    const index = parent.children.indexOf(this.model);
-    if (index >= 0 && index < parent.children.length - 1) {
-      return createWrapper(parent.children[index + 1], this.ownerDocument);
+    let index = parent.children.indexOf(this.model);
+
+    while (index < parent.children.length - 1) {
+      index++;
+      const sibling = parent.children[index];
+      if (!this.ownerDocument || this.ownerDocument.accepts(sibling)) {
+        return createWrapper(sibling, this.ownerDocument);
+      }
     }
     return null;
   }
@@ -127,9 +143,14 @@ export abstract class Node {
   get previousSibling(): Node | null {
     const parent = this.model.parent;
     if (!parent) return null;
-    const index = parent.children.indexOf(this.model);
-    if (index > 0) {
-      return createWrapper(parent.children[index - 1], this.ownerDocument);
+    let index = parent.children.indexOf(this.model);
+
+    while (index > 0) {
+      index--;
+      const sibling = parent.children[index];
+      if (!this.ownerDocument || this.ownerDocument.accepts(sibling)) {
+        return createWrapper(sibling, this.ownerDocument);
+      }
     }
     return null;
   }
@@ -148,23 +169,24 @@ export abstract class Node {
 
   set textContent(value: string | null) {
     const val = value || "";
+    const m = this.model;
 
-    if (this.model instanceof ModelText) {
-      this.model.text = val;
-      this.ownerDocument?.notifyTextChange(this as any as CharacterData, val);
-    } else if (this.model instanceof ModelComment) {
-      this.model.content = val;
-      this.ownerDocument?.notifyTextChange(this as any as CharacterData, val);
-    } else if (this.model instanceof ModelCDATA) {
-      this.model.content = val;
-      this.ownerDocument?.notifyTextChange(this as any as CharacterData, val);
-    } else if (this.model instanceof ModelElement) {
-      this.model.children = [];
+    if (m instanceof ModelText && this instanceof CharacterData) {
+      m.text = val;
+      this.ownerDocument?.notifyTextChange(this, val);
+    } else if (m instanceof ModelComment && this instanceof CharacterData) {
+      m.content = val;
+      this.ownerDocument?.notifyTextChange(this, val);
+    } else if (m instanceof ModelCDATA && this instanceof CharacterData) {
+      m.content = val;
+      this.ownerDocument?.notifyTextChange(this, val);
+    } else if (m instanceof ModelElement && this instanceof Element) {
+      m.children = [];
       if (val) {
         const textNode = new ModelText(val);
-        this.model.addChild(textNode);
+        m.addChild(textNode);
       }
-      this.ownerDocument?.notifyElementTextChange(this as any as Element, val);
+      this.ownerDocument?.notifyElementTextChange(this, val);
     }
   }
 
@@ -175,7 +197,6 @@ export abstract class Node {
   appendChild<T extends Node>(newChild: T): T {
     if (this.model instanceof ModelElement) {
       this.model.addChild(newChild.getModel());
-      // @ts-ignore
       newChild.ownerDocument = this.ownerDocument;
 
       this.ownerDocument?.notifyChildAdded(
@@ -205,11 +226,35 @@ export abstract class Node {
       // Update Model
       this.model.children.splice(index, 0, newChild.getModel());
       newChild.getModel().parent = this.model;
-      // @ts-ignore
       newChild.ownerDocument = this.ownerDocument;
 
       this.ownerDocument?.notifyChildAdded(this, newChild, index);
       return newChild;
+    }
+    throw new Error("HierarchyRequestError");
+  }
+
+  /**
+   * Replaces a child node with a new node.
+   * @param newChild The new node to add.
+   * @param oldChild The child node to be replaced.
+   */
+  replaceChild<T extends Node>(newChild: T, oldChild: Node): T {
+    if (this.model instanceof ModelElement) {
+      const oldModel = oldChild.getModel();
+      const index = this.model.children.indexOf(oldModel);
+      if (index === -1) throw new Error("NotFoundError");
+
+      // Update Model
+      this.model.children[index] = newChild.getModel();
+      newChild.getModel().parent = this.model;
+      newChild.ownerDocument = this.ownerDocument;
+      // oldModel.parent = null; // Delayed until after notification
+
+      this.ownerDocument?.notifyChildReplaced(this, newChild, oldChild);
+
+      oldModel.parent = null;
+      return oldChild as unknown as T;
     }
     throw new Error("HierarchyRequestError");
   }
@@ -382,6 +427,7 @@ export class Element extends Node {
 export class Document extends Node {
   private _documentElement: Element | null = null;
   private observer: DOMObserver | null = null;
+  public nodeFilter: ((node: ModelNode) => boolean) | null = null;
 
   constructor() {
     // Document doesn't strictly have a ModelNode parent in this simplified architecture
@@ -389,6 +435,13 @@ export class Document extends Node {
     // For now, we'll create a dummy root model or handle it differently
     super(new ModelElement("#document"), null);
     this.ownerDocument = this; // Document owns itself
+  }
+
+  /**
+   * Checks if a node is accepted by the current filter.
+   */
+  accepts(node: ModelNode): boolean {
+    return this.nodeFilter ? this.nodeFilter(node) : true;
   }
 
   /**
@@ -418,6 +471,10 @@ export class Document extends Node {
     this.observer?.onChildRemoved(parent, child, index);
   }
 
+  notifyChildReplaced(parent: Node, newChild: Node, oldChild: Node) {
+    this.observer?.onChildReplaced(parent, newChild, oldChild);
+  }
+
   get nodeType(): number {
     return this.DOCUMENT_NODE;
   }
@@ -437,7 +494,6 @@ export class Document extends Node {
       // Ensure the element is part of the document structure
       // In a real DOM, documentElement is a child of Document
       // Here, we just link them logically
-      // @ts-ignore
       element.ownerDocument = this;
     }
   }

@@ -1,5 +1,5 @@
-import { ModelElement } from "@/model/xml-api-model";
 import { CST } from "@/cst/xml-cst";
+import { ModelElement } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
 
 describe("Model-CST Mapping", () => {
@@ -8,25 +8,27 @@ describe("Model-CST Mapping", () => {
     const api = new XMLAPI(xml);
 
     expect(api.model).toBeInstanceOf(ModelElement);
-    const root = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const root = api.model;
     expect(root.cst).toBeInstanceOf(CST);
     expect(root.cst?.name).toBe("element");
-    expect(root.cst?.getText(api.input)).toBe(xml);
+    expect(root.cst?.getText(api.source)).toBe(xml);
 
     const child = root.find("child")[0];
     expect(child).toBeInstanceOf(ModelElement);
     expect(child.cst).toBeInstanceOf(CST);
     expect(child.cst?.name).toBe("element");
-    expect(child.cst?.getText(api.input)).toBe("<child>Text</child>");
+    expect(child.cst?.getText(api.source)).toBe("<child>Text</child>");
   });
 
   it("should attach CST node for EmptyElemTag", () => {
     const xml = "<empty/>";
     const api = new XMLAPI(xml);
 
-    const root = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const root = api.model;
     expect(root.cst).toBeInstanceOf(CST);
     expect(root.cst?.name).toBe("element");
-    expect(root.cst?.getText(api.input)).toBe("<empty/>");
+    expect(root.cst?.getText(api.source)).toBe("<empty/>");
   });
 });

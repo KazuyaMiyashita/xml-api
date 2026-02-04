@@ -5,7 +5,12 @@
 # Class: XMLAPI
 
 The primary entry point for the XML API.
-Orchestrates the synchronization between source code (CST) and the logical Model.
+Orchestrates the synchronization between source code (CST), the logical Model, and Schema Views.
+
+This class serves as the central hub for the "Three-Level Reconciliation" architecture:
+1. Source <-> CST: Incremental parsing.
+2. CST <-> Model: Logical binding and identity preservation.
+3. Model <-> View: Schema projection and filtering (via `createView`).
 
 ## Constructors
 
@@ -49,6 +54,20 @@ The Concrete Syntax Tree (Physical layer).
 
 ***
 
+### engine
+
+#### Get Signature
+
+> **get** **engine**(): [`SyncEngine`](../../engine/sync-engine/classes/SyncEngine.md)
+
+The underlying synchronization engine.
+
+##### Returns
+
+[`SyncEngine`](../../engine/sync-engine/classes/SyncEngine.md)
+
+***
+
 ### grammar
 
 #### Get Signature
@@ -60,24 +79,6 @@ The grammar used for parsing.
 ##### Returns
 
 [`Grammar`](../../cst/grammar/classes/Grammar.md)
-
-***
-
-### input
-
-#### Get Signature
-
-> **get** **input**(): `string`
-
-Alias for `source` to maintain compatibility with existing tests/demos temporarily.
-
-##### Deprecated
-
-Use `source` instead.
-
-##### Returns
-
-`string`
 
 ***
 
@@ -108,6 +109,32 @@ The current source code string.
 `string`
 
 ## Methods
+
+### createView()
+
+> **createView**(`config`): [`SchemaView`](../../view/schema-view/classes/SchemaView.md)
+
+Creates a projected view of the document.
+
+A SchemaView allows you to work with a filtered subset of the document (e.g., only XHTML tags)
+while the underlying system maintains full fidelity of the original source (including comments,
+custom tags, and formatting) in the background.
+
+#### Parameters
+
+##### config
+
+[`SchemaViewConfig`](../../view/schema-view/interfaces/SchemaViewConfig.md) = `{}`
+
+Configuration for the view, including filter logic.
+
+#### Returns
+
+[`SchemaView`](../../view/schema-view/classes/SchemaView.md)
+
+A `SchemaView` instance providing a DOM-like interface for the projected content.
+
+***
 
 ### getDocument()
 
@@ -154,58 +181,6 @@ Registers an event handler to listen for model changes.
 
 ***
 
-### ~~replaceNode()~~
-
-> **replaceNode**(`target`, `content`): `void`
-
-#### Parameters
-
-##### target
-
-[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
-
-##### content
-
-[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
-
-#### Returns
-
-`void`
-
-#### Deprecated
-
-Use DOM interface or Engine directly if needed.
-
-***
-
-### ~~setAttribute()~~
-
-> **setAttribute**(`modelNode`, `key`, `value`): `void`
-
-#### Parameters
-
-##### modelNode
-
-[`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
-
-##### key
-
-`string`
-
-##### value
-
-`string`
-
-#### Returns
-
-`void`
-
-#### Deprecated
-
-Use DOM interface or Engine directly if needed.
-
-***
-
 ### undo()
 
 > **undo**(): `void`
@@ -216,39 +191,9 @@ Use DOM interface or Engine directly if needed.
 
 ***
 
-### ~~updateInput()~~
-
-> **updateInput**(`from`, `to`, `text`): `void`
-
-Alias for `updateSource` to maintain compatibility.
-
-#### Parameters
-
-##### from
-
-`number`
-
-##### to
-
-`number`
-
-##### text
-
-`string`
-
-#### Returns
-
-`void`
-
-#### Deprecated
-
-Use `updateSource` instead.
-
-***
-
 ### updateSource()
 
-> **updateSource**(`from`, `to`, `text`): `void`
+> **updateSource**(`from`, `to`, `text`, `meta?`): `void`
 
 Updates the source code directly (e.g. from a text editor).
 Attempts an optimized incremental update, falling back to full re-parse if needed.
@@ -273,30 +218,12 @@ End index of the range.
 
 The new text to insert.
 
-#### Returns
+##### meta?
 
-`void`
+`Record`\<`string`, `any`\>
 
-***
-
-### ~~updateText()~~
-
-> **updateText**(`modelNode`, `text`): `void`
-
-#### Parameters
-
-##### modelNode
-
-[`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
-
-##### text
-
-`string`
+(Optional) Metadata for the transaction.
 
 #### Returns
 
 `void`
-
-#### Deprecated
-
-Use DOM interface or Engine directly if needed.

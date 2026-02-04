@@ -6,7 +6,7 @@ All examples below are fully functional. You can click the **Run (▶)** icon at
 
 ## Basic Initialization
 
-To start using the API, initialize the `XMLAPI` class with your XML source string. This process parses the source and builds the internal CST, AST, and Model.
+To start using the API, initialize the `XMLAPI` class with your XML source string. This process parses the source and builds the internal CST (Concrete Syntax Tree) and Model.
 
 <CodeRunner scenario="basic-init" />
 
@@ -18,7 +18,7 @@ The most intuitive way to update your XML is through the DOM-compatible interfac
 
 ## Advanced Searching and Updates
 
-You can perform complex searches using the `find` method and manipulate the source directly using `updateInput` for character-level precision.
+You can perform complex searches using the `find` method and manipulate the source directly using `updateSource` for character-level precision.
 
 <CodeRunner scenario="programmatic-usage" />
 

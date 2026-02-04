@@ -1,33 +1,39 @@
-import { ModelCDATA, ModelComment } from "@/model/xml-api-model";
+import { CDATASection, Comment } from "@/dom";
 import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI Extended Support (CDATA & Comment)", () => {
   it("should parse and preserve CDATA sections", () => {
     const input = `<root><![CDATA[Some <data>]]></root>`;
     const api = new XMLAPI(input);
+    const doc = api.getDocument();
 
     expect(api.model?.children.length).toBe(1);
-    const child = api.model?.children[0];
+    if (!doc.documentElement || !doc.documentElement.firstChild)
+      throw new Error("Child not found");
+    const child = doc.documentElement.firstChild;
 
-    expect(child).toBeInstanceOf(ModelCDATA);
-    expect((child as ModelCDATA).content).toBe("Some <data>");
+    expect(child).toBeInstanceOf(CDATASection);
+    expect((child as CDATASection).data).toBe("Some <data>");
 
-    const newCData = new ModelCDATA("New <Content>");
-    api.replaceNode(child as any, newCData as any);
+    const newCData = doc.createCDATASection("New <Content>");
+    doc.documentElement?.replaceChild(newCData, child);
 
-    expect(api.input).toBe(`<root><![CDATA[New <Content>]]></root>`);
+    expect(api.source).toBe(`<root><![CDATA[New <Content>]]></root>`);
   });
 
   it("should handle Comment updates", () => {
     const input = `<root><!-- Old Comment --></root>`;
     const api = new XMLAPI(input);
+    const doc = api.getDocument();
 
-    const comment = api.model?.children[0];
-    expect(comment).toBeInstanceOf(ModelComment);
+    if (!doc.documentElement || !doc.documentElement.firstChild)
+      throw new Error("Comment not found");
+    const comment = doc.documentElement.firstChild;
+    expect(comment).toBeInstanceOf(Comment);
 
-    const newComment = new ModelComment(" New Comment ");
-    api.replaceNode(comment as any, newComment as any);
+    const newComment = doc.createComment(" New Comment ");
+    doc.documentElement?.replaceChild(newComment, comment);
 
-    expect(api.input).toBe(`<root><!-- New Comment --></root>`);
+    expect(api.source).toBe(`<root><!-- New Comment --></root>`);
   });
 });

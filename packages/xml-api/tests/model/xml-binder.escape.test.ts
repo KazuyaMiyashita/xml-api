@@ -10,7 +10,8 @@ describe("XMLBinder Escape Logic", () => {
     const input = "<root>Old</root>";
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     // Text containing <, >, &
     const rawText = "1 < 2 & 3 > 0";
@@ -29,7 +30,8 @@ describe("XMLBinder Escape Logic", () => {
     const input = '<root id="old"></root>';
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     const rawValue = 'A "B" & C';
     // Ideally: "A &quot;B&quot; &amp; C"
@@ -52,7 +54,8 @@ describe("XMLBinder Escape Logic", () => {
     const input = "<root></root>";
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     const rawValue = "New < & > Value";
     // Attribute values must escape <, &, "

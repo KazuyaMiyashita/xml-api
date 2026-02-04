@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { scenarios } from "./scenarios";
 
 const props = defineProps<{
@@ -27,6 +27,7 @@ async function run() {
     await scenarioData.value.run((msg: string) => {
       output.value.push(msg);
     });
+    // biome-ignore lint/suspicious/noExplicitAny: Simple error handling
   } catch (e: any) {
     output.value.push(`Error: ${e.message}`);
     console.error(e);

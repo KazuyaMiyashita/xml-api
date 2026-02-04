@@ -15,7 +15,13 @@
 
 ### Constructor
 
-> **new ModelNode**(): `ModelNode`
+> **new ModelNode**(`id?`): `ModelNode`
+
+#### Parameters
+
+##### id?
+
+`string`
 
 #### Returns
 
@@ -26,6 +32,12 @@
 ### cst
 
 > **cst**: [`CST`](../../../cst/xml-cst/classes/CST.md) \| `null` = `null`
+
+***
+
+### formatting
+
+> **formatting**: [`ModelFormatting`](../interfaces/ModelFormatting.md)
 
 ***
 
@@ -59,7 +71,7 @@
 
 ### cloneBase()
 
-> `protected` **cloneBase**(`target`, `preserveId`): `void`
+> `protected` **cloneBase**(`target`, `_preserveId`): `void`
 
 #### Parameters
 
@@ -67,13 +79,29 @@
 
 `ModelNode`
 
-##### preserveId
+##### \_preserveId
 
 `boolean`
 
 #### Returns
 
 `void`
+
+***
+
+### findNodeById()
+
+> **findNodeById**(`id`): `ModelNode` \| `null`
+
+#### Parameters
+
+##### id
+
+`string`
+
+#### Returns
+
+`ModelNode` \| `null`
 
 ***
 

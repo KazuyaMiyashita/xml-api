@@ -16,6 +16,10 @@
 - [ModelNode](classes/ModelNode.md)
 - [ModelText](classes/ModelText.md)
 
+## Interfaces
+
+- [ModelFormatting](interfaces/ModelFormatting.md)
+
 ## Type Aliases
 
 - [NodeId](type-aliases/NodeId.md)

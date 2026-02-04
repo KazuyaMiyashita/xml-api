@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from "vue";
-import type { Element, CharacterData } from "@/dom";
+import { computed, nextTick, ref } from "vue";
+import type { CharacterData, Element } from "@/dom";
 
 const props = defineProps<{
   node: Element | CharacterData | null;
@@ -29,7 +29,7 @@ const nodeName = computed(() => (props.node ? props.node.nodeName : ""));
 const attributes = computed(() => {
   if (!isElement.value) return [];
   const el = props.node as Element;
-  const model = (el as any).getModel();
+  const model = el.getModel();
   const attrs: { key: string; value: string }[] = [];
   if (model.attributes) {
     model.attributes.forEach((v: string, k: string) => {

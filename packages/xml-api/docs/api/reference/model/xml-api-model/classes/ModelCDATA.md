@@ -12,11 +12,15 @@
 
 ### Constructor
 
-> **new ModelCDATA**(`content`): `ModelCDATA`
+> **new ModelCDATA**(`content`, `id?`): `ModelCDATA`
 
 #### Parameters
 
 ##### content
+
+`string`
+
+##### id?
 
 `string`
 
@@ -43,6 +47,16 @@
 #### Inherited from
 
 [`ModelNode`](ModelNode.md).[`cst`](ModelNode.md#cst)
+
+***
+
+### formatting
+
+> **formatting**: [`ModelFormatting`](../interfaces/ModelFormatting.md)
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`formatting`](ModelNode.md#formatting)
 
 ***
 
@@ -88,7 +102,7 @@
 
 ### cloneBase()
 
-> `protected` **cloneBase**(`target`, `preserveId`): `void`
+> `protected` **cloneBase**(`target`, `_preserveId`): `void`
 
 #### Parameters
 
@@ -96,7 +110,7 @@
 
 [`ModelNode`](ModelNode.md)
 
-##### preserveId
+##### \_preserveId
 
 `boolean`
 
@@ -107,6 +121,26 @@
 #### Inherited from
 
 [`ModelNode`](ModelNode.md).[`cloneBase`](ModelNode.md#clonebase)
+
+***
+
+### findNodeById()
+
+> **findNodeById**(`id`): [`ModelNode`](ModelNode.md) \| `null`
+
+#### Parameters
+
+##### id
+
+`string`
+
+#### Returns
+
+[`ModelNode`](ModelNode.md) \| `null`
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`findNodeById`](ModelNode.md#findnodebyid)
 
 ***
 

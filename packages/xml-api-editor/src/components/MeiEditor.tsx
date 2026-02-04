@@ -1,6 +1,5 @@
-import React from "react";
-// @ts-ignore
-import { XMLAPI } from "@miy2/xml-api";
+import type { XMLAPI } from "@miy2/xml-api";
+import type React from "react";
 
 interface MeiEditorProps {
   api: XMLAPI;

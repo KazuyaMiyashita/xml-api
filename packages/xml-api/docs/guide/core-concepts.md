@@ -10,7 +10,8 @@ The system architecture is centered around the **SyncEngine**, which manages sta
 | :--- | :--- | :--- |
 | **SyncEngine** | Core Logic | Transaction processing, History, Event dispatching. |
 | **CST** | Physical Layer | Exact source structure, validation, incremental parsing. |
-| **Model & DOM** | Application Layer | Source of Truth, persistent IDs, DOM API. |
+| **Model** | Logical Layer | Source of Truth, persistent IDs, full fidelity. |
+| **Projection** | View Layer | Schema-specific filtering (`SchemaView`), DOM API. |
 
 ## Transaction Architecture
 
@@ -39,8 +40,15 @@ The Model is the authoritative source of truth that connects the physical CST to
 - **Linkage**: Maintains direct references to CST nodes, enabling the retrieval of exact source code locations for every logical element.
 - **Standard Operations**: Provides built-in methods for data extraction (`find`, `text`) and formatting.
 
-### 3. DOM Interface
-This layer provides the primary interface for applications to interact with the document. It implements standard W3C interfaces (`Document`, `Element`) and acts as a wrapper around the Model. Changes made here are observed and automatically synchronized with the source code.
+### 3. Projection Layer (SchemaView)
+This layer provides a specialized view of the document tailored to specific application needs (e.g., an XHTML subset).
+
+- **Filtering**: Hides nodes that don't match the schema (e.g., comments, custom tags) while preserving them in the underlying Model.
+- **SchemaView**: The primary interface for accessing this filtered tree. It mimics the standard DOM API.
+- **ViewBinder**: Handles the complexity of reconciling changes from the filtered view back to the full Model, ensuring that "invisible" nodes are preserved and formatting is respected.
+
+### 4. DOM Interface
+This layer provides the primary interface for applications to interact with the document. It implements standard W3C interfaces (`Document`, `Element`) and acts as a wrapper around the Model (or SchemaView). Changes made here are observed and automatically synchronized with the source code.
 
 ## Data Flow
 

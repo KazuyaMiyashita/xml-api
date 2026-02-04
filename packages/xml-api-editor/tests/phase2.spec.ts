@@ -1,15 +1,15 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Phase 2: Synchronization Validation", () => {
   test.beforeEach(async ({ page }) => {
     page.on("console", (msg) => console.log(`BROWSER: ${msg.text()}`));
-    await page.goto("http://localhost:5173");
+    await page.goto("/");
   });
 
   test("DOM mutation observation (WYSIWYG -> Code sync)", async ({ page }) => {
     const wysiwyg = page.locator(".ProseMirror");
     const codeEditor = page.locator(".cm-content");
-    const eventLog = page.locator(".pane-footer");
+    const _eventLog = page.locator(".pane-footer");
 
     // Find a paragraph to edit
     const firstP = wysiwyg.locator("p").first();
@@ -37,7 +37,7 @@ test.describe("Phase 2: Synchronization Validation", () => {
     // Note: ProseMirror schema defines how it parses HTML.
     const newXml =
       "<html><body><h1>New Heading</h1><p>New Paragraph content</p></body></html>";
-    await page.keyboard.type(newXml);
+    await page.keyboard.insertText(newXml);
 
     // Verify WYSIWYG reflects the new structure
     await expect(wysiwyg.locator("h1")).toContainText("New Heading", {

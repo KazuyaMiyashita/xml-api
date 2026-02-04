@@ -1,4 +1,4 @@
-import { ModelElement, ModelText } from "@/model/xml-api-model";
+import { ModelElement } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
 
 describe("Incremental Model Update", () => {
@@ -6,18 +6,20 @@ describe("Incremental Model Update", () => {
     const xml = '<root><a id="1">TextA</a><b id="2">TextB</b></root>';
     const api = new XMLAPI(xml);
 
-    const rootModel = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const rootModel = api.model;
     const aModel = rootModel.children[0] as ModelElement;
     const bModel = rootModel.children[1] as ModelElement;
 
     const start = xml.indexOf("TextA");
     const end = start + "TextA".length;
 
-    api.updateInput(start, end, "Mod");
+    api.updateSource(start, end, "Mod");
 
     expect(api.model).toBe(rootModel); // Root object preserved
 
-    const newRoot = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const newRoot = api.model;
     const newA = newRoot.children[0] as ModelElement;
     const newB = newRoot.children[1] as ModelElement;
 
@@ -32,11 +34,12 @@ describe("Incremental Model Update", () => {
     // <root><a>Old</a></root> -> <root><a><n>New</n></a></root>
     const xml = "<root><a>Old</a></root>";
     const api = new XMLAPI(xml);
-    const rootModel = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const rootModel = api.model;
     const aModel = rootModel.children[0] as ModelElement;
 
     const start = xml.indexOf("Old");
-    api.updateInput(start, start + 3, "<n>New</n>");
+    api.updateSource(start, start + 3, "<n>New</n>");
 
     expect(api.model).toBe(rootModel);
     expect(api.model?.children[0]).toBe(aModel);
@@ -49,10 +52,11 @@ describe("Incremental Model Update", () => {
   it("should fallback to full regen (new object) if root is replaced", () => {
     const xml = "<root>A</root>";
     const api = new XMLAPI(xml);
-    const rootModel = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const rootModel = api.model;
 
     // Replace whole string
-    api.updateInput(0, xml.length, "<new>B</new>");
+    api.updateSource(0, xml.length, "<new>B</new>");
 
     // Expect new root object because we replaced the root
     expect(api.model).not.toBe(rootModel);

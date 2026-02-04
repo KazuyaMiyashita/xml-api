@@ -1,9 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Phase 2.5: Bug Fixes & Improvements", () => {
   test.beforeEach(async ({ page }) => {
     page.on("console", (msg) => console.log(`BROWSER: ${msg.text()}`));
-    await page.goto("http://localhost:5173");
+    await page.goto("/");
   });
 
   test("Bug Fix (2): CodeEditor Input Duplication Check", async ({ page }) => {
@@ -55,6 +55,6 @@ test.describe("Phase 2.5: Bug Fixes & Improvements", () => {
     const fontWeight = await strong.evaluate(
       (el) => window.getComputedStyle(el).fontWeight,
     );
-    expect(parseInt(fontWeight) >= 600 || fontWeight === "bold").toBe(true);
+    expect(parseInt(fontWeight, 10) >= 600 || fontWeight === "bold").toBe(true);
   });
 });

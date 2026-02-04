@@ -6,6 +6,12 @@
 
 ## Properties
 
+### baseIndent?
+
+> `optional` **baseIndent**: `string`
+
+***
+
 ### force?
 
 > `optional` **force**: `boolean`

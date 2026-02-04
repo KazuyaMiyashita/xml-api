@@ -1,15 +1,13 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-// @ts-ignore
-import { XMLAPI } from "@miy2/xml-api";
-// @ts-ignore
-import { ChangeEvent } from "@miy2/xml-api/dist/xml-api-events";
+import { type ChangeEvent, XMLAPI } from "@miy2/xml-api";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CodeEditor from "./components/CodeEditor";
-import WYSIWYGEditor from "./components/WYSIWYGEditor";
 import MeiEditor from "./components/MeiEditor";
-import { detectDocumentType, DocumentType } from "./utils/xml-detector";
+import WYSIWYGEditor from "./components/WYSIWYGEditor";
+import { DocumentType, detectDocumentType } from "./utils/xml-detector";
 import "./App.css";
 
 interface LogEntry {
+  id: string;
   timestamp: string;
   type: string;
   detail: string;
@@ -18,41 +16,12 @@ interface LogEntry {
 function App() {
   const [api, setApi] = useState<XMLAPI | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [, setTick] = useState(0);
-  const [version, setVersion] = useState(0); // Add version state for manual syncing
   const [eventLogs, setEventLogs] = useState<LogEntry[]>([]);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
-  const forceUpdate = useCallback(() => {
-    setTick((tick) => tick + 1);
-  }, []);
-
-  const handleVersionUpdate = useCallback(() => {
-    setVersion((v) => v + 1);
-  }, []);
-
-  const addLog = useCallback((event: ChangeEvent) => {
-    const timestamp = new Date().toLocaleTimeString();
-    let detail = "";
-
-    if (event.type === "full") {
-      detail = "Full update";
-    } else if (event.type === "structure") {
-      detail = `Structure changed at ${event.target?.getType()} (${event.target?.id})`;
-    } else if (event.type === "attribute") {
-      detail = `Attribute changed: ${event.key} = ${event.newValue} on ${event.target?.getType()}`;
-    } else if (event.type === "text") {
-      detail = `Text changed on ${event.target?.getType()} (${event.target?.id})`;
-    }
-
-    setEventLogs((prev) => [
-      ...prev.slice(-19),
-      { timestamp, type: event.type, detail },
-    ]);
-  }, []);
-
   // Detect document type
   // Re-run detection whenever eventLogs change (implies model might have changed) or api changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: eventLogs triggers re-calc
   const docTypeInfo = useMemo(() => {
     if (!api) return { type: DocumentType.UNKNOWN, rootTag: "" };
     return detectDocumentType(api);
@@ -61,7 +30,7 @@ function App() {
   // Auto-scroll logs
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [eventLogs]);
+  }, []);
 
   useEffect(() => {
     const loadXml = async () => {
@@ -87,26 +56,32 @@ function App() {
             else if (event.type === "text")
               detail = `Text changed on ${event.target?.getType()} (${event.target?.id})`;
 
+            const id = `${Date.now()}-${Math.random()}`; // Simple ID for now inside callback
+
             return [
               ...prev.slice(-19),
-              { timestamp, type: event.type, detail },
+              { id, timestamp, type: event.type, detail },
             ];
           });
 
           // Note: forceUpdate is removed. Editors must subscribe and update themselves.
         });
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError(String(err));
+        }
       }
     };
 
     loadXml();
-  }, [addLog, forceUpdate]);
+  }, []);
 
-  const handleCodeChange = (_newSource: string) => {
+  const handleCodeChange = useCallback((_newSource: string) => {
     // CodeEditor now handles api.updateSource incrementally.
     // We can use this callback for other side effects if needed.
-  };
+  }, []);
 
   return (
     <div className="app-container">
@@ -137,10 +112,7 @@ function App() {
               docTypeInfo.type === DocumentType.MEI ? (
                 <MeiEditor api={api} />
               ) : (
-                <WYSIWYGEditor
-                  api={api}
-                  onExternalChange={handleVersionUpdate}
-                />
+                <WYSIWYGEditor api={api} />
               )
             ) : (
               <div>Loading...</div>
@@ -171,8 +143,8 @@ function App() {
                 fontFamily: "monospace",
               }}
             >
-              {eventLogs.map((log, i) => (
-                <div key={i} style={{ marginBottom: "2px" }}>
+              {eventLogs.map((log) => (
+                <div key={log.id} style={{ marginBottom: "2px" }}>
                   <span style={{ color: "#888" }}>[{log.timestamp}]</span>
                   <strong style={{ color: "#007acc" }}> {log.type}</strong>:{" "}
                   {log.detail}
@@ -188,11 +160,7 @@ function App() {
             {error ? (
               <div className="error-message">Error: {error}</div>
             ) : api ? (
-              <CodeEditor
-                api={api}
-                version={version}
-                onChange={handleCodeChange}
-              />
+              <CodeEditor api={api} onChange={handleCodeChange} />
             ) : (
               <div>Loading...</div>
             )}

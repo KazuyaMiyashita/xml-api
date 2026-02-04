@@ -1,5 +1,5 @@
-import { XMLAPI } from "@/xml-api";
 import { ModelText } from "@/model/xml-api-model";
+import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI Transaction Management", () => {
   it("should undo and redo updates", () => {
@@ -11,35 +11,35 @@ describe("XMLAPI Transaction Management", () => {
     // <root>A</root>
     // 01234567890123
     // A is at 6-7.
-    api.updateInput(6, 7, "B");
-    expect(api.input).toBe("<root>B</root>");
+    api.updateSource(6, 7, "B");
+    expect(api.source).toBe("<root>B</root>");
 
     // Op 2: B -> C
-    api.updateInput(6, 7, "C");
-    expect(api.input).toBe("<root>C</root>");
+    api.updateSource(6, 7, "C");
+    expect(api.source).toBe("<root>C</root>");
 
     // Undo Op 2 -> B
     api.undo();
-    expect(api.input).toBe("<root>B</root>");
+    expect(api.source).toBe("<root>B</root>");
 
     // Undo Op 1 -> A
     api.undo();
-    expect(api.input).toBe("<root>A</root>");
+    expect(api.source).toBe("<root>A</root>");
 
     // Redo Op 1 -> B
     api.redo();
-    expect(api.input).toBe("<root>B</root>");
+    expect(api.source).toBe("<root>B</root>");
 
     // Redo Op 2 -> C
     api.redo();
-    expect(api.input).toBe("<root>C</root>");
+    expect(api.source).toBe("<root>C</root>");
   });
 
   it("should handle structural changes", () => {
     const api = new XMLAPI("<root/>");
     // <root/> -> <root>Child</root>
     // Replace "/>" (5-7) with ">Child</root>"
-    api.updateInput(5, 7, ">Child</root>");
+    api.updateSource(5, 7, ">Child</root>");
 
     // Check model structure
     expect(api.model?.children.length).toBe(1);
@@ -48,7 +48,7 @@ describe("XMLAPI Transaction Management", () => {
     expect((child as ModelText).text).toBe("Child");
 
     api.undo();
-    expect(api.input).toBe("<root/>");
+    expect(api.source).toBe("<root/>");
     expect(api.model?.children.length).toBe(0);
   });
 });

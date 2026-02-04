@@ -1,3 +1,4 @@
+import { detectIndent } from "../cst/cst-utils";
 import type { CST } from "../cst/xml-cst";
 import {
   ModelCDATA,
@@ -7,6 +8,14 @@ import {
   ModelNodeType,
   ModelText,
 } from "./xml-api-model";
+
+export interface ReconcileResult {
+  node: ModelNode | null;
+  diff?: {
+    addedNodes: ModelNode[];
+    removedNodes: ModelNode[];
+  };
+}
 
 export class XMLBinder {
   constructor(private input: string) {}
@@ -30,7 +39,9 @@ export class XMLBinder {
 
     // 1. Handle known rule names
     if (node.name === "CharData") {
-      result = new ModelText(node.getText(this.input));
+      const text = node.getText(this.input);
+      const kind = /^\s*$/.test(text) ? "whitespace" : "text";
+      result = new ModelText(text, undefined, kind);
     } else if (node.name === "Reference") {
       const text = node.getText(this.input);
       if (text.startsWith("&#")) {
@@ -137,13 +148,15 @@ export class XMLBinder {
       if (!result.cst) {
         result.cst = node;
       }
+      if (result.cst) {
+        result.formatting.indent = detectIndent(result.cst, this.input);
+      }
     }
 
     return result;
   }
-
-  public reconcile(currentModel: ModelNode, newCst: CST): ModelNode {
-    // 1. Try to hydrate the new CST to see what it *should* look like.
+  // ... (rest of class)
+  public reconcile(currentModel: ModelNode, newCst: CST): ReconcileResult {
     // This is inefficient (double parsing) but robust for a first implementation.
     // A better way would be to traverse CST and update Model in one pass.
     // But since `hydrate` logic is complex (handling grammar rules), duplicating it for reconcile is risky.
@@ -160,15 +173,15 @@ export class XMLBinder {
       // For now, assume strict mapping.
       // But hydrate returns null for Comments/PIs.
       // If currentModel was something else, it's a replacement.
-      return newModel as any; // Should handle null better in caller?
+      return { node: newModel, diff: undefined };
     }
 
     if (this.canReconcile(currentModel, newModel)) {
-      this.applyReconciliation(currentModel, newModel);
-      return currentModel;
+      const diff = this.applyReconciliation(currentModel, newModel);
+      return { node: currentModel, diff };
     }
 
-    return newModel;
+    return { node: newModel, diff: undefined };
   }
 
   private canReconcile(a: ModelNode, b: ModelNode): boolean {
@@ -180,11 +193,18 @@ export class XMLBinder {
     return true;
   }
 
-  private applyReconciliation(target: ModelNode, source: ModelNode): void {
+  private applyReconciliation(
+    target: ModelNode,
+    source: ModelNode,
+  ): { addedNodes: ModelNode[]; removedNodes: ModelNode[] } | undefined {
     target.cst = source.cst; // Update CST reference
+    target.formatting = { ...source.formatting };
 
     if (target.getType() === ModelNodeType.Text) {
-      (target as ModelText).text = (source as ModelText).text;
+      const t = target as ModelText;
+      const s = source as ModelText;
+      t.text = s.text;
+      t.kind = s.kind;
     } else if (target.getType() === ModelNodeType.Comment) {
       (target as ModelComment).content = (source as ModelComment).content;
     } else if (target.getType() === ModelNodeType.CDATA) {
@@ -198,6 +218,7 @@ export class XMLBinder {
 
       // Reconcile Children with Key-based Matching
       const newChildren: ModelNode[] = [];
+      const oldChildrenSet = new Set(t.children);
 
       // 1. Map existing children by ID
       const keyedChildren = new Map<string, ModelElement>();
@@ -243,12 +264,15 @@ export class XMLBinder {
           }
         }
 
-        if (matchedNode) {
+        if (matchedNode && sChild.cst) {
           // Found a match (keyed or non-keyed)
           // Use CST from new node to update existing node
-          const reconciled = this.reconcile(matchedNode, sChild.cst!);
-          reconciled.parent = t;
-          newChildren.push(reconciled);
+          const result = this.reconcile(matchedNode, sChild.cst);
+          const reconciled = result.node;
+          if (reconciled) {
+            newChildren.push(reconciled);
+            reconciled.parent = t;
+          }
         } else {
           // No match found, use new node
           sChild.parent = t;
@@ -257,7 +281,15 @@ export class XMLBinder {
       }
 
       t.children = newChildren;
+
+      const addedNodes = newChildren.filter((c) => !oldChildrenSet.has(c));
+      const removedNodes = Array.from(oldChildrenSet).filter(
+        (c) => !newChildren.includes(c),
+      );
+
+      return { addedNodes, removedNodes };
     }
+    return undefined;
   }
 
   public calcSetAttributePatch(
@@ -448,7 +480,7 @@ export class XMLBinder {
         }
       }
 
-      if (anchorNode && anchorNode.cst) {
+      if (anchorNode?.cst) {
         insertPos = anchorNode.cst.start;
       } else {
         // No following stable anchor found, insert before ETag

@@ -1,5 +1,5 @@
-import { XMLAPI } from "@/xml-api";
 import { Document, Element } from "@/dom";
+import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI DOM Integration", () => {
   test("getDocument returns a linked Document object", () => {
@@ -27,8 +27,10 @@ describe("XMLAPI DOM Integration", () => {
 
     // Check if source code is updated
     // Expected: <item id="1" status="active">
-    expect(api.input).toContain('status="active"');
-    expect(api.input).toContain('<item id="1" status="active">Original</item>');
+    expect(api.source).toContain('status="active"');
+    expect(api.source).toContain(
+      '<item id="1" status="active">Original</item>',
+    );
   });
 
   test("DOM changes reflect in source code (textContent)", () => {
@@ -45,31 +47,32 @@ describe("XMLAPI DOM Integration", () => {
     }
 
     // Check if source code is updated
-    expect(api.input).toContain("Updated Value");
+    expect(api.source).toContain("Updated Value");
     // Verify full structure to ensure tags are preserved
-    expect(api.input).toContain("<item>Updated Value</item>");
+    expect(api.source).toContain("<item>Updated Value</item>");
   });
 
   test("Reconciliation preserves DOM references after update", () => {
     const xml = `<root><item id="1">A</item></root>`;
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    const item = doc.querySelector("item")!;
+    const item = doc.querySelector("item");
+    if (!item) throw new Error("Item not found");
 
     // First update
     item.setAttribute("foo", "bar");
-    expect(api.input).toContain('foo="bar"');
+    expect(api.source).toContain('foo="bar"');
 
     // Item reference should still work (because of Model reconciliation)
     // Update again
     item.setAttribute("baz", "qux");
-    expect(api.input).toContain('baz="qux"');
+    expect(api.source).toContain('baz="qux"');
 
-    const expected = `<root><item id="1" foo="bar" baz="qux">A</item></root>`;
+    const _expected = `<root><item id="1" foo="bar" baz="qux">A</item></root>`;
     // Note: Attribute order depends on implementation, regex or multiple expects might be safer
     // But binder usually appends.
     // Let's just check presence.
-    expect(api.input).toContain('foo="bar"');
-    expect(api.input).toContain('baz="qux"');
+    expect(api.source).toContain('foo="bar"');
+    expect(api.source).toContain('baz="qux"');
   });
 });

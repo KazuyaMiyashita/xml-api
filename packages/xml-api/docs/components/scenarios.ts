@@ -1,6 +1,6 @@
-import { XMLAPI } from "@/xml-api";
-import { ModelElement } from "@/model/xml-api-model";
+import type { ModelElement } from "@/model/xml-api-model";
 import { XMLBinder } from "@/model/xml-binder";
+import { XMLAPI } from "@/xml-api";
 
 export interface Scenario {
   title: string;
@@ -58,7 +58,7 @@ if (item) {
 }
 
 console.log("Updated Source:");
-console.log(api.input);`,
+console.log(api.source);`,
     run: (log) => {
       const xml = `<root>
   <item id="1">Value</item>
@@ -77,7 +77,7 @@ console.log(api.input);`,
       }
 
       log("Updated Source:");
-      log(api.input);
+      log(api.source);
     },
   },
 
@@ -101,10 +101,10 @@ if (titles.length > 0) {
 
 // 2. Incremental Update (Source manipulation)
 const targetText = "りんごの選び方";
-const startPos = api.input.indexOf(targetText);
+const startPos = api.source.indexOf(targetText);
 if (startPos !== -1) {
   console.log(\`Replacing "\${targetText}" with "美味しいりんごの見分け方"...\`);
-  api.updateInput(startPos, startPos + targetText.length, "美味しいりんごの見分け方");
+  api.updateSource(startPos, startPos + targetText.length, "美味しいりんごの見分け方");
 }
 
 console.log("Updated Title in Model:");
@@ -129,10 +129,10 @@ if (newTitles.length > 0) {
       }
 
       const targetText = "りんごの選び方";
-      const startPos = api.input.indexOf(targetText);
+      const startPos = api.source.indexOf(targetText);
       if (startPos !== -1) {
         log(`Replacing "${targetText}" with "美味しいりんごの見分け方"...`);
-        api.updateInput(
+        api.updateSource(
           startPos,
           startPos + targetText.length,
           "美味しいりんごの見分け方",
@@ -161,7 +161,7 @@ const binder = new XMLBinder(input);
 // Assume we have a model and a "Virtual DOM" element
 const model = api.model as ModelElement; // Root element
 
-console.log("Initial Source:", api.input);
+console.log("Initial Source:", api.source);
 
 // 1. Simulate User Action (Property Change)
 const newValue = "btn btn-primary";
@@ -173,10 +173,10 @@ const patch = binder.calcSetAttributePatch(model, "class", newValue);
 // 3. Apply Patch
 if (patch) {
   console.log(\`[Patch Calculated] \${patch.text} at index \${patch.start}\`);
-  api.updateInput(patch.start, patch.end, patch.text);
+  api.updateSource(patch.start, patch.end, patch.text);
 }
 
-console.log("Updated Source:", api.input);
+console.log("Updated Source:", api.source);
 
 // 4. Verify Model Update
 const newClass = api.model?.attributes.get("class");
@@ -194,7 +194,7 @@ console.log(\`Updated Model Attribute: class="\${newClass}"\`);`,
       const binder = new XMLBinder(input);
       const model = api.model as ModelElement;
 
-      log("Initial Source: " + api.input);
+      log(`Initial Source: ${api.source}`);
 
       const newValue = "btn btn-primary";
       log(`
@@ -204,10 +204,10 @@ console.log(\`Updated Model Attribute: class="\${newClass}"\`);`,
 
       if (patch) {
         log(`[Patch Calculated] "${patch.text}" at index ${patch.start}`);
-        api.updateInput(patch.start, patch.end, patch.text);
+        api.updateSource(patch.start, patch.end, patch.text);
       }
 
-      log("Updated Source: " + api.input);
+      log(`Updated Source: ${api.source}`);
 
       const newClass = api.model?.attributes.get("class");
       log(`Updated Model Attribute: class="${newClass}"`);

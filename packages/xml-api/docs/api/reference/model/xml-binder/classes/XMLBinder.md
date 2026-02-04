@@ -160,7 +160,7 @@
 
 ### reconcile()
 
-> **reconcile**(`currentModel`, `newCst`): [`ModelNode`](../../xml-api-model/classes/ModelNode.md)
+> **reconcile**(`currentModel`, `newCst`): [`ReconcileResult`](../interfaces/ReconcileResult.md)
 
 #### Parameters
 
@@ -174,4 +174,4 @@
 
 #### Returns
 
-[`ModelNode`](../../xml-api-model/classes/ModelNode.md)
+[`ReconcileResult`](../interfaces/ReconcileResult.md)

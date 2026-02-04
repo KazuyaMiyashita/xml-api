@@ -12,13 +12,21 @@
 
 ### Constructor
 
-> **new ModelText**(`text`): `ModelText`
+> **new ModelText**(`text`, `id?`, `kind?`): `ModelText`
 
 #### Parameters
 
 ##### text
 
 `string`
+
+##### id?
+
+`string`
+
+##### kind?
+
+`"text"` | `"whitespace"`
 
 #### Returns
 
@@ -40,6 +48,16 @@
 
 ***
 
+### formatting
+
+> **formatting**: [`ModelFormatting`](../interfaces/ModelFormatting.md)
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`formatting`](ModelNode.md#formatting)
+
+***
+
 ### id
 
 > `readonly` **id**: `string`
@@ -47,6 +65,12 @@
 #### Inherited from
 
 [`ModelNode`](ModelNode.md).[`id`](ModelNode.md#id)
+
+***
+
+### kind
+
+> **kind**: `"text"` \| `"whitespace"`
 
 ***
 
@@ -88,7 +112,7 @@
 
 ### cloneBase()
 
-> `protected` **cloneBase**(`target`, `preserveId`): `void`
+> `protected` **cloneBase**(`target`, `_preserveId`): `void`
 
 #### Parameters
 
@@ -96,7 +120,7 @@
 
 [`ModelNode`](ModelNode.md)
 
-##### preserveId
+##### \_preserveId
 
 `boolean`
 
@@ -107,6 +131,26 @@
 #### Inherited from
 
 [`ModelNode`](ModelNode.md).[`cloneBase`](ModelNode.md#clonebase)
+
+***
+
+### findNodeById()
+
+> **findNodeById**(`id`): [`ModelNode`](ModelNode.md) \| `null`
+
+#### Parameters
+
+##### id
+
+`string`
+
+#### Returns
+
+[`ModelNode`](ModelNode.md) \| `null`
+
+#### Inherited from
+
+[`ModelNode`](ModelNode.md).[`findNodeById`](ModelNode.md#findnodebyid)
 
 ***
 
