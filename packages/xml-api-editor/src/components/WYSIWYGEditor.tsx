@@ -70,7 +70,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ api }) => {
   const viewRef = useRef<EditorView | null>(null);
   const isInitializing = useRef(false);
   const [isWellFormed, setIsWellFormed] = useState(
-    api.cst ? api.cst.wellFormed : api.source.trim() === "",
+    api.cst?.wellFormed ?? false,
   );
 
   useEffect(() => {
@@ -136,6 +136,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ api }) => {
     [api, schemaView],
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Initialization is performed when isWellFormed changes. This is especially necessary when changing from false to true. The root cause may be that ViewChangeEvent cannot handle when the structure becomes invalid or valid.
   useEffect(() => {
     if (!editorRef.current || !schemaView) return;
 
@@ -210,7 +211,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ api }) => {
         return;
       }
       // Skip update if XML is not well-formed
-      if (!api.cst || !api.cst.wellFormed) {
+      if (!isWellFormed) {
         return;
       }
 
@@ -328,7 +329,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ api }) => {
         isInitializing.current = false;
       }
     });
-  }, [schemaView]);
+  }, [schemaView, isWellFormed]);
 
   if (!isWellFormed && api.source.trim() !== "") {
     return (
