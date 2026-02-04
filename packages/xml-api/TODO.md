@@ -255,4 +255,42 @@
         * Investigate and fix the issue where Enter key inserts spaces instead of newlines.
         * Fix cursor jumping to the start of the document after `api.updateSource` calls.
 
+---
+
+## Phase 10: Advanced Reconciliation & Partial Updates
+
+**Context:**
+This phase realizes the vision outlined in **Milestone v0.9.1 Section 2: Multi-Level Event System** (specifically *Projected Mutation Records*).
+Currently, `WYSIWYGEditor` re-parses and replaces the entire ProseMirror document whenever it receives a change event from `SchemaView`.
+This "full replacement" strategy causes performance issues and internal errors (e.g., `matchesNode` failure in ProseMirror) when dealing with invalid XML states or rapid updates.
+
+**Goal:**
+Enable "Partial Updates" where `WYSIWYGEditor` applies only the specific changes (mutations) to the ProseMirror state, maintaining stability and cursor position even during complex edits.
+
+* [ ] **[Event Payload Expansion]**:
+    * **Goal**: Provide detailed mutation info in `SyncEngine` events.
+    * **Task**:
+        * Update `ChangeEvent` types to include `addedNodes`, `removedNodes`, `previousSibling` for `structure` events.
+        * Ensure `SyncEngine` populates these fields during incremental updates.
+
+* [ ] **[SchemaView Mutation Mapping]**:
+    * **Goal**: Translate Model mutations to View mutations.
+    * **Task**:
+        * Update `SchemaView` to emit high-level mutation records (e.g., `type: 'childList'`, `addedNodes: [ViewNode...]`).
+        * Filter out mutations that happen to invisible/filtered nodes.
+
+* [ ] **[Model ID Persistence in Editor]**:
+    * **Goal**: Enable tracking of nodes between Model and ProseMirror.
+    * **Task**:
+        * Update `xhtml-subset` schema (or `viewToBrowserDOM` logic) to embed `Model ID` as a dataset attribute (e.g., `data-model-id`) in ProseMirror nodes.
+        * Ensure these IDs are preserved during ProseMirror editing.
+
+* [ ] **[Partial Update Implementation]**:
+    * **Goal**: Apply changes locally in `WYSIWYGEditor`.
+    * **Task**:
+        * Implement a `MutationHandler` in `WYSIWYGEditor` that listens to `SchemaView` events.
+        * Instead of full document replacement, use `state.doc.descendants` (or an ID map) to find the target node by `Model ID`.
+        * Apply `tr.replaceWith` or `tr.setNodeMarkup` only to the affected sub-tree.
+
+
 
