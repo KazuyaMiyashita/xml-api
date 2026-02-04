@@ -1,6 +1,6 @@
 {
   "name": "@miy2/xml-api",
-  "version": "0.9.1-dev",
+  "version": "0.9.1",
   "description": "An XML library that faithfully synchronizes documents and AST.",
   "type": "module",
   "main": "dist/xml-api.js",
