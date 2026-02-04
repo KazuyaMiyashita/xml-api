@@ -5,7 +5,12 @@
 # Class: XMLAPI
 
 The primary entry point for the XML API.
-Orchestrates the synchronization between source code (CST) and the logical Model.
+Orchestrates the synchronization between source code (CST), the logical Model, and Schema Views.
+
+This class serves as the central hub for the "Three-Level Reconciliation" architecture:
+1. Source <-> CST: Incremental parsing.
+2. CST <-> Model: Logical binding and identity preservation.
+3. Model <-> View: Schema projection and filtering (via `createView`).
 
 ## Constructors
 
@@ -46,6 +51,20 @@ The Concrete Syntax Tree (Physical layer).
 ##### Returns
 
 [`CST`](../../cst/xml-cst/classes/CST.md) \| `null`
+
+***
+
+### engine
+
+#### Get Signature
+
+> **get** **engine**(): [`SyncEngine`](../../engine/sync-engine/classes/SyncEngine.md)
+
+The underlying synchronization engine.
+
+##### Returns
+
+[`SyncEngine`](../../engine/sync-engine/classes/SyncEngine.md)
 
 ***
 
@@ -95,7 +114,11 @@ The current source code string.
 
 > **createView**(`config`): [`SchemaView`](../../view/schema-view/classes/SchemaView.md)
 
-Creates a schema-specific view of the document.
+Creates a projected view of the document.
+
+A SchemaView allows you to work with a filtered subset of the document (e.g., only XHTML tags)
+while the underlying system maintains full fidelity of the original source (including comments,
+custom tags, and formatting) in the background.
 
 #### Parameters
 
@@ -103,11 +126,13 @@ Creates a schema-specific view of the document.
 
 [`SchemaViewConfig`](../../view/schema-view/interfaces/SchemaViewConfig.md) = `{}`
 
-Configuration for the view (e.g., filter).
+Configuration for the view, including filter logic.
 
 #### Returns
 
 [`SchemaView`](../../view/schema-view/classes/SchemaView.md)
+
+A `SchemaView` instance providing a DOM-like interface for the projected content.
 
 ***
 

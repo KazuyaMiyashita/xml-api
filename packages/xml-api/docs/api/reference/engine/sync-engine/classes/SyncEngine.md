@@ -4,6 +4,15 @@
 
 # Class: SyncEngine
 
+The core engine that manages the editor state and coordinates synchronization.
+
+It implements a transaction-based update cycle:
+1. Receives a `Transaction` describing changes.
+2. Updates the `EditorState` (Source).
+3. Triggers the `Parser` (Source -> CST).
+4. Triggers the `XMLBinder` (CST -> Model).
+5. Notifies listeners (including `SchemaView`s) of changes.
+
 ## Constructors
 
 ### Constructor
@@ -126,12 +135,21 @@ Use `dispatch(new Transaction(state).replace(...))` instead.
 > **dispatch**(`tr`): `void`
 
 Applies a transaction to the engine, updating the state and notifying listeners.
+This is the single point of truth for all state transitions in the system.
+
+It handles:
+- History recording (Undo/Redo)
+- Incremental Parsing and Reconciliation
+- Event Dispatching
+- Collaboration hooks
 
 #### Parameters
 
 ##### tr
 
 [`Transaction`](../../transaction/classes/Transaction.md)
+
+The transaction to apply.
 
 #### Returns
 

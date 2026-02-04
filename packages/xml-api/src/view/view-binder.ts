@@ -14,12 +14,30 @@ export interface ExternalNode {
   attributes?: ArrayLike<{ name: string; value: string }>;
 }
 
+/**
+ * Interface for logic that reconciles an external DOM tree with the internal document.
+ */
 export interface Reconciler {
+  /**
+   * Reconciles the internal element's children to match the external node's children.
+   */
   reconcile(externalNode: ExternalNode, internalElement: ApiElement): void;
 }
 
 const IGNORED_ATTRIBUTES = new Set(["data-model-id"]);
 
+/**
+ * Handles the logic of reconciling a SchemaView (filtered DOM) with an external source
+ * (like a browser DOM in a contentEditable editor).
+ *
+ * Its primary responsibility is to apply changes from the external source to the internal
+ * SchemaView DOM without destroying data that the external source doesn't know about.
+ *
+ * Key Feature: Preservation of "Invisible" Nodes.
+ * If the Model contains "formatting whitespace" or other nodes that are present in the
+ * internal view but "invisible" or collapsed in the external view, the ViewBinder
+ * detects this and skips/preserves them instead of treating their absence as a deletion.
+ */
 export class ViewBinder implements Reconciler {
   constructor(private document: ApiDocument) {}
 
@@ -164,6 +182,12 @@ export class ViewBinder implements Reconciler {
     return null;
   }
 
+  /**
+   * Checks if a node is "formatting whitespace" that should be preserved during sync,
+   * even if it is missing from the external view.
+   *
+   * This relies on the Model's classification of text nodes (e.g. `kind: 'whitespace'`).
+   */
   private isPreservableWhitespace(node: ApiNode): boolean {
     const model = node.getModel();
     if (model instanceof ModelText) {

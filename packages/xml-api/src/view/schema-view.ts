@@ -44,6 +44,16 @@ export type ViewChangeEvent =
       transaction?: Transaction;
     };
 
+/**
+ * A filtered, schema-specific projection of the document.
+ *
+ * The SchemaView provides a "view" of the underlying Model that only contains nodes relevant
+ * to a specific schema (e.g., XHTML). It hides "invisible" nodes (like comments, processing instructions,
+ * or tags not in the allowed list) but preserves them in the Model during updates.
+ *
+ * This enables applications (like WYSIWYG editors) to work with a simplified DOM structure
+ * without destroying the full fidelity of the original source code.
+ */
 export class SchemaView {
   private document!: Document;
   private events = new EventEmitter<ViewChangeEvent>();
@@ -137,6 +147,17 @@ export class SchemaView {
     });
   }
 
+  /**
+   * Subscribes to changes in the view.
+   *
+   * Events emitted here are "projected" events:
+   * - They only fire for nodes visible in this view.
+   * - `target` nodes are View nodes (wrappers), not raw Model nodes.
+   * - Structure events (`addedNodes`/`removedNodes`) are filtered to exclude invisible nodes.
+   *
+   * @param handler Function to handle the events.
+   * @returns Unsubscribe function.
+   */
   public on(handler: (event: ViewChangeEvent) => void): () => void {
     return this.events.on(handler);
   }
@@ -238,6 +259,18 @@ export class SchemaView {
     return viewNode.getModel();
   }
 
+  /**
+   * Reconciles an external DOM tree (e.g., from a browser's contentEditable) with this view.
+   *
+   * This method calculates the differences between the external tree and the current view,
+   * then applies minimal updates to the underlying Model. Crucially, it respects the
+   * "Invisible Node Preservation" rule: if the external tree is missing a node that is hidden
+   * in this view (like a comment), that node is preserved in the Model.
+   *
+   * @param externalDomNode The root of the external DOM tree to sync from.
+   * @param meta Optional metadata to attach to the generated transaction.
+   * @param target Optional specific element to reconcile (defaults to view root).
+   */
   public reconcile(
     externalDomNode: ExternalNode,
     // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type

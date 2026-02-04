@@ -11,6 +11,16 @@ import { EditorState } from "./editor-state";
 import { Transaction } from "./transaction";
 import { TransactionBuilder } from "./transaction-builder";
 
+/**
+ * The core engine that manages the editor state and coordinates synchronization.
+ *
+ * It implements a transaction-based update cycle:
+ * 1. Receives a `Transaction` describing changes.
+ * 2. Updates the `EditorState` (Source).
+ * 3. Triggers the `Parser` (Source -> CST).
+ * 4. Triggers the `XMLBinder` (CST -> Model).
+ * 5. Notifies listeners (including `SchemaView`s) of changes.
+ */
 export class SyncEngine {
   private _state: EditorState;
   private parser: Parser;
@@ -63,6 +73,15 @@ export class SyncEngine {
 
   /**
    * Applies a transaction to the engine, updating the state and notifying listeners.
+   * This is the single point of truth for all state transitions in the system.
+   *
+   * It handles:
+   * - History recording (Undo/Redo)
+   * - Incremental Parsing and Reconciliation
+   * - Event Dispatching
+   * - Collaboration hooks
+   *
+   * @param tr The transaction to apply.
    */
   public dispatch(tr: Transaction): void {
     if (!tr.docChanged) return;

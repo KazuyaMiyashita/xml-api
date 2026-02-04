@@ -73,5 +73,5 @@ const sidebar = [
   ...getSidebarItems(docsRoot, "/api/reference"),
 ];
 
-fs.writeFileSync(outputFile, JSON.stringify(sidebar, null, 2));
+fs.writeFileSync(outputFile, `${JSON.stringify(sidebar, null, 2)}\n`);
 console.log("API Sidebar generated at", outputFile);

@@ -14,10 +14,15 @@ import type { EventHandler } from "./xml-api-events";
 
 /**
  * The primary entry point for the XML API.
- * Orchestrates the synchronization between source code (CST) and the logical Model.
+ * Orchestrates the synchronization between source code (CST), the logical Model, and Schema Views.
+ *
+ * This class serves as the central hub for the "Three-Level Reconciliation" architecture:
+ * 1. Source <-> CST: Incremental parsing.
+ * 2. CST <-> Model: Logical binding and identity preservation.
+ * 3. Model <-> View: Schema projection and filtering (via `createView`).
  */
 export class XMLAPI {
-  private engine: SyncEngine;
+  private _engine: SyncEngine;
   private document: Document | null = null;
 
   /**
@@ -26,42 +31,53 @@ export class XMLAPI {
    * @param grammar (Optional) Custom grammar definition.
    */
   constructor(source: string, grammar?: Grammar) {
-    this.engine = new SyncEngine(source, grammar);
+    this._engine = new SyncEngine(source, grammar);
   }
 
   // --- Read-only State Access ---
 
+  /** The underlying synchronization engine. */
+  public get engine(): SyncEngine {
+    return this._engine;
+  }
+
   /** The current source code string. */
   public get source(): string {
-    return this.engine.source;
+    return this._engine.source;
   }
 
   /** The authoritative logical model. */
   public get model(): ModelElement | null {
-    return this.engine.model;
+    return this._engine.model;
   }
 
   /** The Concrete Syntax Tree (Physical layer). */
   public get cst(): CST | null {
-    return this.engine.cst;
+    return this._engine.cst;
   }
 
   /** The grammar used for parsing. */
   public get grammar(): Grammar {
-    return this.engine.grammar;
+    return this._engine.grammar;
   }
 
   // --- Operations ---
 
   /**
-   * Creates a schema-specific view of the document.
-   * @param config Configuration for the view (e.g., filter).
+   * Creates a projected view of the document.
+   *
+   * A SchemaView allows you to work with a filtered subset of the document (e.g., only XHTML tags)
+   * while the underlying system maintains full fidelity of the original source (including comments,
+   * custom tags, and formatting) in the background.
+   *
+   * @param config Configuration for the view, including filter logic.
+   * @returns A `SchemaView` instance providing a DOM-like interface for the projected content.
    */
   public createView(config: SchemaViewConfig = {}): SchemaView {
-    if (!this.engine.model) {
+    if (!this._engine.model) {
       throw new Error("Cannot create view: Model not initialized");
     }
-    return new SchemaView(this.engine.model, this.engine, config);
+    return new SchemaView(this._engine.model, this._engine, config);
   }
 
   /**
@@ -79,7 +95,7 @@ export class XMLAPI {
     // biome-ignore lint/suspicious/noExplicitAny: Metadata can store any type
     meta?: Record<string, any>,
   ): void {
-    this.engine.updateSource(from, to, text, meta);
+    this._engine.updateSource(from, to, text, meta);
   }
 
   /**
@@ -112,7 +128,7 @@ export class XMLAPI {
             // Attribute removal support needed in Engine/Binder
             console.warn("Attribute removal not fully supported yet");
           } else {
-            this.engine.setAttribute(model, name, value);
+            this._engine.setAttribute(model, name, value);
           }
         }
       },
@@ -130,14 +146,14 @@ export class XMLAPI {
       onElementTextChange: (element: Element, text: string) => {
         const model = element.getModel();
         if (model instanceof ModelElement && model.cst) {
-          this.engine.updateText(model, text);
+          this._engine.updateText(model, text);
         }
       },
       onChildAdded: (parent: Node, child: Node, index: number) => {
         const parentModel = parent.getModel();
         const childModel = child.getModel();
         if (parentModel instanceof ModelElement && parentModel.cst) {
-          this.engine.insertNode(parentModel, childModel, index);
+          this._engine.insertNode(parentModel, childModel, index);
         }
       },
       onChildRemoved: (parent: Node, child: Node, _index: number) => {
@@ -145,7 +161,7 @@ export class XMLAPI {
         const childModel = child.getModel();
         if (parentModel instanceof ModelElement && parentModel.cst) {
           if (childModel.cst) {
-            this.engine.removeNode(parentModel, childModel);
+            this._engine.removeNode(parentModel, childModel);
           }
         }
       },
@@ -155,7 +171,7 @@ export class XMLAPI {
         // Use replaceNode on the engine.
         // Even if oldModel is detached from parent, it retains CST info needed for replacement.
         if (oldModel.cst) {
-          this.engine.replaceNode(oldModel, newModel);
+          this._engine.replaceNode(oldModel, newModel);
         }
       },
     });
@@ -169,17 +185,17 @@ export class XMLAPI {
    * Registers an event handler to listen for model changes.
    */
   public on(handler: EventHandler): () => void {
-    return this.engine.on(handler);
+    return this._engine.on(handler);
   }
 
   // --- History ---
 
   public undo(): void {
-    this.engine.undo();
+    this._engine.undo();
   }
 
   public redo(): void {
-    this.engine.redo();
+    this._engine.redo();
   }
 }
 
@@ -203,6 +219,7 @@ export {
   ModelNodeType,
   ModelText,
 } from "./model/xml-api-model";
+export { XMLBinder } from "./model/xml-binder";
 export { SchemaView, type SchemaViewConfig } from "./view/schema-view";
 export { type ExternalNode, ViewBinder } from "./view/view-binder";
 export {

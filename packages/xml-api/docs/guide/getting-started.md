@@ -52,6 +52,34 @@ if (item) {
 console.log(api.source);
 ```
 
+### Using Schema Views (Advanced)
+
+For applications that need to work with a specific subset of XML (e.g., an XHTML editor) while preserving other data (like comments or custom tags) in the source, use `createView`.
+
+```typescript
+const api = new XMLAPI(`
+<root>
+  <!-- Private comment -->
+  <content>Public Text</content>
+  <meta>Hidden Data</meta>
+</root>
+`);
+
+// Create a view that only sees 'root' and 'content' elements
+const view = api.createView({
+  filter: (node) => 
+    node.getType() === 'Element' && 
+    ['root', 'content'].includes((node as any).tagName)
+});
+
+const doc = view.getDocument();
+const content = doc.querySelector('content');
+content.textContent = "Modified Text";
+
+// The comment and <meta> tag are preserved in the source!
+console.log(api.source);
+```
+
 ### Low-level Incremental Updates
 
 The API also allows direct incremental updates to the source code.

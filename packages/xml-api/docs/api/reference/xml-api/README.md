@@ -151,3 +151,9 @@ Re-exports [Transaction](../engine/transaction/classes/Transaction.md)
 ### ViewBinder
 
 Re-exports [ViewBinder](../view/view-binder/classes/ViewBinder.md)
+
+***
+
+### XMLBinder
+
+Re-exports [XMLBinder](../model/xml-binder/classes/XMLBinder.md)
