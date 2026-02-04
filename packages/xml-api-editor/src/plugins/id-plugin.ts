@@ -1,5 +1,5 @@
-import { Node as PMNode } from "prosemirror-model";
-import { Plugin, PluginKey, Transaction } from "prosemirror-state";
+import type { Node as PMNode } from "prosemirror-model";
+import { Plugin, PluginKey, type Transaction } from "prosemirror-state";
 
 export const idPluginKey = new PluginKey<Map<string, number>>("idPlugin");
 
