@@ -18,6 +18,8 @@ export interface Reconciler {
   reconcile(externalNode: ExternalNode, internalElement: ApiElement): void;
 }
 
+const IGNORED_ATTRIBUTES = new Set(["data-model-id"]);
+
 export class ViewBinder implements Reconciler {
   constructor(private document: ApiDocument) {}
 
@@ -119,6 +121,8 @@ export class ViewBinder implements Reconciler {
         // 1. Update/Add
         for (let j = 0; j < bNode.attributes.length; j++) {
           const attr = bNode.attributes[j];
+          if (IGNORED_ATTRIBUTES.has(attr.name)) continue;
+
           if (vEl.getAttribute(attr.name) !== attr.value) {
             vEl.setAttribute(attr.name, attr.value);
           }
@@ -144,10 +148,10 @@ export class ViewBinder implements Reconciler {
       const vNew = this.document.createElement(bNode.nodeName.toLowerCase());
       if (bNode.attributes) {
         for (let j = 0; j < bNode.attributes.length; j++) {
-          vNew.setAttribute(
-            bNode.attributes[j].name,
-            bNode.attributes[j].value,
-          );
+          const attrName = bNode.attributes[j].name;
+          if (IGNORED_ATTRIBUTES.has(attrName)) continue;
+
+          vNew.setAttribute(attrName, bNode.attributes[j].value);
         }
       }
       const children = bNode.childNodes;
