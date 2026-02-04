@@ -1,4 +1,4 @@
-import { XMLAPI, ModelElement, ModelNodeType } from "@miy2/xml-api";
+import { type ModelElement, ModelNodeType, type XMLAPI } from "@miy2/xml-api";
 
 export enum DocumentType {
   XHTML = "XHTML",
@@ -25,7 +25,7 @@ export function detectDocumentType(api: XMLAPI): DocumentInfo {
   // model is ModelElement when getType() is Element
   const element = model as ModelElement;
   const rootTag = element.tagName;
-  let namespace = element.attributes.get("xmlns");
+  const namespace = element.attributes.get("xmlns");
 
   // Basic detection logic
   if (rootTag === "html") {

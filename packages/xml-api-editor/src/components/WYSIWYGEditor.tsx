@@ -1,20 +1,21 @@
-import React, { useEffect, useRef, useMemo, useState } from "react";
-import { EditorState, Transaction } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
-import {
-  DOMParser as PMDOMParser,
-  DOMSerializer,
-  Node as PMNode,
-} from "prosemirror-model";
-import { keymap } from "prosemirror-keymap";
-import { baseKeymap, toggleMark } from "prosemirror-commands";
-import {
-  XMLAPI,
-  ModelElement,
-  ModelNode,
+import type {
   Element as ApiElement,
   Node as ApiNode,
+  ModelElement,
+  ModelNode,
+  XMLAPI,
 } from "@miy2/xml-api";
+import { baseKeymap, toggleMark } from "prosemirror-commands";
+import { keymap } from "prosemirror-keymap";
+import {
+  DOMSerializer,
+  DOMParser as PMDOMParser,
+  type Node as PMNode,
+} from "prosemirror-model";
+import { EditorState, type Transaction } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
+import type React from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { xhtmlSubsetSchema } from "../schema/xhtml-subset";
 import "./WYSIWYGEditor.css";

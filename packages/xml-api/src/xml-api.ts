@@ -182,8 +182,6 @@ export class XMLAPI {
   }
 }
 
-export { SchemaView, type SchemaViewConfig } from "./view/schema-view";
-export { type ExternalNode, ViewBinder } from "./view/view-binder";
 export { CST } from "./cst/xml-cst";
 export {
   CDATASection,
@@ -204,6 +202,8 @@ export {
   ModelNodeType,
   ModelText,
 } from "./model/xml-api-model";
+export { SchemaView, type SchemaViewConfig } from "./view/schema-view";
+export { type ExternalNode, ViewBinder } from "./view/view-binder";
 export {
   type ChangeEvent,
   EventEmitter,

@@ -1,6 +1,6 @@
+import { CDATASection, Comment } from "@/dom";
 import { ModelCDATA, ModelComment } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
-import { CDATASection, Comment } from "@/dom";
 
 describe("XMLAPI Extended Support (CDATA & Comment)", () => {
   it("should parse and preserve CDATA sections", () => {

@@ -1,11 +1,11 @@
-import { XMLAPI } from "../../src/xml-api";
 import {
-  ModelElement,
-  ModelText,
-  ModelComment,
   ModelCDATA,
+  ModelComment,
+  ModelElement,
   type ModelNode,
+  ModelText,
 } from "../../src/model/xml-api-model";
+import { XMLAPI } from "../../src/xml-api";
 
 function modelToXML(node: ModelNode): string {
   if (node instanceof ModelElement) {

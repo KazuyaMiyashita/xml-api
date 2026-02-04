@@ -1,7 +1,7 @@
-import { XMLBinder } from "../../src/model/xml-binder";
-import type { ModelText, ModelElement } from "../../src/model/xml-api-model";
 import { Parser } from "../../src/cst/parser";
 import { grammar } from "../../src/cst/xml-grammar";
+import type { ModelElement, ModelText } from "../../src/model/xml-api-model";
+import { XMLBinder } from "../../src/model/xml-binder";
 
 describe("Model Trivia", () => {
   const parser = new Parser(grammar);

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Phase 2.5: Bug Fixes & Improvements", () => {
   test.beforeEach(async ({ page }) => {

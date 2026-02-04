@@ -1,5 +1,5 @@
-import { XMLAPI } from "../../src/xml-api";
 import type { ExternalNode } from "../../src/view/view-binder";
+import { XMLAPI } from "../../src/xml-api";
 
 function createExternalElement(
   name: string,

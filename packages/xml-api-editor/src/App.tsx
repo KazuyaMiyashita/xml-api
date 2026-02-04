@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { XMLAPI, ChangeEvent } from "@miy2/xml-api";
+import { type ChangeEvent, XMLAPI } from "@miy2/xml-api";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CodeEditor from "./components/CodeEditor";
-import WYSIWYGEditor from "./components/WYSIWYGEditor";
 import MeiEditor from "./components/MeiEditor";
-import { detectDocumentType, DocumentType } from "./utils/xml-detector";
+import WYSIWYGEditor from "./components/WYSIWYGEditor";
+import { DocumentType, detectDocumentType } from "./utils/xml-detector";
 import "./App.css";
 
 interface LogEntry {

@@ -1,19 +1,20 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { EditorState } from "@codemirror/state";
 import {
-  EditorView,
   Decoration,
-  DecorationSet,
-  ViewPlugin,
-  ViewUpdate,
-  lineNumbers,
+  type DecorationSet,
+  drawSelection,
+  EditorView,
   highlightActiveLine,
   highlightActiveLineGutter,
-  drawSelection,
   keymap,
+  lineNumbers,
+  ViewPlugin,
+  type ViewUpdate,
 } from "@codemirror/view";
-import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { XMLAPI, ChangeEvent, CST } from "@miy2/xml-api";
+import type { ChangeEvent, CST, XMLAPI } from "@miy2/xml-api";
+import type React from "react";
+import { useEffect, useMemo, useRef } from "react";
 import "./CodeEditor.css";
 
 interface CodeEditorProps {

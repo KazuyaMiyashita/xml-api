@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "playwright test",
     "test:e2e": "playwright test",
-    "test:e2e:ci": "playwright test --reporter=list"
+    "test:e2e:ci": "playwright test --reporter=list",
+    "lint": "biome check --write ."
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.1",

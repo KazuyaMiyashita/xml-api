@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import type { Document, Element, Node } from "@/dom";
 import { Formatter } from "@/model/formatter";
 import {
   ModelCDATA,
@@ -9,7 +10,6 @@ import {
   ModelText,
 } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
-import type { Document, Node, Element } from "@/dom";
 
 function h(
   doc: Document,
