@@ -57,6 +57,7 @@ function App() {
 
   // Detect document type
   // Re-run detection whenever eventLogs change (implies model might have changed) or api changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: eventLogs triggers re-calc
   const docTypeInfo = useMemo(() => {
     if (!api) return { type: DocumentType.UNKNOWN, rootTag: "" };
     return detectDocumentType(api);
