@@ -9,6 +9,14 @@ import {
   ModelText,
 } from "./xml-api-model";
 
+export interface ReconcileResult {
+  node: ModelNode | null;
+  diff?: {
+    addedNodes: ModelNode[];
+    removedNodes: ModelNode[];
+  };
+}
+
 export class XMLBinder {
   constructor(private input: string) {}
 
@@ -147,8 +155,8 @@ export class XMLBinder {
 
     return result;
   }
-
-  public reconcile(currentModel: ModelNode, newCst: CST): ModelNode | null {
+  // ... (rest of class)
+  public reconcile(currentModel: ModelNode, newCst: CST): ReconcileResult {
     // This is inefficient (double parsing) but robust for a first implementation.
     // A better way would be to traverse CST and update Model in one pass.
     // But since `hydrate` logic is complex (handling grammar rules), duplicating it for reconcile is risky.
@@ -165,15 +173,15 @@ export class XMLBinder {
       // For now, assume strict mapping.
       // But hydrate returns null for Comments/PIs.
       // If currentModel was something else, it's a replacement.
-      return newModel;
+      return { node: newModel, diff: undefined };
     }
 
     if (this.canReconcile(currentModel, newModel)) {
-      this.applyReconciliation(currentModel, newModel);
-      return currentModel;
+      const diff = this.applyReconciliation(currentModel, newModel);
+      return { node: currentModel, diff };
     }
 
-    return newModel;
+    return { node: newModel, diff: undefined };
   }
 
   private canReconcile(a: ModelNode, b: ModelNode): boolean {
@@ -185,7 +193,10 @@ export class XMLBinder {
     return true;
   }
 
-  private applyReconciliation(target: ModelNode, source: ModelNode): void {
+  private applyReconciliation(
+    target: ModelNode,
+    source: ModelNode,
+  ): { addedNodes: ModelNode[]; removedNodes: ModelNode[] } | undefined {
     target.cst = source.cst; // Update CST reference
     target.formatting = { ...source.formatting };
 
@@ -207,6 +218,7 @@ export class XMLBinder {
 
       // Reconcile Children with Key-based Matching
       const newChildren: ModelNode[] = [];
+      const oldChildrenSet = new Set(t.children);
 
       // 1. Map existing children by ID
       const keyedChildren = new Map<string, ModelElement>();
@@ -255,7 +267,8 @@ export class XMLBinder {
         if (matchedNode && sChild.cst) {
           // Found a match (keyed or non-keyed)
           // Use CST from new node to update existing node
-          const reconciled = this.reconcile(matchedNode, sChild.cst);
+          const result = this.reconcile(matchedNode, sChild.cst);
+          const reconciled = result.node;
           if (reconciled) {
             newChildren.push(reconciled);
             reconciled.parent = t;
@@ -268,7 +281,15 @@ export class XMLBinder {
       }
 
       t.children = newChildren;
+
+      const addedNodes = newChildren.filter((c) => !oldChildrenSet.has(c));
+      const removedNodes = Array.from(oldChildrenSet).filter(
+        (c) => !newChildren.includes(c),
+      );
+
+      return { addedNodes, removedNodes };
     }
+    return undefined;
   }
 
   public calcSetAttributePatch(

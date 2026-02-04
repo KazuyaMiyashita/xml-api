@@ -267,25 +267,25 @@ This "full replacement" strategy causes performance issues and internal errors (
 **Goal:**
 Enable "Partial Updates" where `WYSIWYGEditor` applies only the specific changes (mutations) to the ProseMirror state, maintaining stability and cursor position even during complex edits.
 
-* [ ] **[Event Payload Expansion]**:
+* [x] **[Event Payload Expansion]**:
     * **Goal**: Provide detailed mutation info in `SyncEngine` events.
     * **Task**:
         * Update `ChangeEvent` types to include `addedNodes`, `removedNodes`, `previousSibling` for `structure` events.
         * Ensure `SyncEngine` populates these fields during incremental updates.
 
-* [ ] **[SchemaView Mutation Mapping]**:
+* [x] **[SchemaView Mutation Mapping]**:
     * **Goal**: Translate Model mutations to View mutations.
     * **Task**:
         * Update `SchemaView` to emit high-level mutation records (e.g., `type: 'childList'`, `addedNodes: [ViewNode...]`).
         * Filter out mutations that happen to invisible/filtered nodes.
 
-* [ ] **[Model ID Persistence in Editor]**:
+* [x] **[Model ID Persistence in Editor]**:
     * **Goal**: Enable tracking of nodes between Model and ProseMirror.
     * **Task**:
         * Update `xhtml-subset` schema (or `viewToBrowserDOM` logic) to embed `Model ID` as a dataset attribute (e.g., `data-model-id`) in ProseMirror nodes.
         * Ensure these IDs are preserved during ProseMirror editing.
 
-* [ ] **[Partial Update Implementation]**:
+* [x] **[Partial Update Implementation]**:
     * **Goal**: Apply changes locally in `WYSIWYGEditor`.
     * **Task**:
         * Implement a `MutationHandler` in `WYSIWYGEditor` that listens to `SchemaView` events.

@@ -71,7 +71,7 @@ describe("Model Trivia", () => {
 
     // Reconcile
     if (!cst2) throw new Error("Parse failed");
-    const root2 = binder.reconcile(root1, cst2) as ModelElement;
+    const root2 = binder.reconcile(root1, cst2).node as ModelElement;
     const text2 = root2.children[0] as ModelText;
 
     expect(text2).toBe(text1); // Same instance
@@ -84,7 +84,7 @@ describe("Model Trivia", () => {
     const binder3 = new XMLBinder(xml3);
 
     if (!cst3) throw new Error("Parse failed");
-    const root3 = binder3.reconcile(root2, cst3) as ModelElement;
+    const root3 = binder3.reconcile(root2, cst3).node as ModelElement;
     const text3 = root3.children[0] as ModelText;
 
     expect(text3).toBe(text1);

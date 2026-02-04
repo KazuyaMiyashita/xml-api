@@ -4,6 +4,7 @@ import type {
   ModelElement,
   ModelNode,
   XMLAPI,
+  ViewChangeEvent,
 } from "@miy2/xml-api";
 import { baseKeymap, toggleMark } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
@@ -45,6 +46,9 @@ const viewToBrowserDOM = (viewNode: ApiNode): Node | null => {
     }
     const dom = document.createElement(el.tagName);
     const model = el.getModel() as ModelElement;
+    if (model.id) {
+      dom.setAttribute("data-model-id", model.id);
+    }
     model.attributes.forEach((v: string, k: string) => {
       dom.setAttribute(k, v);
     });
@@ -61,9 +65,7 @@ const viewToBrowserDOM = (viewNode: ApiNode): Node | null => {
   return null;
 };
 
-const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
-  api,
-}) => {
+const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({ api }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const isInitializing = useRef(false);
@@ -203,18 +205,104 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
 
   useEffect(() => {
     if (!schemaView) return;
-    return schemaView.on(
-      (event: { transaction?: { getMeta: (key: string) => unknown } }) => {
-        if (event.transaction?.getMeta("origin") === "wysiwyg-editor") {
-          return;
-        }
-        // Skip update if XML is not well-formed
-        if (!api.cst || !api.cst.wellFormed) {
-          return;
+    return schemaView.on((event: ViewChangeEvent) => {
+      if (event.transaction?.getMeta("origin") === "wysiwyg-editor") {
+        return;
+      }
+      // Skip update if XML is not well-formed
+      if (!api.cst || !api.cst.wellFormed) {
+        return;
+      }
+
+      if (viewRef.current && schemaView) {
+        isInitializing.current = true;
+
+        // Try Partial Update
+        let handled = false;
+        if (
+          event.type === "structure" ||
+          event.type === "attribute" ||
+          event.type === "text"
+        ) {
+          const targetViewNode = event.target;
+          if (
+            targetViewNode.nodeType === 1 &&
+            (targetViewNode as ApiElement).getModel()
+          ) {
+            const modelId = (targetViewNode as ApiElement).getModel().id;
+            const pmDoc = viewRef.current.state.doc;
+            let targetPos: number | null = null;
+            let targetNode: PMNode | null = null;
+
+            // Find node in PM doc
+            if (modelId === schemaView.getRoot().getModel().id) {
+              // Root change
+              targetPos = 0;
+              targetNode = pmDoc;
+            } else {
+              pmDoc.descendants((node, pos) => {
+                if (node.attrs.modelId === modelId) {
+                  targetPos = pos;
+                  targetNode = node;
+                  return false;
+                }
+                return true;
+              });
+            }
+
+            if (targetNode && targetPos !== null) {
+              const browserDom = viewToBrowserDOM(targetViewNode);
+              if (browserDom) {
+                // Parse the new content
+                // If targetNode is doc, we parse as doc
+                // If targetNode is element, we parse contextually or just take the node
+                let newNode: PMNode | null = null;
+
+                if (targetNode.type.name === "doc") {
+                  let parseTarget: Node = browserDom;
+                  if (parseTarget.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+                    const div = document.createElement("div");
+                    div.appendChild(parseTarget);
+                    parseTarget = div;
+                  }
+                  newNode =
+                    PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(
+                      parseTarget,
+                    );
+                } else {
+                  // For block elements, wrap in a container to parse?
+                  // Or use DOMParser.parseSlice?
+                  // Simplest: use parse then extract.
+                  // But browserDom is <tag>...</tag>.
+                  // parse(tag) might wrap it in doc -> tag.
+                  // We want 'tag' node.
+
+                  const div = document.createElement("div");
+                  div.appendChild(browserDom);
+                  const parsedDoc =
+                    PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(div);
+                  newNode = parsedDoc.firstChild;
+                }
+
+                if (newNode) {
+                  const tr = viewRef.current.state.tr.replaceWith(
+                    targetPos,
+                    targetPos + targetNode.nodeSize,
+                    newNode,
+                  );
+                  // Preserve selection if possible?
+                  // For now, simple replacement.
+                  tr.setMeta("origin", "external");
+                  viewRef.current.dispatch(tr);
+                  handled = true;
+                }
+              }
+            }
+          }
         }
 
-        if (viewRef.current && schemaView) {
-          isInitializing.current = true;
+        if (!handled) {
+          // Full Update Fallback
           const root = schemaView.getRoot();
           const browserDom = viewToBrowserDOM(root);
           if (browserDom) {
@@ -232,13 +320,14 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
                 viewRef.current.state.doc.content.size,
                 newPmDoc,
               );
+              tr.setMeta("origin", "external");
               viewRef.current.dispatch(tr);
             }
           }
-          isInitializing.current = false;
         }
-      },
-    );
+        isInitializing.current = false;
+      }
+    });
   }, [schemaView]);
 
   if (!isWellFormed && api.source.trim() !== "") {

@@ -321,8 +321,8 @@ export class SyncEngine {
         if (this._state.model) {
           // Attempt to reconcile with existing model to preserve identity
           const result = this.binder.reconcile(this._state.model, cst);
-          if (result instanceof ModelElement) {
-            model = result;
+          if (result.node instanceof ModelElement) {
+            model = result.node;
           }
         } else {
           // Initial hydration
@@ -398,7 +398,8 @@ export class SyncEngine {
 
     if (currentModel.cst === oldNode) {
       // Reconcile root to preserve identity
-      const reconciled = this.binder.reconcile(currentModel, newNode);
+      const result = this.binder.reconcile(currentModel, newNode);
+      const reconciled = result.node;
       if (reconciled !== currentModel) {
         this._state = this._state.update({ model: reconciled as ModelElement });
       }
@@ -412,7 +413,8 @@ export class SyncEngine {
 
     const modelPath = this.findModelNodePath(currentModel, oldNode);
     if (modelPath) {
-      const reconciledModel = this.binder.reconcile(modelPath.node, newNode);
+      const result = this.binder.reconcile(modelPath.node, newNode);
+      const reconciledModel = result.node;
       if (reconciledModel) {
         if (reconciledModel !== modelPath.node) {
           modelPath.parent.children[modelPath.index] = reconciledModel;
@@ -422,6 +424,8 @@ export class SyncEngine {
           type: "structure",
           target: reconciledModel,
           transaction: tr,
+          addedNodes: result.diff?.addedNodes,
+          removedNodes: result.diff?.removedNodes,
         });
       }
       return true;

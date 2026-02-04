@@ -7,3 +7,7 @@
 ## Classes
 
 - [XMLBinder](classes/XMLBinder.md)
+
+## Interfaces
+
+- [ReconcileResult](interfaces/ReconcileResult.md)

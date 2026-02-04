@@ -27,6 +27,8 @@ export type ViewChangeEvent =
       type: "structure";
       target: Node;
       transaction?: Transaction;
+      addedNodes?: Node[];
+      removedNodes?: Node[];
     }
   | {
       type: "attribute";
@@ -168,10 +170,30 @@ export class SchemaView {
     if (viewNode) {
       // Map event
       if (event.type === "structure") {
+        const addedViewNodes: Node[] = [];
+        if (event.addedNodes) {
+          for (const mNode of event.addedNodes) {
+            if (this.document.accepts(mNode)) {
+              addedViewNodes.push(createWrapper(mNode, this.document));
+            }
+          }
+        }
+
+        const removedViewNodes: Node[] = [];
+        if (event.removedNodes) {
+          for (const mNode of event.removedNodes) {
+            if (this.document.accepts(mNode)) {
+              removedViewNodes.push(createWrapper(mNode, this.document));
+            }
+          }
+        }
+
         this.events.emit({
           type: "structure",
           target: viewNode,
           transaction: event.transaction,
+          addedNodes: addedViewNodes,
+          removedNodes: removedViewNodes,
         });
       } else if (event.type === "attribute") {
         this.events.emit({

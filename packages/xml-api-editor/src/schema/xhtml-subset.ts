@@ -16,35 +16,97 @@ export const xhtmlSubsetSchema = new Schema({
     paragraph: {
       content: "inline*",
       group: "block",
-      parseDOM: [{ tag: "p" }],
-      toDOM() {
+      attrs: { modelId: { default: null } },
+      parseDOM: [
+        {
+          tag: "p",
+          getAttrs: (dom) => ({
+            modelId: (dom as HTMLElement).getAttribute("data-model-id"),
+          }),
+        },
+      ],
+      toDOM(node) {
+        if (node.attrs.modelId) {
+          return ["p", { "data-model-id": node.attrs.modelId }, 0];
+        }
         return ["p", 0];
       },
     },
 
     heading: {
-      attrs: { level: { default: 1 } },
+      attrs: { level: { default: 1 }, modelId: { default: null } },
       content: "inline*",
       group: "block",
       defining: true,
       parseDOM: [
-        { tag: "h1", attrs: { level: 1 } },
-        { tag: "h2", attrs: { level: 2 } },
-        { tag: "h3", attrs: { level: 3 } },
-        { tag: "h4", attrs: { level: 4 } },
-        { tag: "h5", attrs: { level: 5 } },
-        { tag: "h6", attrs: { level: 6 } },
+        {
+          tag: "h1",
+          getAttrs: (dom) => ({
+            level: 1,
+            modelId: (dom as HTMLElement).getAttribute("data-model-id"),
+          }),
+        },
+        {
+          tag: "h2",
+          getAttrs: (dom) => ({
+            level: 2,
+            modelId: (dom as HTMLElement).getAttribute("data-model-id"),
+          }),
+        },
+        {
+          tag: "h3",
+          getAttrs: (dom) => ({
+            level: 3,
+            modelId: (dom as HTMLElement).getAttribute("data-model-id"),
+          }),
+        },
+        {
+          tag: "h4",
+          getAttrs: (dom) => ({
+            level: 4,
+            modelId: (dom as HTMLElement).getAttribute("data-model-id"),
+          }),
+        },
+        {
+          tag: "h5",
+          getAttrs: (dom) => ({
+            level: 5,
+            modelId: (dom as HTMLElement).getAttribute("data-model-id"),
+          }),
+        },
+        {
+          tag: "h6",
+          getAttrs: (dom) => ({
+            level: 6,
+            modelId: (dom as HTMLElement).getAttribute("data-model-id"),
+          }),
+        },
       ],
       toDOM(node) {
-        return [`h${node.attrs.level}`, 0];
+        const attrs: Record<string, string | number> = {};
+        if (node.attrs.modelId) {
+          attrs["data-model-id"] = node.attrs.modelId;
+        }
+        return [`h${node.attrs.level}`, attrs, 0];
       },
     },
 
     section: {
       content: "block+",
       group: "block",
-      parseDOM: [{ tag: "section" }],
-      toDOM() {
+      attrs: { modelId: { default: null } },
+      parseDOM: [
+        {
+          tag: "section",
+          getAttrs: (dom) => ({
+            modelId: (dom as HTMLElement).getAttribute("data-model-id"),
+          }),
+        },
+      ],
+      toDOM(node) {
+        if (node.attrs.modelId) {
+          return ["section", { "data-model-id": node.attrs.modelId }, 0];
+        }
         return ["section", 0];
       },
     },

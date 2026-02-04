@@ -112,9 +112,7 @@ function App() {
               docTypeInfo.type === DocumentType.MEI ? (
                 <MeiEditor api={api} />
               ) : (
-                <WYSIWYGEditor
-                  api={api}
-                />
+                <WYSIWYGEditor api={api} />
               )
             ) : (
               <div>Loading...</div>
@@ -162,10 +160,7 @@ function App() {
             {error ? (
               <div className="error-message">Error: {error}</div>
             ) : api ? (
-              <CodeEditor
-                api={api}
-                onChange={handleCodeChange}
-              />
+              <CodeEditor api={api} onChange={handleCodeChange} />
             ) : (
               <div>Loading...</div>
             )}

@@ -308,6 +308,10 @@
         "collapsed": true,
         "items": [
           {
+            "text": "ReconcileResult",
+            "link": "/api/reference/model/xml-binder/interfaces/ReconcileResult"
+          },
+          {
             "text": "XMLBinder",
             "link": "/api/reference/model/xml-binder/classes/XMLBinder"
           }

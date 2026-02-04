@@ -10,6 +10,10 @@ export type ChangeEvent =
       type: "structure";
       target: ModelNode;
       transaction?: Transaction;
+      addedNodes?: ModelNode[];
+      removedNodes?: ModelNode[];
+      previousSibling?: ModelNode | null;
+      nextSibling?: ModelNode | null;
     }
   | {
       type: "attribute";

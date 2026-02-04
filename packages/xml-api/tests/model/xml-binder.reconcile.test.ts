@@ -21,7 +21,7 @@ describe("XMLBinder Reconciliation", () => {
 
     // Reconcile model1 with cst2
     if (!cst2) throw new Error("Parse failed");
-    const newModel = binder2.reconcile(model1, cst2);
+    const newModel = binder2.reconcile(model1, cst2).node;
 
     expect(newModel).toBe(model1); // Instance preserved
     expect(newModel?.id).toBe(rootId);
@@ -46,7 +46,7 @@ describe("XMLBinder Reconciliation", () => {
     const cst2 = parser.parse(input2, "element");
 
     if (!cst2) throw new Error("Parse failed");
-    const newModel = binder2.reconcile(model1, cst2) as ModelElement;
+    const newModel = binder2.reconcile(model1, cst2).node as ModelElement;
 
     expect(newModel).toBe(model1);
 
@@ -78,7 +78,7 @@ describe("XMLBinder Reconciliation", () => {
     const cst2 = parser.parse(input2, "element");
 
     if (!cst2) throw new Error("Parse failed");
-    const newModel = binder2.reconcile(model1, cst2) as ModelElement;
+    const newModel = binder2.reconcile(model1, cst2).node as ModelElement;
 
     expect(newModel).toBe(model1);
     expect(newModel.children[0]).not.toBe(oldNode);
