@@ -10,7 +10,8 @@ describe("XMLAPI Context-Aware Formatting", () => {
 </root>`;
     const api = new XMLAPI(input);
     const doc = api.getDocument();
-    const child = doc.querySelector("child")!;
+    const child = doc.querySelector("child");
+    if (!child) throw new Error("Child not found");
 
     // New content has structure
     const newChild = doc.createElement("child");
@@ -18,7 +19,7 @@ describe("XMLAPI Context-Aware Formatting", () => {
     grandchild.textContent = "Val";
     newChild.appendChild(grandchild);
 
-    child.parentNode!.replaceChild(newChild, child);
+    child.parentNode?.replaceChild(newChild, child);
 
     // The indentation should be preserved (4 spaces for child, 8 spaces for grandchild)
     const expected = `<root>
@@ -40,14 +41,15 @@ describe("XMLAPI Context-Aware Formatting", () => {
 </root>`;
     const api = new XMLAPI(input);
     const doc = api.getDocument();
-    const child = doc.querySelector("child")!;
+    const child = doc.querySelector("child");
+    if (!child) throw new Error("Child not found");
 
     const newChild = doc.createElement("child");
     const grandchild = doc.createElement("grandchild");
     grandchild.textContent = "Val";
     newChild.appendChild(grandchild);
 
-    child.parentNode!.replaceChild(newChild, child);
+    child.parentNode?.replaceChild(newChild, child);
 
     const expected = `<root>
 	<parent>

@@ -3,7 +3,6 @@ import {
   ModelComment,
   ModelElement,
   type ModelNode,
-  ModelNodeType,
   ModelText,
 } from "./model/xml-api-model";
 
@@ -106,8 +105,8 @@ export abstract class Node {
   get childNodes(): NodeList {
     if (this.model instanceof ModelElement) {
       let children = this.model.children;
-      if (this.ownerDocument && this.ownerDocument.nodeFilter) {
-        children = children.filter((c) => this.ownerDocument!.accepts(c));
+      if (this.ownerDocument?.nodeFilter) {
+        children = children.filter((c) => this.ownerDocument?.accepts(c));
       }
       return new NodeList(
         children.map((c) => createWrapper(c, this.ownerDocument)),

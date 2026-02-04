@@ -1,5 +1,5 @@
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { EditorState } from "@codemirror/state";
+import { EditorState, type Range } from "@codemirror/state";
 import {
   Decoration,
   type DecorationSet,
@@ -14,7 +14,7 @@ import {
 } from "@codemirror/view";
 import type { ChangeEvent, CST, XMLAPI } from "@miy2/xml-api";
 import type React from "react";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import "./CodeEditor.css";
 
 interface CodeEditorProps {
@@ -23,7 +23,7 @@ interface CodeEditorProps {
   onChange?: (newSource: string) => void;
 }
 
-const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
+const CodeEditor: React.FC<CodeEditorProps> = ({ api, onChange }) => {
   const editorParentRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const isUpdatingFromApi = useRef(false);
@@ -47,8 +47,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
         getDecorations(view: EditorView) {
           if (!api.cst) return Decoration.none;
 
-          const widgets: any[] = [];
-          const traverse = (node: CST, inheritedClassName: string = "") => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const widgets: Range<Decoration>[] = [];
+          const traverse = (node: CST, inheritedClassName = "") => {
             let className = inheritedClassName;
 
             if (
@@ -82,7 +83,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
                 }
               }
             } else {
-              node.children.forEach((child) => traverse(child, className));
+              node.children.forEach((child) => {
+                traverse(child, className);
+              });
             }
           };
 
@@ -103,7 +106,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
     );
   }, [api]);
 
-  const checkForUpdates = () => {
+  const checkForUpdates = useCallback(() => {
     if (
       viewRef.current &&
       api.source !== viewRef.current.state.doc.toString()
@@ -118,11 +121,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
       });
       isUpdatingFromApi.current = false;
     }
-  };
+  }, [api.source]);
 
   useEffect(() => {
     checkForUpdates();
-  }, [version, api]);
+  }, [checkForUpdates]);
 
   useEffect(() => {
     if (!editorParentRef.current) return;
@@ -186,7 +189,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
     return () => {
       view.destroy();
     };
-  }, [api, cstHighlight]);
+  }, [api, cstHighlight, onChange]);
 
   useEffect(() => {
     return api.on((event: ChangeEvent) => {
@@ -195,7 +198,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
       }
       checkForUpdates();
     });
-  }, [api]);
+  }, [api, checkForUpdates]);
 
   return <div className="code-editor-container" ref={editorParentRef} />;
 };

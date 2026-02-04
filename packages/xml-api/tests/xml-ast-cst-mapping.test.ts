@@ -8,7 +8,8 @@ describe("Model-CST Mapping", () => {
     const api = new XMLAPI(xml);
 
     expect(api.model).toBeInstanceOf(ModelElement);
-    const root = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const root = api.model;
     expect(root.cst).toBeInstanceOf(CST);
     expect(root.cst?.name).toBe("element");
     expect(root.cst?.getText(api.source)).toBe(xml);
@@ -24,7 +25,8 @@ describe("Model-CST Mapping", () => {
     const xml = "<empty/>";
     const api = new XMLAPI(xml);
 
-    const root = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const root = api.model;
     expect(root.cst).toBeInstanceOf(CST);
     expect(root.cst?.name).toBe("element");
     expect(root.cst?.getText(api.source)).toBe("<empty/>");

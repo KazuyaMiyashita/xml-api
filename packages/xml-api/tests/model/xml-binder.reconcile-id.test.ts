@@ -5,7 +5,8 @@ describe("XMLBinder Reconciliation ID Persistence", () => {
   it("should preserve node ID when attribute is updated", () => {
     const xml = '<root><item id="1">Text</item></root>';
     const api = new XMLAPI(xml);
-    const initialModel = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const initialModel = api.model;
     const item = initialModel.find("item")[0];
     const originalId = item.id;
 
@@ -16,7 +17,8 @@ describe("XMLBinder Reconciliation ID Persistence", () => {
     // Replace entire attribute assignment
     api.updateSource(start, start + target.length, 'id="2"');
 
-    const newModel = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const newModel = api.model;
     const newItem = newModel.find("item")[0];
 
     expect(newItem.attributes.get("id")).toBe("2");
@@ -26,14 +28,16 @@ describe("XMLBinder Reconciliation ID Persistence", () => {
   it("should preserve node ID when text content is updated", () => {
     const xml = "<root><item>Original</item></root>";
     const api = new XMLAPI(xml);
-    const initialModel = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const initialModel = api.model;
     const item = initialModel.find("item")[0];
     const originalId = item.id;
 
     const start = xml.indexOf("Original");
     api.updateSource(start, start + "Original".length, "Updated");
 
-    const newModel = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const newModel = api.model;
     const newItem = newModel.find("item")[0];
 
     expect(newItem.text()).toBe("Updated");
@@ -43,7 +47,8 @@ describe("XMLBinder Reconciliation ID Persistence", () => {
   it("should preserve node ID for siblings when one is modified", () => {
     const xml = '<root><a id="1"/><b id="2"/></root>';
     const api = new XMLAPI(xml);
-    const root = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const root = api.model;
     const a = root.children[0] as ModelElement;
     const b = root.children[1] as ModelElement;
     const idA = a.id;
@@ -54,7 +59,8 @@ describe("XMLBinder Reconciliation ID Persistence", () => {
     const start = xml.indexOf(target);
     api.updateSource(start, start + target.length, 'id="3"');
 
-    const newRoot = api.model!;
+    if (!api.model) throw new Error("Model is null");
+    const newRoot = api.model;
     const newA = newRoot.children[0] as ModelElement;
     const newB = newRoot.children[1] as ModelElement;
 

@@ -25,7 +25,7 @@ describe("Fidelity Tests", () => {
     expect(section1).not.toBeNull();
 
     // Update attribute
-    section1!.setAttribute("status", "active");
+    section1?.setAttribute("status", "active");
 
     const expected = complexXml.replace(
       '<section id="1">',
@@ -41,10 +41,12 @@ describe("Fidelity Tests", () => {
 
     const section1 = doc.querySelector('[id="1"]');
     expect(section1).not.toBeNull();
-    const title = section1!.querySelector("title");
+    const title = section1?.querySelector("title");
     expect(title).not.toBeNull();
 
-    title!.textContent = "New Title";
+    if (title) {
+      title.textContent = "New Title";
+    }
 
     const expected = complexXml.replace(
       "<title>Section 1</title>",

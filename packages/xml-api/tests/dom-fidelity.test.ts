@@ -1,11 +1,4 @@
-import {
-  CharacterData,
-  createWrapper,
-  type DOMObserver,
-  Document,
-  type Element,
-  Node,
-} from "@/dom";
+import { createWrapper, type DOMObserver, Document, type Element } from "@/dom";
 import { ModelElement, ModelText } from "@/model/xml-api-model";
 import type { XMLBinder } from "@/model/xml-binder";
 import { XMLAPI } from "@/xml-api";
@@ -66,7 +59,7 @@ describe("DOM Fidelity Verification", () => {
     const child2 = doc.querySelector("#2");
     expect(child2).not.toBeNull();
 
-    child2!.setAttribute("class", "bar");
+    child2?.setAttribute("class", "bar");
 
     // Check Source Fidelity
     // Expect: <child id="2"  class="bar" >

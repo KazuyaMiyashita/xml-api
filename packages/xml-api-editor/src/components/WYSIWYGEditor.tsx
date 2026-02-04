@@ -15,7 +15,7 @@ import {
 import { EditorState, type Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import type React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { xhtmlSubsetSchema } from "../schema/xhtml-subset";
 import "./WYSIWYGEditor.css";
@@ -24,6 +24,43 @@ interface WYSIWYGEditorProps {
   api: XMLAPI;
   onExternalChange?: () => void;
 }
+
+// Helper to convert xml-api view DOM to PM DOM (browser nodes)
+const viewToBrowserDOM = (viewNode: ApiNode): Node | null => {
+  if (viewNode.nodeType === 3) {
+    return document.createTextNode(viewNode.textContent || "");
+  }
+  if (viewNode.nodeType === 1) {
+    const el = viewNode as ApiElement;
+    if (el.tagName === "html" || el.tagName === "body") {
+      const fragment = document.createDocumentFragment();
+      const children = el.childNodes;
+      for (let i = 0; i < children.length; i++) {
+        const item = children.item(i);
+        if (item) {
+          const child = viewToBrowserDOM(item);
+          if (child) fragment.appendChild(child);
+        }
+      }
+      return fragment;
+    }
+    const dom = document.createElement(el.tagName);
+    const model = el.getModel() as ModelElement;
+    model.attributes.forEach((v: string, k: string) => {
+      dom.setAttribute(k, v);
+    });
+    const children = el.childNodes;
+    for (let i = 0; i < children.length; i++) {
+      const item = children.item(i);
+      if (item) {
+        const child = viewToBrowserDOM(item);
+        if (child) dom.appendChild(child);
+      }
+    }
+    return dom;
+  }
+  return null;
+};
 
 const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
   api,
@@ -73,55 +110,31 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
           return false;
         },
       });
-    } catch (e) {
+    } catch (_e) {
       return null;
     }
-  }, [api, isWellFormed]);
-
-  // Helper to convert xml-api view DOM to PM DOM (browser nodes)
-  const viewToBrowserDOM = (viewNode: ApiNode): Node | null => {
-    if (viewNode.nodeType === 3) {
-      return document.createTextNode(viewNode.textContent || "");
-    }
-    if (viewNode.nodeType === 1) {
-      const el = viewNode as ApiElement;
-      if (el.tagName === "html" || el.tagName === "body") {
-        const fragment = document.createDocumentFragment();
-        const children = el.childNodes;
-        for (let i = 0; i < children.length; i++) {
-          const child = viewToBrowserDOM(children.item(i)!);
-          if (child) fragment.appendChild(child);
-        }
-        return fragment;
-      }
-      const dom = document.createElement(el.tagName);
-      const model = el.getModel() as ModelElement;
-      model.attributes.forEach((v: string, k: string) =>
-        dom.setAttribute(k, v),
-      );
-      const children = el.childNodes;
-      for (let i = 0; i < children.length; i++) {
-        const child = viewToBrowserDOM(children.item(i)!);
-        if (child) dom.appendChild(child);
-      }
-      return dom;
-    }
-    return null;
-  };
+  }, [api]);
 
   // Sync ProseMirror state TO SchemaView (XML)
-  const syncToXml = (pmDoc: PMNode) => {
-    if (!api.cst || !api.cst.wellFormed || !schemaView) return;
-    const root = schemaView.getRoot();
-    let body = root;
-    if (root.tagName === "html") {
-      const found = root.querySelector("body");
-      if (found) body = found;
-    }
-    const serializer = DOMSerializer.fromSchema(xhtmlSubsetSchema);
-    const fragment = serializer.serializeFragment(pmDoc.content);
-    schemaView.reconcile(fragment as any, { origin: "wysiwyg-editor" }, body);
-  };
+  const syncToXml = useCallback(
+    (pmDoc: PMNode) => {
+      if (!api.cst || !api.cst.wellFormed || !schemaView) return;
+      const root = schemaView.getRoot();
+      let body = root;
+      if (root.tagName === "html") {
+        const found = root.querySelector("body");
+        if (found) body = found;
+      }
+      const serializer = DOMSerializer.fromSchema(xhtmlSubsetSchema);
+      const fragment = serializer.serializeFragment(pmDoc.content);
+      schemaView.reconcile(
+        fragment as unknown as Node,
+        { origin: "wysiwyg-editor" },
+        body,
+      );
+    },
+    [api, schemaView],
+  );
 
   useEffect(() => {
     if (!editorRef.current || !schemaView) return;
@@ -130,7 +143,8 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
       if (viewRef.current && schemaView) {
         const root = schemaView.getRoot();
         const browserDom = viewToBrowserDOM(root);
-        let parseTarget: Node = browserDom!;
+        if (!browserDom) return;
+        let parseTarget: Node = browserDom;
         if (parseTarget.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
           const div = document.createElement("div");
           div.appendChild(parseTarget);
@@ -187,37 +201,41 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
     return () => {
       view.destroy();
     };
-  }, [schemaView]);
+  }, [schemaView, onExternalChange, syncToXml]);
 
   useEffect(() => {
     if (!schemaView) return;
-    return schemaView.on((event: any) => {
-      if (event.transaction?.getMeta("origin") === "wysiwyg-editor") {
-        return;
-      }
-      if (viewRef.current && schemaView) {
-        isInitializing.current = true;
-        const root = schemaView.getRoot();
-        const browserDom = viewToBrowserDOM(root);
-        let parseTarget: Node = browserDom!;
-        if (parseTarget.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-          const div = document.createElement("div");
-          div.appendChild(parseTarget);
-          parseTarget = div;
+    return schemaView.on(
+      (event: { transaction?: { getMeta: (key: string) => unknown } }) => {
+        if (event.transaction?.getMeta("origin") === "wysiwyg-editor") {
+          return;
         }
-        const newPmDoc =
-          PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(parseTarget);
-        if (!newPmDoc.eq(viewRef.current.state.doc)) {
-          const tr = viewRef.current.state.tr.replaceWith(
-            0,
-            viewRef.current.state.doc.content.size,
-            newPmDoc,
-          );
-          viewRef.current.dispatch(tr);
+        if (viewRef.current && schemaView) {
+          isInitializing.current = true;
+          const root = schemaView.getRoot();
+          const browserDom = viewToBrowserDOM(root);
+          if (browserDom) {
+            let parseTarget: Node = browserDom;
+            if (parseTarget.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+              const div = document.createElement("div");
+              div.appendChild(parseTarget);
+              parseTarget = div;
+            }
+            const newPmDoc =
+              PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(parseTarget);
+            if (!newPmDoc.eq(viewRef.current.state.doc)) {
+              const tr = viewRef.current.state.tr.replaceWith(
+                0,
+                viewRef.current.state.doc.content.size,
+                newPmDoc,
+              );
+              viewRef.current.dispatch(tr);
+            }
+          }
+          isInitializing.current = false;
         }
-        isInitializing.current = false;
-      }
-    });
+      },
+    );
   }, [schemaView]);
 
   if (!isWellFormed && api.source.trim() !== "") {
@@ -240,6 +258,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
     <div className="wysiwyg-container">
       <div className="wysiwyg-toolbar">
         <button
+          type="button"
           onClick={() => {
             if (viewRef.current) {
               toggleMark(xhtmlSubsetSchema.marks.strong)(

@@ -9,7 +9,8 @@ describe("XMLAPI Event System", () => {
 
     api.on((e) => events.push(e));
 
-    const root = doc.documentElement!;
+    if (!doc.documentElement) throw new Error("Document element is null");
+    const root = doc.documentElement;
     root.setAttribute("id", "2");
 
     expect(events.length).toBeGreaterThan(0);
@@ -23,7 +24,8 @@ describe("XMLAPI Event System", () => {
     const events: ChangeEvent[] = [];
     api.on((e) => events.push(e));
 
-    const root = doc.documentElement!;
+    if (!doc.documentElement) throw new Error("Document element is null");
+    const root = doc.documentElement;
     root.textContent = "New";
 
     expect(events.length).toBeGreaterThan(0);

@@ -56,7 +56,8 @@ describe("XMLAPI DOM Integration", () => {
     const xml = `<root><item id="1">A</item></root>`;
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    const item = doc.querySelector("item")!;
+    const item = doc.querySelector("item");
+    if (!item) throw new Error("Item not found");
 
     // First update
     item.setAttribute("foo", "bar");
@@ -67,7 +68,7 @@ describe("XMLAPI DOM Integration", () => {
     item.setAttribute("baz", "qux");
     expect(api.source).toContain('baz="qux"');
 
-    const expected = `<root><item id="1" foo="bar" baz="qux">A</item></root>`;
+    const _expected = `<root><item id="1" foo="bar" baz="qux">A</item></root>`;
     // Note: Attribute order depends on implementation, regex or multiple expects might be safer
     // But binder usually appends.
     // Let's just check presence.

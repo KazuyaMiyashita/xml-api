@@ -10,7 +10,8 @@ describe("XMLBinder Node Replacement Patch", () => {
     const input = "<root><old>content</old></root>";
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     // Find <old> child
     const oldNode = model.children[0] as ModelElement;

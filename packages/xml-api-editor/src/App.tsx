@@ -7,6 +7,7 @@ import { DocumentType, detectDocumentType } from "./utils/xml-detector";
 import "./App.css";
 
 interface LogEntry {
+  id: string;
   timestamp: string;
   type: string;
   detail: string;
@@ -20,7 +21,10 @@ function App() {
   const [eventLogs, setEventLogs] = useState<LogEntry[]>([]);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
-  const forceUpdate = useCallback(() => {
+  // Use a ref for unique ID generation
+  const nextLogId = useRef(0);
+
+  const _forceUpdate = useCallback(() => {
     setTick((tick) => tick + 1);
   }, []);
 
@@ -29,7 +33,7 @@ function App() {
     // Logs are updated via api.on listener automatically
   }, []);
 
-  const addLog = useCallback((event: ChangeEvent) => {
+  const _addLog = useCallback((event: ChangeEvent) => {
     const timestamp = new Date().toLocaleTimeString();
     let detail = "";
 
@@ -43,9 +47,11 @@ function App() {
       detail = `Text changed on ${event.target?.getType()} (${event.target?.id})`;
     }
 
+    const id = `${Date.now()}-${nextLogId.current++}`;
+
     setEventLogs((prev) => [
       ...prev.slice(-19),
-      { timestamp, type: event.type, detail },
+      { id, timestamp, type: event.type, detail },
     ]);
   }, []);
 
@@ -59,7 +65,7 @@ function App() {
   // Auto-scroll logs
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [eventLogs]);
+  }, []);
 
   useEffect(() => {
     const loadXml = async () => {
@@ -85,26 +91,32 @@ function App() {
             else if (event.type === "text")
               detail = `Text changed on ${event.target?.getType()} (${event.target?.id})`;
 
+            const id = `${Date.now()}-${Math.random()}`; // Simple ID for now inside callback
+
             return [
               ...prev.slice(-19),
-              { timestamp, type: event.type, detail },
+              { id, timestamp, type: event.type, detail },
             ];
           });
 
           // Note: forceUpdate is removed. Editors must subscribe and update themselves.
         });
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError(String(err));
+        }
       }
     };
 
     loadXml();
-  }, [addLog, forceUpdate]);
+  }, []);
 
-  const handleCodeChange = (_newSource: string) => {
+  const handleCodeChange = useCallback((_newSource: string) => {
     // CodeEditor now handles api.updateSource incrementally.
     // We can use this callback for other side effects if needed.
-  };
+  }, []);
 
   return (
     <div className="app-container">
@@ -169,8 +181,8 @@ function App() {
                 fontFamily: "monospace",
               }}
             >
-              {eventLogs.map((log, i) => (
-                <div key={i} style={{ marginBottom: "2px" }}>
+              {eventLogs.map((log) => (
+                <div key={log.id} style={{ marginBottom: "2px" }}>
                   <span style={{ color: "#888" }}>[{log.timestamp}]</span>
                   <strong style={{ color: "#007acc" }}> {log.type}</strong>:{" "}
                   {log.detail}

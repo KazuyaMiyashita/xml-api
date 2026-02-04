@@ -35,7 +35,7 @@ export function detectDocumentType(api: XMLAPI): DocumentInfo {
   }
 
   if (rootTag === "mei" || rootTag === "mei:mei") {
-    if (namespace && namespace.includes("music-encoding.org")) {
+    if (namespace?.includes("music-encoding.org")) {
       return { type: DocumentType.MEI, rootTag, namespace };
     }
     // Assume MEI if tag is mei

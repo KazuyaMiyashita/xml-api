@@ -1,4 +1,3 @@
-import { Element } from "@/dom";
 import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI DOM Structure Sync", () => {
@@ -17,9 +16,11 @@ describe("XMLAPI DOM Structure Sync", () => {
     const xml = "<root><c/></root>";
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    const root = doc.documentElement!;
+    if (!doc.documentElement) throw new Error("Document element is null");
+    const root = doc.documentElement;
 
-    const refNode = root.firstChild!; // <c/>
+    if (!root.firstChild) throw new Error("First child is null");
+    const refNode = root.firstChild;
     const newChild = doc.createElement("a");
 
     root.insertBefore(newChild, refNode);
@@ -31,9 +32,11 @@ describe("XMLAPI DOM Structure Sync", () => {
     const xml = "<root><a/><b/></root>";
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    const root = doc.documentElement!;
+    if (!doc.documentElement) throw new Error("Document element is null");
+    const root = doc.documentElement;
 
-    const childToRemove = root.firstChild!; // <a/>
+    if (!root.firstChild) throw new Error("First child is null");
+    const childToRemove = root.firstChild;
     root.removeChild(childToRemove);
 
     expect(api.source).toBe("<root><b/></root>");
@@ -43,7 +46,8 @@ describe("XMLAPI DOM Structure Sync", () => {
     const xml = "<p>World</p>";
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    const p = doc.documentElement!;
+    if (!doc.documentElement) throw new Error("Document element is null");
+    const p = doc.documentElement;
 
     const newText = doc.createTextNode("Hello ");
     p.insertBefore(newText, p.firstChild);

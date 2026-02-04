@@ -8,7 +8,7 @@ import {
   type Node,
 } from "./dom";
 import { SyncEngine } from "./engine/sync-engine";
-import { ModelElement, type ModelNode } from "./model/xml-api-model";
+import { ModelElement } from "./model/xml-api-model";
 import { SchemaView, type SchemaViewConfig } from "./view/schema-view";
 import type { EventHandler } from "./xml-api-events";
 

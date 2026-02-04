@@ -1,11 +1,4 @@
-import {
-  CDATASection,
-  Comment,
-  createWrapper,
-  Document,
-  Element,
-  Text,
-} from "@/dom";
+import { createWrapper, Document, Element, Text } from "@/dom";
 import { ModelElement, ModelText } from "@/model/xml-api-model";
 
 describe("Custom DOM Wrapper", () => {
@@ -93,7 +86,9 @@ describe("Custom DOM Wrapper", () => {
       expect(wrapper.childNodes.length).toBe(1);
       expect(wrapper.firstChild?.textContent).toBe("initial");
 
-      wrapper.firstChild!.textContent = "updated";
+      if (wrapper.firstChild) {
+        wrapper.firstChild.textContent = "updated";
+      }
       expect(textModel.text).toBe("updated");
     });
   });

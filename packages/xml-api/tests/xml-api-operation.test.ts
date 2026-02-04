@@ -5,7 +5,8 @@ describe("XMLAPI Operations", () => {
     const xml = '<root><child id="1">Text</child></root>';
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    const child = doc.querySelector("child")!;
+    const child = doc.querySelector("child");
+    if (!child) throw new Error("Child not found");
 
     child.setAttribute("id", "2");
 
@@ -17,7 +18,8 @@ describe("XMLAPI Operations", () => {
     const xml = "<root><item /></root>";
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    const item = doc.querySelector("item")!;
+    const item = doc.querySelector("item");
+    if (!item) throw new Error("Item not found");
 
     item.setAttribute("new", "value");
 
@@ -29,7 +31,8 @@ describe("XMLAPI Operations", () => {
     const xml = "<root><title>Old</title></root>";
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    const title = doc.querySelector("title")!;
+    const title = doc.querySelector("title");
+    if (!title) throw new Error("Title not found");
 
     title.textContent = "New Title";
 
@@ -41,8 +44,10 @@ describe("XMLAPI Operations", () => {
     const xml = "<root><old>content</old></root>";
     const api = new XMLAPI(xml);
     const doc = api.getDocument();
-    const oldNode = doc.querySelector("old")!;
-    const parent = oldNode.parentNode!;
+    const oldNode = doc.querySelector("old");
+    if (!oldNode) throw new Error("Old node not found");
+    if (!oldNode.parentNode) throw new Error("Parent node is null");
+    const parent = oldNode.parentNode;
 
     const newNode = doc.createElement("new");
     newNode.textContent = "replaced";

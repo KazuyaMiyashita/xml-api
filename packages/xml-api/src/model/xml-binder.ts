@@ -252,10 +252,10 @@ export class XMLBinder {
           }
         }
 
-        if (matchedNode) {
+        if (matchedNode && sChild.cst) {
           // Found a match (keyed or non-keyed)
           // Use CST from new node to update existing node
-          const reconciled = this.reconcile(matchedNode, sChild.cst!);
+          const reconciled = this.reconcile(matchedNode, sChild.cst);
           if (reconciled) {
             newChildren.push(reconciled);
             reconciled.parent = t;
@@ -459,7 +459,7 @@ export class XMLBinder {
         }
       }
 
-      if (anchorNode && anchorNode.cst) {
+      if (anchorNode?.cst) {
         insertPos = anchorNode.cst.start;
       } else {
         // No following stable anchor found, insert before ETag

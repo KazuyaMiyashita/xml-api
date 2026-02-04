@@ -1,7 +1,6 @@
 import {
   type CharacterData,
   createWrapper,
-  DOMObserver,
   Document,
   Element,
   type Node,
@@ -94,7 +93,7 @@ export class SchemaView {
           );
         }
       },
-      onChildRemoved: (parent: Node, child: Node, index: number) => {
+      onChildRemoved: (parent: Node, child: Node, _index: number) => {
         const parentModel = parent.getModel();
         const childModel = child.getModel();
         if (parentModel instanceof ModelElement && parentModel.cst) {
@@ -152,7 +151,7 @@ export class SchemaView {
 
     if (event.type === "full") {
       // Update local model reference from engine if root changed
-      if (this.engine.model && this.engine.model !== this.model) {
+      if (this.engine.model) {
         this.model = this.engine.model;
         this.initDocument();
       }

@@ -79,13 +79,15 @@ describe("SchemaView", () => {
 
     const fullDoc = api.getDocument();
     const hiddenEl = fullDoc.querySelector('[id="h1"]');
-    const hiddenModelId = hiddenEl!.getModel().id;
+    if (!hiddenEl) throw new Error("Element h1 not found");
+    const hiddenModelId = hiddenEl.getModel().id;
 
     const viewNode = view.getNodeByModelId(hiddenModelId);
     expect(viewNode).toBeNull();
 
     const visibleEl = fullDoc.querySelector('[id="v1"]');
-    const visibleModelId = visibleEl!.getModel().id;
+    if (!visibleEl) throw new Error("Element v1 not found");
+    const visibleModelId = visibleEl.getModel().id;
     const viewNodeVisible = view.getNodeByModelId(visibleModelId);
     expect(viewNodeVisible).not.toBeNull();
   });
@@ -148,20 +150,20 @@ describe("SchemaView", () => {
     // const v1Model = v1El!.getModel() as ModelElement;
 
     // Update via DOM
-    v1El!.setAttribute("status", "changed");
+    v1El?.setAttribute("status", "changed");
 
     // SyncEngine emits event. View should re-emit.
     expect(events.length).toBeGreaterThan(0);
     const attrEvent = events.find((e) => e.type === "structure");
     expect(attrEvent).toBeDefined();
-    expect((attrEvent!.target as Element).getAttribute("id")).toBe("v1");
+    expect((attrEvent?.target as Element).getAttribute("id")).toBe("v1");
 
     events.length = 0;
 
     // 2. Modify hidden node
     const h1El = doc.querySelector('[id="h1"]');
     // const h1Model = h1El!.getModel() as ModelElement;
-    h1El!.setAttribute("status", "hidden-changed");
+    h1El?.setAttribute("status", "hidden-changed");
 
     // Should NOT emit view event
     expect(events.length).toBe(0);
@@ -193,9 +195,11 @@ describe("SchemaView", () => {
     // Find by Attribute ID, not Model UUID
     const doc = api.getDocument();
     const v1El = doc.querySelector('[id="v1"]');
-    const v1Model = v1El!.getModel() as ModelElement;
+    if (!v1El) throw new Error("v1El not found");
+    const v1Model = v1El.getModel() as ModelElement;
 
-    const start = v1Model.cst!.start + "<visible".length;
+    if (!v1Model.cst) throw new Error("CST is null");
+    const start = v1Model.cst.start + "<visible".length;
     tr.replace(start, start, " ");
 
     engine.dispatch(tr);

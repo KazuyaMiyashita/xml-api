@@ -4,11 +4,7 @@ import { Parser } from "../cst/parser";
 import type { CST } from "../cst/xml-cst";
 import { grammar as defaultGrammar } from "../cst/xml-grammar";
 import { HistoryManager } from "../history-manager";
-import {
-  ModelElement,
-  type ModelNode,
-  ModelText,
-} from "../model/xml-api-model";
+import { ModelElement, type ModelNode } from "../model/xml-api-model";
 import { XMLBinder } from "../model/xml-binder";
 import { EventEmitter, type EventHandler } from "../xml-api-events";
 import { EditorState } from "./editor-state";

@@ -10,7 +10,8 @@ describe("XMLBinder Text Update Patch", () => {
     const input = "<root>Old Text</root>";
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     const patch = binder.calcUpdateTextPatch(model, "New Text");
     // <root> (0-6)
@@ -28,7 +29,8 @@ describe("XMLBinder Text Update Patch", () => {
     const input = "<item id='1'/>";
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     const patch = binder.calcUpdateTextPatch(model, "Value");
     // <item id='1'/>
@@ -51,7 +53,8 @@ describe("XMLBinder Text Update Patch", () => {
     const input = "<root>A<b>B</b>C</root>";
     const binder = new XMLBinder(input);
     const cst = parser.parse(input, "element");
-    const model = binder.hydrate(cst!) as ModelElement;
+    if (!cst) throw new Error("Parse failed");
+    const model = binder.hydrate(cst) as ModelElement;
 
     const patch = binder.calcUpdateTextPatch(model, "All New");
     // <root> is 0-6.

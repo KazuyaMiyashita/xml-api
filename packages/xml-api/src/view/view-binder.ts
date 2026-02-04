@@ -1,8 +1,7 @@
-import {
-  type Document as ApiDocument,
-  type Element as ApiElement,
-  type Node as ApiNode,
-  Text as ApiText,
+import type {
+  Document as ApiDocument,
+  Element as ApiElement,
+  Node as ApiNode,
 } from "../dom";
 import { ModelText } from "../model/xml-api-model";
 
