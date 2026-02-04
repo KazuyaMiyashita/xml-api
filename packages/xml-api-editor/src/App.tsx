@@ -16,43 +16,13 @@ interface LogEntry {
 function App() {
   const [api, setApi] = useState<XMLAPI | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [, setTick] = useState(0);
   const [version, setVersion] = useState(0); // Add version state for manual syncing
   const [eventLogs, setEventLogs] = useState<LogEntry[]>([]);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
-  // Use a ref for unique ID generation
-  const nextLogId = useRef(0);
-
-  const _forceUpdate = useCallback(() => {
-    setTick((tick) => tick + 1);
-  }, []);
-
   const handleVersionUpdate = useCallback(() => {
     setVersion((v) => v + 1);
     // Logs are updated via api.on listener automatically
-  }, []);
-
-  const _addLog = useCallback((event: ChangeEvent) => {
-    const timestamp = new Date().toLocaleTimeString();
-    let detail = "";
-
-    if (event.type === "full") {
-      detail = "Full update";
-    } else if (event.type === "structure") {
-      detail = `Structure changed at ${event.target?.getType()} (${event.target?.id})`;
-    } else if (event.type === "attribute") {
-      detail = `Attribute changed: ${event.key} = ${event.newValue} on ${event.target?.getType()}`;
-    } else if (event.type === "text") {
-      detail = `Text changed on ${event.target?.getType()} (${event.target?.id})`;
-    }
-
-    const id = `${Date.now()}-${nextLogId.current++}`;
-
-    setEventLogs((prev) => [
-      ...prev.slice(-19),
-      { id, timestamp, type: event.type, detail },
-    ]);
   }, []);
 
   // Detect document type
