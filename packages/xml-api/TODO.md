@@ -110,23 +110,99 @@
         * Transform: Event target should be the ViewNode, not ModelNode.
         * Payload: detailed mutation record (addedNodes, removedNodes).
 
-## Phase 5: Integration & Cleanup
+## Phase 5: Refactoring for 3-Layer Architecture
+
+**Goal**: Align the codebase with the "Triple-Layer Reconciliation" architecture (Source-CST, CST-Model, Model-View) by unifying reconciliation patterns and clarifying responsibilities.
+
+* [ ] **[Project Infrastructure & Cleanup]**:
+    * **Goal**: Standardize code quality tools and remove legacy API surface.
+    * **Task**:
+        * Add a `lint` script to `package.json` using Biome.
+        * Run `pnpm format` and `pnpm lint` across the workspace to ensure consistency.
+        * Identify and remove methods marked as `@deprecated` in `XMLAPI` and other core classes (e.g., `updateInput`, `input`, legacy `setAttribute`/`updateText` shortcuts).
+
+* [ ] **[Model Refactoring: Formatting Trivia]**:
+    * **Goal**: Explicitly distinguish between "content" and "formatting" in the Model layer.
+    * **Task**:
+        * Introduce `ModelTrivia` or update `ModelText` to support a `kind` property (e.g., `'text' | 'whitespace' | 'indent'`).
+        * Update `XMLBinder.hydrate` to classify text nodes based on CST analysis.
+        * **Benefit**: Sets the foundation for "safe to ignore" whitespace in the View layer.
+
+* [ ] **[ViewBinder Extraction]**:
+    * **Goal**: Centralize View-to-Model reconciliation logic.
+    * **Task**:
+        * Create `src/view/view-binder.ts`.
+        * Move the manual reconciliation logic (currently in `WYSIWYGEditor`) into `ViewBinder`.
+        * Define a generic `Reconciler` interface (conceptually) that `ViewBinder` adheres to.
+
+* [ ] **[SyncEngine Cleanup]**:
+    * **Goal**: Reduce `SyncEngine`'s "God Object" nature and unify the transaction flow.
+    * **Task**:
+        * Refactor `SyncEngine` to act primarily as a transaction coordinator.
+        * Ensure all modifications (from any layer) flow through a unified `Transaction` pipeline.
+        * Deprecate direct mutation methods on `SyncEngine` in favor of `dispatch(transaction)`.
+
+## Phase 6: Functional Completeness for xml-api-editor
+
+**Goal**: Implement the missing features identified in the `xml-api-editor` investigation to enable full format preservation and robust syncing.
+
+* [ ] **[SchemaView Reconciliation]**:
+    * **Goal**: Provide a built-in method to sync an external DOM tree to the SchemaView.
+    * **Task**:
+        * Implement `SchemaView.reconcile(externalDomNode: Node)`.
+        * Utilize `ViewBinder` internally to calculate diffs and apply changes to the Model via `SyncEngine`.
+        * **Crucial**: Ensure this process is non-destructive to "invisible" nodes and "formatting trivia".
+
+* [ ] **[Whitespace Preservation Logic]**:
+    * **Goal**: Prevent the loss of formatting whitespace during View sync.
+    * **Task**:
+        * In `ViewBinder` (or `reconcile` logic), implement a check: "If Model has a whitespace/indent node but External DOM has nothing, PRESERVE the Model node."
+        * Do not treat the absence of whitespace in the editor's DOM as a deletion instruction.
+
+* [ ] **[Transaction Metadata & Origin Filtering]**:
+    * **Goal**: Prevent infinite loops and unnecessary processing during sync.
+    * **Task**:
+        * Ensure `SchemaView` operations attach distinct metadata (e.g., `{ origin: 'schema-view' }`).
+        * Update `SyncEngine` and Event Emitters to respect this metadata, allowing the editor to ignore its own reflected changes.
+        * **Fix**: Ensure initial load acts as a transaction with metadata (e.g., `{ initial: true }`) to suppress "structure changed" logs.
+
+## Phase 7: Integration & Verification
 
 **Goal**: Publicly expose the new capabilities and ensure end-to-end stability.
 
-* [x] **[Public API Exposure]**:
+* [ ] **[Public API Exposure]**:
     * **Goal**: Make SchemaView accessible.
     * **Task**:
         * Add `xmlApi.createView(config)` method.
         * Export necessary types.
 
-* [x] **[Reproduction Scenario Verification]**:
+* [ ] **[Reproduction Scenario Verification]**:
     * **Goal**: Verify the "Manual Sync Fragility" fix.
     * **Task**:
         * Implement the scenario from `MILESTONE_v0.9.1.md` as an integration test.
         * Ensure no "Sync Broken" errors occur.
 
-* [x] **[Documentation Update]**:
+* [ ] **[Documentation Update]**:
     * **Goal**: Guide users on using SchemaView.
     * **Task**:
         * Update `README.md` and `docs/` to explain `createView` and the architecture.
+
+## Phase 8: Final Verification - Original Issue Resolution
+
+**Goal**: Confirm that the core issues reported in `xml-api-editor` are fully resolved by the new architecture.
+
+* [ ] **[End-to-End Format Fidelity Check]**:
+    * **Requirement**: Loading `sample_01.xml` in `xml-api-editor` must result in a source code view that is bitwise identical to the original file.
+    * **Check**: No newlines removed under `body`, no indentation changes.
+
+* [ ] **[Internal Class Name Removal]**:
+    * **Requirement**: The `wysiwyg-section` class must not appear in the final XML output.
+    * **Check**: The editor should use pure `section` tags in the model.
+
+* [ ] **[Zero-Change Initial Load]**:
+    * **Requirement**: Upon application startup, the "Event Log" must remain empty.
+    * **Check**: No "Structure changed" events for Elements or Text should be emitted during initial hydration and view projection.
+
+* [ ] **[Granular Update Verification]**:
+    * **Requirement**: Small edits in either the Code Editor or WYSIWYG Editor should only produce events corresponding to the specific nodes modified.
+    * **Check**: No "Full update" or unrelated "Structure changed" events during minor text edits.
