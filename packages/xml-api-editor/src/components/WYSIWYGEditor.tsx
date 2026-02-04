@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo, useState } from "react";
 import { EditorState, Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import {
@@ -30,34 +30,66 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const isInitializing = useRef(false);
+  const [isWellFormed, setIsWellFormed] = useState(
+    api.cst ? api.cst.wellFormed : true,
+  );
+
+  useEffect(() => {
+    // Listen for model changes to update well-formed status
+    return api.on((_event) => {
+      const wellFormed = api.cst ? api.cst.wellFormed : true;
+      setIsWellFormed(wellFormed);
+    });
+  }, [api]);
 
   // Create SchemaView
   const schemaView = useMemo(() => {
-    return api.createView({
-      filter: (node: ModelNode) => {
-        // Simple filter for XHTML subset
-        if (node.getType() === "Element") {
-          const tagName = (node as ModelElement).tagName;
-          // Allow basic tags
-          return [
-            "html",
-            "body",
-            "p",
-            "strong",
-            "em",
-            "div",
-            "span",
-            "h1",
-            "h2",
-            "h3",
-            "section",
-          ].includes(tagName);
-        }
-        if (node.getType() === "Text") return true;
-        return false;
-      },
-    });
-  }, [api]);
+    try {
+      return api.createView({
+        filter: (node: ModelNode) => {
+          // Simple filter for XHTML subset
+          if (node.getType() === "Element") {
+            const tagName = (node as ModelElement).tagName;
+            // Allow basic tags
+            return [
+              "html",
+              "body",
+              "p",
+              "strong",
+              "em",
+              "div",
+              "span",
+              "h1",
+              "h2",
+              "h3",
+              "section",
+            ].includes(tagName);
+          }
+          if (node.getType() === "Text") return true;
+          return false;
+        },
+      });
+    } catch (e) {
+      return null;
+    }
+  }, [api]); // version removed
+
+  if (!isWellFormed && api.source.trim() !== "") {
+    return (
+      <div className="wysiwyg-container">
+        <div className="editor-error">Invalid XML</div>
+      </div>
+    );
+  }
+
+  if (!schemaView) {
+     return (
+      <div className="wysiwyg-container">
+        <div className="editor-error">Invalid XML (Model Error)</div>
+      </div>
+    );
+  }
 
   // Helper to convert xml-api view DOM to PM DOM (browser nodes)
   // Since SchemaView exposes an internal DOM, we need to map it to browser DOM for PM to parse initial state
@@ -168,7 +200,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
         const newState = view.state.apply(tr);
         view.updateState(newState);
 
-        if (tr.docChanged) {
+        if (tr.docChanged && !isInitializing.current) {
           // Sync back to xml-api via SchemaView
           try {
             syncToXml(newState.doc);
@@ -181,7 +213,14 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
     });
 
     viewRef.current = view;
+    
+    isInitializing.current = true;
     updateInitialState();
+    // Allow updates after initial sync matches xml-api
+    // We use setTimeout to ensure the initial transaction is processed
+    setTimeout(() => {
+      isInitializing.current = false;
+    }, 0);
 
     return () => {
       view.destroy();
@@ -194,6 +233,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
       // For now, on any structural change, reload.
       // Granular updates are optimizing.
       if (viewRef.current) {
+        isInitializing.current = true;
         const root = schemaView.getRoot();
         const browserDom = viewToBrowserDOM(root);
 
@@ -215,6 +255,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
           );
           viewRef.current.dispatch(tr);
         }
+        isInitializing.current = false;
       }
     });
   }, [schemaView]);

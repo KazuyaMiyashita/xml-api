@@ -68,3 +68,18 @@ This project follows an iterative cycle:
 ### Phase 4: Finalization
 - [x] **Implementation Review**: Re-verify all implemented features against requirements.
 - [x] **Implementation Report**: Create a detailed report summarizing the architecture, validation results, known limitations (waiting for library fixes), and future recommendations. This marks the completion of the `xml-api-editor` validation project.
+
+### Phase 5: Quality & Stability (Current)
+- [ ] **Fix Excess Logging**: Reduce the number of "Full update" logs at startup (currently ~8).
+- [ ] **Fix CodeEditor Sync Issues**:
+    - [ ] Solve the "Enter key inserts space/doesn't break line" issue.
+    - [ ] Fix cursor jumping to start after edits.
+    - [ ] Fix incorrect syntax highlighting/CST sync lag.
+    - [ ] Prevent unwanted tag auto-completion/modification (e.g., `<` -> `<p>&gt;</p>`).
+- [ ] **Strict Raw Mode & Error Handling**:
+    - [ ] Ensure `CodeEditor` is the source of truth ("Raw" mode).
+    - [ ] Disable automatic model repair for non-well-formed XML.
+    - [ ] **WYSIWYG Behavior**: If XML is not well-formed, show an error state instead of attempting to render a broken model.
+- [ ] **Testing**:
+    - [ ] Add reproduction tests for CodeEditor input quirks.
+    - [ ] Add tests for invalid XML handling in WYSIWYG.

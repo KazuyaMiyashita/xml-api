@@ -6,8 +6,13 @@ import {
   DecorationSet,
   ViewPlugin,
   ViewUpdate,
+  lineNumbers,
+  highlightActiveLine,
+  highlightActiveLineGutter,
+  drawSelection,
+  keymap,
 } from "@codemirror/view";
-import { basicSetup } from "codemirror";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { XMLAPI, ChangeEvent, CST } from "@miy2/xml-api";
 import "./CodeEditor.css";
 
@@ -124,7 +129,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ api, version, onChange }) => {
     const startState = EditorState.create({
       doc: api.source,
       extensions: [
-        basicSetup,
+        lineNumbers(),
+        highlightActiveLineGutter(),
+        highlightActiveLine(),
+        drawSelection(),
+        history(),
+        keymap.of([...defaultKeymap, ...historyKeymap]),
         cstHighlight,
         EditorView.updateListener.of((update) => {
           if (update.docChanged && !isUpdatingFromApi.current) {

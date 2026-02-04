@@ -74,6 +74,7 @@ function App() {
 
         // Listen for changes and update logs
         xmlApi.on((event: ChangeEvent) => {
+          console.log("App received event:", event.type);
           setEventLogs((prev) => {
             const timestamp = new Date().toLocaleTimeString();
             let detail = "";
