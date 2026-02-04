@@ -31,7 +31,7 @@ describe("DOM Fidelity Verification", () => {
         if (model instanceof ModelElement && value !== null) {
           const patch = binder.calcSetAttributePatch(model, name, value);
           if (patch) {
-            api.updateInput(patch.start, patch.end, patch.text);
+            api.updateSource(patch.start, patch.end, patch.text);
           }
         }
       },
@@ -45,13 +45,14 @@ describe("DOM Fidelity Verification", () => {
         } else if (model instanceof ModelText && model.parent) {
           const patch = binder.calcUpdateTextPatch(model.parent, text);
           if (patch) {
-            api.updateInput(patch.start, patch.end, patch.text);
+            api.updateSource(patch.start, patch.end, patch.text);
           }
         }
       },
       onElementTextChange: () => {},
       onChildAdded: () => {},
       onChildRemoved: () => {},
+      onChildReplaced: () => {},
     };
 
     doc.setObserver(observer);
@@ -70,8 +71,8 @@ describe("DOM Fidelity Verification", () => {
     // Check Source Fidelity
     // Expect: <child id="2"  class="bar" >
     // Spaces should be preserved.
-    expect(api.input).toContain('<child id="2"  class="bar" >');
-    expect(api.input).toContain('<child id="1">Text</child>'); // Unchanged
+    expect(api.source).toContain('<child id="2"  class="bar" >');
+    expect(api.source).toContain('<child id="1">Text</child>'); // Unchanged
   });
 
   it("should preserve formatting when updating text via DOM", () => {
@@ -86,13 +87,14 @@ describe("DOM Fidelity Verification", () => {
         if (model instanceof ModelText && model.parent) {
           const patch = binder.calcUpdateTextPatch(model.parent, text);
           if (patch) {
-            api.updateInput(patch.start, patch.end, patch.text);
+            api.updateSource(patch.start, patch.end, patch.text);
           }
         }
       },
       onElementTextChange: () => {},
       onChildAdded: () => {},
       onChildRemoved: () => {},
+      onChildReplaced: () => {},
     };
 
     doc.setObserver(observer);
@@ -106,7 +108,7 @@ describe("DOM Fidelity Verification", () => {
     const textNode = child1?.firstChild as any; // Text
     textNode.data = "Updated";
 
-    expect(api.input).toContain('<child id="1">Updated</child>');
-    expect(api.input).toContain('  <child id="1">'); // Indent preserved
+    expect(api.source).toContain('<child id="1">Updated</child>');
+    expect(api.source).toContain('  <child id="1">'); // Indent preserved
   });
 });

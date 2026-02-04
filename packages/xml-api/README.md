@@ -56,7 +56,7 @@ if (item) {
   item.textContent = 'Updated Value';
 }
 
-console.log(api.input);
+console.log(api.source);
 /* 
 Output:
 <root>
@@ -69,7 +69,7 @@ Output:
 
 ```typescript
 // Update the source code directly at specific offsets
-api.updateInput(14, 28, "New Content");
+api.updateSource(14, 28, "New Content");
 ```
 
 ### Schema Projection (New in v0.9.1)

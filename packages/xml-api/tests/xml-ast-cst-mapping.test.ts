@@ -11,13 +11,13 @@ describe("Model-CST Mapping", () => {
     const root = api.model!;
     expect(root.cst).toBeInstanceOf(CST);
     expect(root.cst?.name).toBe("element");
-    expect(root.cst?.getText(api.input)).toBe(xml);
+    expect(root.cst?.getText(api.source)).toBe(xml);
 
     const child = root.find("child")[0];
     expect(child).toBeInstanceOf(ModelElement);
     expect(child.cst).toBeInstanceOf(CST);
     expect(child.cst?.name).toBe("element");
-    expect(child.cst?.getText(api.input)).toBe("<child>Text</child>");
+    expect(child.cst?.getText(api.source)).toBe("<child>Text</child>");
   });
 
   it("should attach CST node for EmptyElemTag", () => {
@@ -27,6 +27,6 @@ describe("Model-CST Mapping", () => {
     const root = api.model!;
     expect(root.cst).toBeInstanceOf(CST);
     expect(root.cst?.name).toBe("element");
-    expect(root.cst?.getText(api.input)).toBe("<empty/>");
+    expect(root.cst?.getText(api.source)).toBe("<empty/>");
   });
 });

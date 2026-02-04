@@ -9,21 +9,23 @@ import {
   ModelText,
 } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
+import { Document, Node, Element } from "@/dom";
 
 function h(
+  doc: Document,
   tagName: string,
   attrs: { [key: string]: string } = {},
-  children: (ModelNode | string)[] = [],
-): ModelElement {
-  const el = new ModelElement(tagName);
+  children: (Node | string)[] = [],
+): Element {
+  const el = doc.createElement(tagName);
   for (const [k, v] of Object.entries(attrs)) {
     el.setAttribute(k, v);
   }
   for (const child of children) {
     if (typeof child === "string") {
-      el.addChild(new ModelText(child));
+      el.appendChild(doc.createTextNode(child));
     } else {
-      el.addChild(child);
+      el.appendChild(child);
     }
   }
   return el;
@@ -53,7 +55,7 @@ describe("Integration Tests", () => {
 
     // Check Enhanced Model (CST Mapping)
     expect(titles[0].cst).not.toBeNull();
-    expect(titles[0].cst?.getText(api.input)).toContain("りんごの選び方");
+    expect(titles[0].cst?.getText(api.source)).toContain("りんごの選び方");
   });
 
   it("should perform incremental updates and preserve Model identity", () => {
@@ -64,7 +66,7 @@ describe("Integration Tests", () => {
     const startPos = xmlContent.indexOf(targetText);
     const newText = "Mod";
 
-    api.updateInput(startPos, startPos + targetText.length, newText);
+    api.updateSource(startPos, startPos + targetText.length, newText);
 
     expect(api.model).toBe(initialModel); // Differential Update: Identity preserved
     expect(api.model?.find("title")[0].text()).toBe(newText);
@@ -85,38 +87,42 @@ describe("Integration Tests", () => {
     expect(api2.model?.tagName).toBe("html");
   });
 
-  it("should replace node using Model construction", () => {
+  it("should replace node using DOM manipulation", () => {
     const api = new XMLAPI(xmlContent);
-    const sections = api.model!.find("section");
-    let targetSection: ModelElement | null = null;
+    const doc = api.getDocument();
+    const sections = doc.querySelectorAll("section");
+    let targetSection: Element | null = null;
 
-    for (const section of sections) {
-      const h2 = section.find("h2")[0];
-      if (h2 && h2.text() === "選定基準") {
-        targetSection = section;
+    for (const section of sections as any) {
+      // NodeList is iterable
+      const h2 = (section as Element).querySelector("h2");
+      if (h2 && h2.textContent === "選定基準") {
+        targetSection = section as Element;
         break;
       }
     }
 
     expect(targetSection).not.toBeNull();
 
-    // Construct new content using Model
-    const newSectionModel = h("section", {}, [
-      h("h2", {}, ["りんごを選ぶ基準"]),
-      h("p", {}, ["りんごを選ぶ際の基準には、以下のような項目があります。"]),
-      h("ul", {}, [
-        h("li", {}, ["大きさ"]),
-        h("li", {}, ["色"]),
-        h("li", {}, ["硬さ"]),
-        h("li", {}, ["甘み"]),
-        h("li", {}, ["酸味"]),
+    // Construct new content using DOM
+    const newSection = h(doc, "section", {}, [
+      h(doc, "h2", {}, ["りんごを選ぶ基準"]),
+      h(doc, "p", {}, [
+        "りんごを選ぶ際の基準には、以下のような項目があります。",
       ]),
-      h("p", {}, [
+      h(doc, "ul", {}, [
+        h(doc, "li", {}, ["大きさ"]),
+        h(doc, "li", {}, ["色"]),
+        h(doc, "li", {}, ["硬さ"]),
+        h(doc, "li", {}, ["甘み"]),
+        h(doc, "li", {}, ["酸味"]),
+      ]),
+      h(doc, "p", {}, [
         "これら多くの基準を考慮して、自分好みのものを選びましょう。",
       ]),
     ]);
 
-    api.replaceNode(targetSection!, newSectionModel);
+    targetSection!.parentNode!.replaceChild(newSection, targetSection!);
 
     // Verify Update
     const newSections = api.model!.find("section");
@@ -133,7 +139,7 @@ describe("Integration Tests", () => {
     expect(updatedSection!.find("li").length).toBe(5);
 
     // Verify source update
-    expect(api.input).toContain("<li>大きさ</li>");
+    expect(api.source).toContain("<li>大きさ</li>");
 
     const expectedInput = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -168,29 +174,31 @@ describe("Integration Tests", () => {
   </body>
 </html>
 `;
-    expect(api.input).toBe(expectedInput);
+    expect(api.source).toBe(expectedInput);
   });
 
   it("should support extended features (CDATA, Comments)", () => {
     const api = new XMLAPI(xmlContent);
-    const targetSection = api.model!.find("section")[0]!;
+    const doc = api.getDocument();
+    const sections = doc.querySelectorAll("section");
+    const targetSection = sections[0] as Element;
     expect(targetSection).toBeDefined();
 
-    const newContent = h("section", {}, [
-      h("h2", {}, ["Advanced Content"]),
-      new ModelComment(" Extended Content "),
-      new ModelCDATA("Some <raw> data"),
+    const newContent = h(doc, "section", {}, [
+      h(doc, "h2", {}, ["Advanced Content"]),
+      doc.createComment(" Extended Content "),
+      doc.createCDATASection("Some <raw> data"),
     ]);
 
-    api.replaceNode(targetSection, newContent);
+    targetSection.parentNode!.replaceChild(newContent, targetSection);
 
-    expect(api.input).toContain("<!-- Extended Content -->");
-    expect(api.input).toContain("<![CDATA[Some <raw> data]]>");
+    expect(api.source).toContain("<!-- Extended Content -->");
+    expect(api.source).toContain("<![CDATA[Some <raw> data]]>");
 
     // Re-parse verification
-    const api2 = new XMLAPI(api.input);
-    const sections = api2.model!.find("section");
-    const updatedSection = sections[0];
+    const api2 = new XMLAPI(api.source);
+    const modelSections = api2.model!.find("section");
+    const updatedSection = modelSections[0];
 
     // Children: h2, Comment, CDATA (and whitespace text nodes potentially)
 
@@ -209,52 +217,55 @@ describe("Integration Tests", () => {
 
   it("should match the full expected XML output after multiple operations (Full Fidelity check)", () => {
     const api = new XMLAPI(xmlContent);
+    const doc = api.getDocument();
 
     // 1. Update title content
     const titleText = "りんごの選び方";
     const titleStart = xmlContent.indexOf(titleText);
-    api.updateInput(
+    api.updateSource(
       titleStart,
       titleStart + titleText.length,
       "美味しいりんごの見分け方",
     );
 
     // 2. Replace first section with CDATA/Comment content
-    const firstSection = api.model!.find("section")[0]!;
-    const newFirstSection = h("section", {}, [
-      new ModelComment(" Generated by XMLAPI "),
-      new ModelCDATA("Copyright <2026>"),
-      h("p", {}, ["Updated content"]),
+    const firstSection = doc.querySelectorAll("section")[0] as Element;
+    const newFirstSection = h(doc, "section", {}, [
+      doc.createComment(" Generated by XMLAPI "),
+      doc.createCDATASection("Copyright <2026>"),
+      h(doc, "p", {}, ["Updated content"]),
     ]);
-    api.replaceNode(firstSection, newFirstSection);
+    firstSection.parentNode!.replaceChild(newFirstSection, firstSection);
 
     // 3. Replace second section (search by h2 content again)
-    const sections = api.model!.find("section");
-    let secondSection: ModelElement | null = null;
-    for (const section of sections) {
-      const h2 = section.find("h2")[0];
-      if (h2 && h2.text() === "選定基準") {
-        secondSection = section;
+    const sections = doc.querySelectorAll("section");
+    let secondSection: Element | null = null;
+    for (const section of sections as any) {
+      const h2 = (section as Element).querySelector("h2");
+      if (h2 && h2.textContent === "選定基準") {
+        secondSection = section as Element;
         break;
       }
     }
-    const newSecondSection = h("section", {}, [
-      h("h2", {}, ["りんごを選ぶ基準"]),
-      h("p", {}, ["りんごを選ぶ際の基準には、以下のような項目があります。"]),
-      h("ul", {}, [
-        h("li", {}, ["大きさ"]),
-        h("li", {}, ["色"]),
-        h("li", {}, ["硬さ"]),
-        h("li", {}, ["甘み"]),
-        h("li", {}, ["酸味"]),
+    const newSecondSection = h(doc, "section", {}, [
+      h(doc, "h2", {}, ["りんごを選ぶ基準"]),
+      h(doc, "p", {}, [
+        "りんごを選ぶ際の基準には、以下のような項目があります。",
       ]),
-      h("p", {}, [
+      h(doc, "ul", {}, [
+        h(doc, "li", {}, ["大きさ"]),
+        h(doc, "li", {}, ["色"]),
+        h(doc, "li", {}, ["硬さ"]),
+        h(doc, "li", {}, ["甘み"]),
+        h(doc, "li", {}, ["酸味"]),
+      ]),
+      h(doc, "p", {}, [
         "これら多くの基準を考慮して、自分好みのものを選びましょう。",
       ]),
     ]);
-    api.replaceNode(secondSection!, newSecondSection);
+    secondSection!.parentNode!.replaceChild(newSecondSection, secondSection!);
 
-    // Verify the entire source string (api.input)
+    // Verify the entire source string (api.source)
     const expectedInput = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
@@ -283,7 +294,7 @@ describe("Integration Tests", () => {
   </body>
 </html>
 `;
-    expect(api.input).toBe(expectedInput);
+    expect(api.source).toBe(expectedInput);
 
     // Also verify Formatter output for the root Model (html element)
     const formatter = new Formatter({ indent: "  " });

@@ -49,7 +49,7 @@ if (item) {
   item.setAttribute("id", "123");
 }
 
-console.log(api.input);
+console.log(api.source);
 ```
 
 ### Low-level Incremental Updates
@@ -58,5 +58,5 @@ The API also allows direct incremental updates to the source code.
 
 ```typescript
 // Update the text from index 14 to 25
-api.updateInput(14, 25, "New Content");
+api.updateSource(14, 25, "New Content");
 ```

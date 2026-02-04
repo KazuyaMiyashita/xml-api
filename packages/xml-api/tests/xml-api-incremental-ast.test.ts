@@ -13,7 +13,7 @@ describe("Incremental Model Update", () => {
     const start = xml.indexOf("TextA");
     const end = start + "TextA".length;
 
-    api.updateInput(start, end, "Mod");
+    api.updateSource(start, end, "Mod");
 
     expect(api.model).toBe(rootModel); // Root object preserved
 
@@ -36,7 +36,7 @@ describe("Incremental Model Update", () => {
     const aModel = rootModel.children[0] as ModelElement;
 
     const start = xml.indexOf("Old");
-    api.updateInput(start, start + 3, "<n>New</n>");
+    api.updateSource(start, start + 3, "<n>New</n>");
 
     expect(api.model).toBe(rootModel);
     expect(api.model?.children[0]).toBe(aModel);
@@ -52,7 +52,7 @@ describe("Incremental Model Update", () => {
     const rootModel = api.model!;
 
     // Replace whole string
-    api.updateInput(0, xml.length, "<new>B</new>");
+    api.updateSource(0, xml.length, "<new>B</new>");
 
     // Expect new root object because we replaced the root
     expect(api.model).not.toBe(rootModel);

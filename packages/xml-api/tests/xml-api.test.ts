@@ -92,15 +92,15 @@ describe("XMLAPI", () => {
       to: number,
       value: string,
     ) {
-      const originalInput = api.input;
+      const originalInput = api.source;
       const expectedInput =
         originalInput.slice(0, from) + value + originalInput.slice(to);
 
-      api.updateInput(from, to, value);
+      api.updateSource(from, to, value);
 
       const freshApi = new XMLAPI(expectedInput, api.grammar);
 
-      expect(api.input).toBe(expectedInput);
+      expect(api.source).toBe(expectedInput);
       assertCSTEquals(api.cst, freshApi.cst);
       assertModelEquals(api.model, freshApi.model);
     }
@@ -153,7 +153,7 @@ describe("XMLAPI", () => {
         verifyUpdate(api, 8, 8, ' foo="bar"');
 
         const expected = '<root><a foo="bar">text</a></root>';
-        expect(api.input).toBe(expected);
+        expect(api.source).toBe(expected);
         expect(api.cst?.wellFormed).toBe(true);
 
         if (api.model) {
@@ -173,7 +173,7 @@ describe("XMLAPI", () => {
         // Replace "<a/><b/>" (index 6 to 14) with "<a><b/></a>" (length 11)
         verifyUpdate(api, 6, 14, "<a><b/></a>");
 
-        expect(api.input).toBe("<root><a><b/></a></root>");
+        expect(api.source).toBe("<root><a><b/></a></root>");
         if (api.model && api.model.children[0] instanceof ModelElement) {
           const a = api.model.children[0];
           expect(a.tagName).toBe("a");
@@ -196,7 +196,7 @@ describe("XMLAPI", () => {
         // 2. Insert "</wrap>" at end.
         verifyUpdate(api, 20, 20, "</wrap>");
 
-        expect(api.input).toBe("<wrap><root>A</root></wrap>");
+        expect(api.source).toBe("<wrap><root>A</root></wrap>");
         expect(api.cst).not.toBeNull();
         expect(api.cst?.wellFormed).toBe(true);
         expect(api.model?.tagName).toBe("wrap");
@@ -209,7 +209,7 @@ describe("XMLAPI", () => {
         const newXml = "<new>New</new>";
         verifyUpdate(api, 0, initialXml.length, newXml);
 
-        expect(api.input).toBe(newXml);
+        expect(api.source).toBe(newXml);
         expect(api.model?.tagName).toBe("new");
         expect(api.model?.text()).toBe("New");
       });
@@ -255,9 +255,9 @@ describe("XMLAPI", () => {
 
       it("should throw error for out-of-bounds indices", () => {
         const api = new XMLAPI("<root/>");
-        expect(() => api.updateInput(-1, 0, "")).toThrow();
-        expect(() => api.updateInput(0, 10, "")).toThrow();
-        expect(() => api.updateInput(5, 2, "")).toThrow();
+        expect(() => api.updateSource(-1, 0, "")).toThrow();
+        expect(() => api.updateSource(0, 10, "")).toThrow();
+        expect(() => api.updateSource(5, 2, "")).toThrow();
       });
     });
   });

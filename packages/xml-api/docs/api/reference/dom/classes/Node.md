@@ -295,3 +295,35 @@ The child node to remove.
 #### Returns
 
 `T`
+
+***
+
+### replaceChild()
+
+> **replaceChild**\<`T`\>(`newChild`, `oldChild`): `T`
+
+Replaces a child node with a new node.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* `Node`
+
+#### Parameters
+
+##### newChild
+
+`T`
+
+The new node to add.
+
+##### oldChild
+
+`Node`
+
+The child node to be replaced.
+
+#### Returns
+
+`T`

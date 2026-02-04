@@ -62,6 +62,14 @@ export interface DOMObserver {
    * @param index The index from which the child was removed.
    */
   onChildRemoved(parent: Node, child: Node, index: number): void;
+
+  /**
+   * Called when a child node is replaced.
+   * @param parent The parent node.
+   * @param newChild The new child node.
+   * @param oldChild The replaced child node.
+   */
+  onChildReplaced(parent: Node, newChild: Node, oldChild: Node): void;
 }
 
 /**
@@ -223,6 +231,31 @@ export abstract class Node {
 
       this.ownerDocument?.notifyChildAdded(this, newChild, index);
       return newChild;
+    }
+    throw new Error("HierarchyRequestError");
+  }
+
+  /**
+   * Replaces a child node with a new node.
+   * @param newChild The new node to add.
+   * @param oldChild The child node to be replaced.
+   */
+  replaceChild<T extends Node>(newChild: T, oldChild: Node): T {
+    if (this.model instanceof ModelElement) {
+      const oldModel = oldChild.getModel();
+      const index = this.model.children.indexOf(oldModel);
+      if (index === -1) throw new Error("NotFoundError");
+
+      // Update Model
+      this.model.children[index] = newChild.getModel();
+      newChild.getModel().parent = this.model;
+      newChild.ownerDocument = this.ownerDocument;
+      // oldModel.parent = null; // Delayed until after notification
+
+      this.ownerDocument?.notifyChildReplaced(this, newChild, oldChild);
+
+      oldModel.parent = null;
+      return oldChild as unknown as T;
     }
     throw new Error("HierarchyRequestError");
   }
@@ -437,6 +470,10 @@ export class Document extends Node {
 
   notifyChildRemoved(parent: Node, child: Node, index: number) {
     this.observer?.onChildRemoved(parent, child, index);
+  }
+
+  notifyChildReplaced(parent: Node, newChild: Node, oldChild: Node) {
+    this.observer?.onChildReplaced(parent, newChild, oldChild);
   }
 
   get nodeType(): number {

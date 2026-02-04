@@ -36,14 +36,6 @@ export class XMLAPI {
     return this.engine.source;
   }
 
-  /**
-   * Alias for `source` to maintain compatibility with existing tests/demos temporarily.
-   * @deprecated Use `source` instead.
-   */
-  public get input(): string {
-    return this.engine.source;
-  }
-
   /** The authoritative logical model. */
   public get model(): ModelElement | null {
     return this.engine.model;
@@ -84,14 +76,6 @@ export class XMLAPI {
   }
 
   /**
-   * Alias for `updateSource` to maintain compatibility.
-   * @deprecated Use `updateSource` instead.
-   */
-  public updateInput(from: number, to: number, text: string): void {
-    this.updateSource(from, to, text);
-  }
-
-  /**
    * Returns a DOM-compatible Document object linked to this API.
    * Changes made to the returned Document are automatically reflected in the source code.
    */
@@ -116,7 +100,7 @@ export class XMLAPI {
         value: string | null,
       ) => {
         const model = element.getModel();
-        if (model instanceof ModelElement) {
+        if (model instanceof ModelElement && model.cst) {
           if (value === null) {
             // Attribute removal support needed in Engine/Binder
             console.warn("Attribute removal not fully supported yet");
@@ -138,22 +122,33 @@ export class XMLAPI {
       },
       onElementTextChange: (element: Element, text: string) => {
         const model = element.getModel();
-        if (model instanceof ModelElement) {
+        if (model instanceof ModelElement && model.cst) {
           this.engine.updateText(model, text);
         }
       },
       onChildAdded: (parent: Node, child: Node, index: number) => {
         const parentModel = parent.getModel();
         const childModel = child.getModel();
-        if (parentModel instanceof ModelElement) {
+        if (parentModel instanceof ModelElement && parentModel.cst) {
           this.engine.insertNode(parentModel, childModel, index);
         }
       },
       onChildRemoved: (parent: Node, child: Node, _index: number) => {
         const parentModel = parent.getModel();
         const childModel = child.getModel();
-        if (parentModel instanceof ModelElement) {
-          this.engine.removeNode(parentModel, childModel);
+        if (parentModel instanceof ModelElement && parentModel.cst) {
+          if (childModel.cst) {
+            this.engine.removeNode(parentModel, childModel);
+          }
+        }
+      },
+      onChildReplaced: (_parent: Node, newChild: Node, oldChild: Node) => {
+        const newModel = newChild.getModel();
+        const oldModel = oldChild.getModel();
+        // Use replaceNode on the engine.
+        // Even if oldModel is detached from parent, it retains CST info needed for replacement.
+        if (oldModel.cst) {
+          this.engine.replaceNode(oldModel, newModel);
         }
       },
     });
@@ -178,27 +173,6 @@ export class XMLAPI {
 
   public redo(): void {
     this.engine.redo();
-  }
-
-  // --- Advanced/Legacy Operation Shortcuts (Proxy to Engine) ---
-
-  /** @deprecated Use DOM interface or Engine directly if needed. */
-  public setAttribute(
-    modelNode: ModelElement,
-    key: string,
-    value: string,
-  ): void {
-    this.engine.setAttribute(modelNode, key, value);
-  }
-
-  /** @deprecated Use DOM interface or Engine directly if needed. */
-  public updateText(modelNode: ModelElement, text: string): void {
-    this.engine.updateText(modelNode, text);
-  }
-
-  /** @deprecated Use DOM interface or Engine directly if needed. */
-  public replaceNode(target: ModelNode, content: ModelNode): void {
-    this.engine.replaceNode(target, content);
   }
 }
 

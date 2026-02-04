@@ -63,24 +63,6 @@ The grammar used for parsing.
 
 ***
 
-### input
-
-#### Get Signature
-
-> **get** **input**(): `string`
-
-Alias for `source` to maintain compatibility with existing tests/demos temporarily.
-
-##### Deprecated
-
-Use `source` instead.
-
-##### Returns
-
-`string`
-
-***
-
 ### model
 
 #### Get Signature
@@ -174,58 +156,6 @@ Registers an event handler to listen for model changes.
 
 ***
 
-### ~~replaceNode()~~
-
-> **replaceNode**(`target`, `content`): `void`
-
-#### Parameters
-
-##### target
-
-[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
-
-##### content
-
-[`ModelNode`](../../model/xml-api-model/classes/ModelNode.md)
-
-#### Returns
-
-`void`
-
-#### Deprecated
-
-Use DOM interface or Engine directly if needed.
-
-***
-
-### ~~setAttribute()~~
-
-> **setAttribute**(`modelNode`, `key`, `value`): `void`
-
-#### Parameters
-
-##### modelNode
-
-[`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
-
-##### key
-
-`string`
-
-##### value
-
-`string`
-
-#### Returns
-
-`void`
-
-#### Deprecated
-
-Use DOM interface or Engine directly if needed.
-
-***
-
 ### undo()
 
 > **undo**(): `void`
@@ -233,36 +163,6 @@ Use DOM interface or Engine directly if needed.
 #### Returns
 
 `void`
-
-***
-
-### ~~updateInput()~~
-
-> **updateInput**(`from`, `to`, `text`): `void`
-
-Alias for `updateSource` to maintain compatibility.
-
-#### Parameters
-
-##### from
-
-`number`
-
-##### to
-
-`number`
-
-##### text
-
-`string`
-
-#### Returns
-
-`void`
-
-#### Deprecated
-
-Use `updateSource` instead.
 
 ***
 
@@ -296,27 +196,3 @@ The new text to insert.
 #### Returns
 
 `void`
-
-***
-
-### ~~updateText()~~
-
-> **updateText**(`modelNode`, `text`): `void`
-
-#### Parameters
-
-##### modelNode
-
-[`ModelElement`](../../model/xml-api-model/classes/ModelElement.md)
-
-##### text
-
-`string`
-
-#### Returns
-
-`void`
-
-#### Deprecated
-
-Use DOM interface or Engine directly if needed.

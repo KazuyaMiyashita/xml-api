@@ -506,6 +506,42 @@ The child node to remove.
 
 ***
 
+### replaceChild()
+
+> **replaceChild**\<`T`\>(`newChild`, `oldChild`): `T`
+
+Replaces a child node with a new node.
+
+#### Type Parameters
+
+##### T
+
+`T` *extends* [`Node`](Node.md)
+
+#### Parameters
+
+##### newChild
+
+`T`
+
+The new node to add.
+
+##### oldChild
+
+[`Node`](Node.md)
+
+The child node to be replaced.
+
+#### Returns
+
+`T`
+
+#### Inherited from
+
+[`Node`](Node.md).[`replaceChild`](Node.md#replacechild)
+
+***
+
 ### setAttribute()
 
 > **setAttribute**(`name`, `value`): `void`

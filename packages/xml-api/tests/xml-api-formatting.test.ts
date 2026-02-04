@@ -1,24 +1,4 @@
-import { ModelElement, type ModelNode, ModelText } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
-
-function h(
-  tagName: string,
-  attrs: { [key: string]: string } = {},
-  children: (ModelNode | string)[] = [],
-): ModelElement {
-  const el = new ModelElement(tagName);
-  for (const [k, v] of Object.entries(attrs)) {
-    el.setAttribute(k, v);
-  }
-  for (const child of children) {
-    if (typeof child === "string") {
-      el.addChild(new ModelText(child));
-    } else {
-      el.addChild(child);
-    }
-  }
-  return el;
-}
 
 describe("XMLAPI Context-Aware Formatting", () => {
   it("should respect surrounding indentation when replacing a node with nested content", () => {
@@ -29,12 +9,16 @@ describe("XMLAPI Context-Aware Formatting", () => {
     </parent>
 </root>`;
     const api = new XMLAPI(input);
-    const child = api.model!.find("child")[0]!;
+    const doc = api.getDocument();
+    const child = doc.querySelector("child")!;
 
     // New content has structure
-    const newContent = h("child", {}, [h("grandchild", {}, ["Val"])]);
+    const newChild = doc.createElement("child");
+    const grandchild = doc.createElement("grandchild");
+    grandchild.textContent = "Val";
+    newChild.appendChild(grandchild);
 
-    api.replaceNode(child, newContent);
+    child.parentNode!.replaceChild(newChild, child);
 
     // The indentation should be preserved (4 spaces for child, 8 spaces for grandchild)
     const expected = `<root>
@@ -45,7 +29,7 @@ describe("XMLAPI Context-Aware Formatting", () => {
     </parent>
 </root>`;
 
-    expect(api.input).toBe(expected);
+    expect(api.source).toBe(expected);
   });
 
   it("should respect tab indentation with nested content", () => {
@@ -55,11 +39,15 @@ describe("XMLAPI Context-Aware Formatting", () => {
 	</parent>
 </root>`;
     const api = new XMLAPI(input);
-    const child = api.model!.find("child")[0]!;
+    const doc = api.getDocument();
+    const child = doc.querySelector("child")!;
 
-    const newContent = h("child", {}, [h("grandchild", {}, ["Val"])]);
+    const newChild = doc.createElement("child");
+    const grandchild = doc.createElement("grandchild");
+    grandchild.textContent = "Val";
+    newChild.appendChild(grandchild);
 
-    api.replaceNode(child, newContent);
+    child.parentNode!.replaceChild(newChild, child);
 
     const expected = `<root>
 	<parent>
@@ -69,6 +57,6 @@ describe("XMLAPI Context-Aware Formatting", () => {
 	</parent>
 </root>`;
 
-    expect(api.input).toBe(expected);
+    expect(api.source).toBe(expected);
   });
 });

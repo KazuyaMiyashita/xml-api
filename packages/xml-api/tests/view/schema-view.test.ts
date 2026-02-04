@@ -3,7 +3,6 @@ import {
   type ModelElement,
   ModelNodeType,
 } from "../../src/model/xml-api-model";
-import { SchemaView } from "../../src/view/schema-view";
 import { XMLAPI } from "../../src/xml-api";
 
 describe("SchemaView", () => {
@@ -18,7 +17,7 @@ describe("SchemaView", () => {
 
   it("filters nodes based on config", () => {
     const api = new XMLAPI(xml);
-    const view = new SchemaView(api.model!, (api as any).engine, {
+    const view = api.createView({
       filter: (node) => {
         if (node.getType() === ModelNodeType.Element) {
           return (node as ModelElement).tagName === "visible";
@@ -45,7 +44,7 @@ describe("SchemaView", () => {
 
   it("nextSibling skips filtered nodes", () => {
     const api = new XMLAPI(xml);
-    const view = new SchemaView(api.model!, (api as any).engine, {
+    const view = api.createView({
       filter: (node) => {
         if (node.getType() === ModelNodeType.Element) {
           return (node as ModelElement).tagName === "visible";
@@ -69,7 +68,7 @@ describe("SchemaView", () => {
 
   it("getNodeByModelId returns null for filtered nodes", () => {
     const api = new XMLAPI(xml);
-    const view = new SchemaView(api.model!, (api as any).engine, {
+    const view = api.createView({
       filter: (node) => {
         if (node.getType() === ModelNodeType.Element) {
           return (node as ModelElement).tagName === "visible";
@@ -97,7 +96,7 @@ describe("SchemaView", () => {
   <hidden>B</hidden>
 </root>`;
     const api = new XMLAPI(source);
-    const view = new SchemaView(api.model!, (api as any).engine, {
+    const view = api.createView({
       filter: (node) => {
         if (node.getType() === ModelNodeType.Element) {
           return (node as ModelElement).tagName === "visible";
@@ -130,7 +129,7 @@ describe("SchemaView", () => {
 
   it("emits view events for visible nodes only", () => {
     const api = new XMLAPI(xml);
-    const view = new SchemaView(api.model!, (api as any).engine, {
+    const view = api.createView({
       filter: (node) => {
         if (node.getType() === ModelNodeType.Element) {
           return (node as ModelElement).tagName === "visible";
@@ -146,10 +145,10 @@ describe("SchemaView", () => {
 
     // 1. Modify visible node
     const v1El = doc.querySelector('[id="v1"]');
-    const v1Model = v1El!.getModel() as ModelElement;
+    // const v1Model = v1El!.getModel() as ModelElement;
 
-    // Update via API
-    api.setAttribute(v1Model, "status", "changed");
+    // Update via DOM
+    v1El!.setAttribute("status", "changed");
 
     // SyncEngine emits event. View should re-emit.
     expect(events.length).toBeGreaterThan(0);
@@ -161,8 +160,8 @@ describe("SchemaView", () => {
 
     // 2. Modify hidden node
     const h1El = doc.querySelector('[id="h1"]');
-    const h1Model = h1El!.getModel() as ModelElement;
-    api.setAttribute(h1Model, "status", "hidden-changed");
+    // const h1Model = h1El!.getModel() as ModelElement;
+    h1El!.setAttribute("status", "hidden-changed");
 
     // Should NOT emit view event
     expect(events.length).toBe(0);
@@ -172,7 +171,7 @@ describe("SchemaView", () => {
 
   it("propagates transaction metadata", () => {
     const api = new XMLAPI(xml);
-    const view = new SchemaView(api.model!, (api as any).engine, {
+    const view = api.createView({
       filter: (node) => {
         if (node.getType() === ModelNodeType.Element) {
           return (node as ModelElement).tagName === "visible";

@@ -119,6 +119,38 @@ The index from which the child was removed.
 
 ***
 
+### onChildReplaced()
+
+> **onChildReplaced**(`parent`, `newChild`, `oldChild`): `void`
+
+Called when a child node is replaced.
+
+#### Parameters
+
+##### parent
+
+[`Node`](../classes/Node.md)
+
+The parent node.
+
+##### newChild
+
+[`Node`](../classes/Node.md)
+
+The new child node.
+
+##### oldChild
+
+[`Node`](../classes/Node.md)
+
+The replaced child node.
+
+#### Returns
+
+`void`
+
+***
+
 ### onElementTextChange()
 
 > **onElementTextChange**(`element`, `text`): `void`

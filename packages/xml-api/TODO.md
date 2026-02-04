@@ -125,7 +125,7 @@
     * Execute `pnpm format` across the entire workspace to ensure consistent styling (indentation, quotes, etc.).
     * Ensure the formatting baseline is established before proceeding with heavy refactoring.
 
-* [ ] **[Deprecation] Legacy API Removal**
+* [x] **[Deprecation] Legacy API Removal**
     * Identify and remove all methods marked as `@deprecated` in `XMLAPI` and other core classes.
     * **Targets**: `updateInput`, `input`, and legacy `setAttribute`/`updateText` shortcuts.
     * Ensure all call sites have been migrated to the new 3-layer reconciliation patterns.

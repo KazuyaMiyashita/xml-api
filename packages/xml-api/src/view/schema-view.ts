@@ -101,6 +101,15 @@ export class SchemaView {
           }
         }
       },
+      onChildReplaced: (_parent: Node, newChild: Node, oldChild: Node) => {
+        const newModel = newChild.getModel();
+        const oldModel = oldChild.getModel();
+        if (oldModel.cst) {
+          this.engine.replaceNode(oldModel, newModel, {
+            origin: "schema-view",
+          });
+        }
+      },
       onTextChange: (node: CharacterData, text: string) => {
         const modelNode = node.getModel();
         if (modelNode instanceof ModelText && modelNode.cst) {

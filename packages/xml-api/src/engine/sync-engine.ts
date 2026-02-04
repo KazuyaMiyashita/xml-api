@@ -112,8 +112,9 @@ export class SyncEngine {
 
       const incrementalResult = this.tryIncrementalUpdate(p.from, p.to, delta);
       if (incrementalResult) {
+        let success = true;
         if (oldState.model) {
-          this.updateModelIncremental(
+          success = this.updateModelIncremental(
             incrementalResult.oldNode,
             incrementalResult.newNode,
             tr,
@@ -122,11 +123,15 @@ export class SyncEngine {
           this.events.emit({ type: "full", transaction: tr });
         }
 
-        if (this._state.cst && !this._state.cst.wellFormed) {
-          this._state = this._state.update({ model: null });
-          this.events.emit({ type: "full", transaction: tr });
+        if (success) {
+          if (this._state.cst && !this._state.cst.wellFormed) {
+            this._state = this._state.update({ model: null });
+            this.events.emit({ type: "full", transaction: tr });
+          }
+          handled = true;
+        } else {
+          handled = false;
         }
-        handled = true;
       }
     }
 
@@ -445,9 +450,9 @@ export class SyncEngine {
     oldNode: CST,
     newNode: CST,
     tr?: Transaction,
-  ): void {
+  ): boolean {
     const currentModel = this._state.model;
-    if (!currentModel) return;
+    if (!currentModel) return false;
 
     if (currentModel.cst === oldNode) {
       // Reconcile root to preserve identity
@@ -460,7 +465,7 @@ export class SyncEngine {
         target: reconciled || undefined,
         transaction: tr,
       });
-      return;
+      return true;
     }
 
     const modelPath = this.findModelNodePath(currentModel, oldNode);
@@ -477,6 +482,9 @@ export class SyncEngine {
           transaction: tr,
         });
       }
+      return true;
+    } else {
+      return false;
     }
   }
 

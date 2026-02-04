@@ -55,8 +55,8 @@ function init() {
 
 function applyPatch(start: number, end: number, text: string) {
   if (!api) return;
-  api.updateInput(start, end, text);
-  inputXml.value = api.input;
+  api.updateSource(start, end, text);
+  inputXml.value = api.source;
   refreshTree();
 }
 
