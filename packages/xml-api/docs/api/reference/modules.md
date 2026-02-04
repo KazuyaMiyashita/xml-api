@@ -22,5 +22,6 @@
 - [model/xml-binder](model/xml-binder/README.md)
 - [model/xml-schema](model/xml-schema/README.md)
 - [view/schema-view](view/schema-view/README.md)
+- [view/view-binder](view/view-binder/README.md)
 - [xml-api](xml-api/README.md)
 - [xml-api-events](xml-api-events/README.md)

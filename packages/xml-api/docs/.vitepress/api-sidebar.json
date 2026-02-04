@@ -344,6 +344,24 @@
             "link": "/api/reference/view/schema-view/type-aliases/ViewChangeEvent"
           }
         ]
+      },
+      {
+        "text": "view-binder",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "ExternalNode",
+            "link": "/api/reference/view/view-binder/interfaces/ExternalNode"
+          },
+          {
+            "text": "Reconciler",
+            "link": "/api/reference/view/view-binder/interfaces/Reconciler"
+          },
+          {
+            "text": "ViewBinder",
+            "link": "/api/reference/view/view-binder/classes/ViewBinder"
+          }
+        ]
       }
     ]
   },

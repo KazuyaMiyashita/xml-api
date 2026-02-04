@@ -137,7 +137,7 @@
         * Update `XMLBinder.hydrate` to classify text nodes based on CST analysis.
         * **Benefit**: Sets the foundation for "safe to ignore" whitespace in the View layer.
 
-* [ ] **[ViewBinder Extraction]**:
+* [x] **[ViewBinder Extraction]**:
     * **Goal**: Centralize View-to-Model reconciliation logic.
     * **Task**:
         * Create `src/view/view-binder.ts`.
@@ -162,7 +162,7 @@
         * Utilize `ViewBinder` internally to calculate diffs and apply changes to the Model via `SyncEngine`.
         * **Crucial**: Ensure this process is non-destructive to "invisible" nodes and "formatting trivia".
 
-* [ ] **[Whitespace Preservation Logic]**:
+* [x] **[Whitespace Preservation Logic]**:
     * **Goal**: Prevent the loss of formatting whitespace during View sync.
     * **Task**:
         * In `ViewBinder` (or `reconcile` logic), implement a check: "If Model has a whitespace/indent node but External DOM has nothing, PRESERVE the Model node."
