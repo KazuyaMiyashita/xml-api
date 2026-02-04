@@ -64,6 +64,12 @@ Re-exports [EventHandler](../xml-api-events/type-aliases/EventHandler.md)
 
 ***
 
+### ExternalNode
+
+Re-exports [ExternalNode](../view/view-binder/interfaces/ExternalNode.md)
+
+***
+
 ### ModelCDATA
 
 Re-exports [ModelCDATA](../model/xml-api-model/classes/ModelCDATA.md)
@@ -139,3 +145,9 @@ Re-exports [TextPatch](../engine/transaction/interfaces/TextPatch.md)
 ### Transaction
 
 Re-exports [Transaction](../engine/transaction/classes/Transaction.md)
+
+***
+
+### ViewBinder
+
+Re-exports [ViewBinder](../view/view-binder/classes/ViewBinder.md)

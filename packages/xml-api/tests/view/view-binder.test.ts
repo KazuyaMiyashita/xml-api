@@ -1,5 +1,5 @@
-import { ViewBinder, ExternalNode } from "../../src/view/view-binder";
-import { Document, Element, Text } from "../../src/dom";
+import { ViewBinder, type ExternalNode } from "../../src/view/view-binder";
+import { Document, type Element, type Text } from "../../src/dom";
 import { ModelElement, ModelText } from "../../src/model/xml-api-model";
 
 function createExternalElement(

@@ -176,7 +176,8 @@ export class XMLAPI {
   }
 }
 
-export { SchemaView, type SchemaViewConfig };
+export { SchemaView, type SchemaViewConfig } from "./view/schema-view";
+export { type ExternalNode, ViewBinder } from "./view/view-binder";
 export { CST } from "./cst/xml-cst";
 export {
   CDATASection,

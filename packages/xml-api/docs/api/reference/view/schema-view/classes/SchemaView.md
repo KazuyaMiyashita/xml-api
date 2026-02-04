@@ -104,13 +104,17 @@
 
 ### reconcile()
 
-> **reconcile**(`externalDomNode`): `void`
+> **reconcile**(`externalDomNode`, `meta?`): `void`
 
 #### Parameters
 
 ##### externalDomNode
 
 [`ExternalNode`](../../view-binder/interfaces/ExternalNode.md)
+
+##### meta?
+
+`Record`\<`string`, `any`\>
 
 #### Returns
 

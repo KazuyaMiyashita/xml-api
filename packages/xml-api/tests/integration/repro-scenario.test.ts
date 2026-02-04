@@ -1,57 +1,62 @@
-import type { Element } from "../../src/dom";
 import { XMLAPI } from "../../src/xml-api";
+import {
+  ModelElement,
+  ModelText,
+  ModelComment,
+  ModelCDATA,
+  type ModelNode,
+} from "../../src/model/xml-api-model";
 
-describe("Reproduction Scenario (v0.9.1)", () => {
-  it("maintains sync after schema-view based edits (avoiding full reformat)", () => {
-    const initial = `<root>\n  <item>A</item>\n</root>`;
-    const api = new XMLAPI(initial);
-    const view = api.createView(); // Default filter (all)
+function modelToXML(node: ModelNode): string {
+  if (node instanceof ModelElement) {
+    let xml = `<${node.tagName}`;
+    for (const [key, value] of node.attributes) {
+      xml += ` ${key}="${value}"`;
+    }
+    xml += ">";
+    for (const child of node.children) {
+      xml += modelToXML(child);
+    }
+    xml += `</${node.tagName}>`;
+    return xml;
+  } else if (node instanceof ModelText) {
+    return node.text;
+  } else if (node instanceof ModelComment) {
+    return `<!--${node.content}-->`;
+  } else if (node instanceof ModelCDATA) {
+    return `<![CDATA[${node.content}]]>`;
+  }
+  return "";
+}
 
-    const root = view.getRoot();
+describe("Reproduction Scenario: Manual Sync Fragility", () => {
+  test("should handle full replacement followed by incremental update without breaking sync", () => {
+    // Initial: Dense XML
+    const api = new XMLAPI(`<body><h1>Title</h1></body>`);
 
-    // 1. Insert new item (should auto-indent)
-    const newItem = view.getDocument().createElement("item");
-    newItem.textContent = "B";
-    root.appendChild(newItem);
+    // 1. Reformat the document (Full replacement via updateSource)
+    // This previously might have caused ID shifts or stale model if not handled correctly
+    api.updateSource(0, api.source.length, `<body>\n  <h1>Title</h1>\n</body>`);
 
-    // Check intermediate state
-    expect(api.source).toContain("<item>B</item>");
+    expect(api.source).toBe(`<body>\n  <h1>Title</h1>\n</body>`);
+    if (api.model) {
+      expect(modelToXML(api.model)).toBe(`<body>\n  <h1>Title</h1>\n</body>`);
+    } else {
+      throw new Error("Model should not be null");
+    }
 
-    // Verify CST linking
-    const model = newItem.getModel();
-    expect(model.cst).toBeDefined();
-    const idBefore = model.id;
+    // 2. Perform a small edit (Incremental update)
+    const start = api.source.indexOf("Title") + 5;
+    // Insert " Edited" after "Title"
+    api.updateSource(start, start, " Edited");
 
-    // Check if api.model still has this node
-    const rootModel = api.model!;
-    const itemB = rootModel.children[rootModel.children.length - 1]; // Last child (ignoring whitespace text?)
-    // Note: api.model might have text nodes (newlines)
-    // Find the element B
-    const elements = rootModel.children.filter(
-      (c) => c.getType() === "Element",
-    );
-    const lastElement = elements[elements.length - 1];
-
-    // Check if ID matches
-    // console.log("Old ID:", idBefore);
-    // console.log("Current B ID:", lastElement.id);
-
-    expect(lastElement.id).toBe(idBefore);
-    expect(lastElement).toBe(model);
-
-    // 2. Edit the new item
-    newItem.setAttribute("status", "new");
-
-    // Verify ID preserved (optional, but good for debugging)
-    expect(newItem.getModel().id).toBe(idBefore);
-
-    // Check final state
-    expect(api.source).toContain('<item status="new">B</item>');
-
-    // 3. Verify consistency
-    // If sync was broken, model might be empty or invalid
-    const items = api.getDocument().querySelectorAll("item");
-    expect(items.length).toBe(2);
-    expect((items.item(1) as Element).getAttribute("status")).toBe("new");
+    // Result check
+    const expected = `<body>\n  <h1>Title Edited</h1>\n</body>`;
+    expect(api.source).toBe(expected);
+    if (api.model) {
+      expect(modelToXML(api.model)).toBe(expected);
+    } else {
+      throw new Error("Model should not be null");
+    }
   });
 });

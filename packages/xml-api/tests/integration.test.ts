@@ -9,7 +9,7 @@ import {
   ModelText,
 } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
-import { Document, Node, Element } from "@/dom";
+import type { Document, Node, Element } from "@/dom";
 
 function h(
   doc: Document,

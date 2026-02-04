@@ -1,11 +1,11 @@
 import { detectIndent } from "../cst/cst-utils";
 import { Formatter } from "../model/formatter";
 import {
-  ModelElement,
+  type ModelElement,
   type ModelNode,
   ModelText,
 } from "../model/xml-api-model";
-import { XMLBinder } from "../model/xml-binder";
+import type { XMLBinder } from "../model/xml-binder";
 import type { EditorState } from "./editor-state";
 import { Transaction } from "./transaction";
 

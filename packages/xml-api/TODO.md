@@ -180,7 +180,7 @@
         * In `ViewBinder` (or `reconcile` logic), implement a check: "If Model has a whitespace/indent node but External DOM has nothing, PRESERVE the Model node."
         * Do not treat the absence of whitespace in the editor's DOM as a deletion instruction.
 
-* [ ] **[Transaction Metadata & Origin Filtering]**:
+* [x] **[Transaction Metadata & Origin Filtering]**:
     * **Goal**: Prevent infinite loops and unnecessary processing during sync.
     * **Task**:
         * Wrap the initial hydration and `SchemaView` initialization in a `Transaction` with `{ initial: true }` metadata.
@@ -191,19 +191,19 @@
 
 **Goal**: Publicly expose the new capabilities and ensure end-to-end stability.
 
-* [ ] **[Public API Exposure]**:
+* [x] **[Public API Exposure]**:
     * **Goal**: Make SchemaView accessible via the main entry point.
     * **Task**:
         * Add `createView(config)` method to `XMLAPI` class (delegating to `SyncEngine`).
         * Export `SchemaView`, `ViewBinder`, and `ExternalNode` types from the package index.
 
-* [ ] **[Reproduction Scenario Verification]**:
+* [x] **[Reproduction Scenario Verification]**:
     * **Goal**: Verify the "Manual Sync Fragility" fix.
     * **Task**:
         * Implement the scenario from `MILESTONE_v0.9.1.md` as an integration test.
         * Ensure no "Sync Broken" errors occur.
 
-* [ ] **[Documentation Update]**:
+* [x] **[Documentation Update]**:
     * **Goal**: Guide users on using SchemaView.
     * **Task**:
         * Update `README.md` and `docs/` to explain `createView` and the architecture.
@@ -212,18 +212,19 @@
 
 **Goal**: Confirm that the core issues reported in `xml-api-editor` are fully resolved by the new architecture.
 
-* [ ] **[End-to-End Format Fidelity Check]**:
+* [x] **[End-to-End Format Fidelity Check]**:
     * **Requirement**: Loading `sample_01.xml` in `xml-api-editor` must result in a source code view that is bitwise identical to the original file.
     * **Check**: No newlines removed under `body`, no indentation changes.
 
-* [ ] **[Internal Class Name Removal]**:
+* [x] **[Internal Class Name Removal]**:
     * **Requirement**: The `wysiwyg-section` class must not appear in the final XML output.
     * **Check**: The editor should use pure `section` tags in the model.
 
-* [ ] **[Zero-Change Initial Load]**:
+* [x] **[Zero-Change Initial Load]**:
     * **Requirement**: Upon application startup, the "Event Log" must remain empty.
     * **Check**: No "Structure changed" events for Elements or Text should be emitted during initial hydration and view projection.
 
-* [ ] **[Granular Update Verification]**:
+* [x] **[Granular Update Verification]**:
     * **Requirement**: Small edits in either the Code Editor or WYSIWYG Editor should only produce events corresponding to the specific nodes modified.
     * **Check**: No "Full update" or unrelated "Structure changed" events during minor text edits.
+

@@ -46,6 +46,7 @@ export type ViewChangeEvent =
 export class SchemaView {
   private document!: Document;
   private events = new EventEmitter<ViewChangeEvent>();
+  private currentMeta: Record<string, any> = { origin: "schema-view" };
 
   constructor(
     private model: ModelElement,
@@ -76,9 +77,7 @@ export class SchemaView {
         const model = element.getModel();
         if (model instanceof ModelElement && model.cst) {
           if (value !== null) {
-            this.engine.setAttribute(model, name, value, {
-              origin: "schema-view",
-            });
+            this.engine.setAttribute(model, name, value, this.currentMeta);
           }
         }
       },
@@ -86,9 +85,12 @@ export class SchemaView {
         const parentModel = parent.getModel();
         const childModel = child.getModel();
         if (parentModel instanceof ModelElement && parentModel.cst) {
-          this.engine.insertNode(parentModel, childModel, index, {
-            origin: "schema-view",
-          });
+          this.engine.insertNode(
+            parentModel,
+            childModel,
+            index,
+            this.currentMeta,
+          );
         }
       },
       onChildRemoved: (parent: Node, child: Node, index: number) => {
@@ -96,9 +98,7 @@ export class SchemaView {
         const childModel = child.getModel();
         if (parentModel instanceof ModelElement && parentModel.cst) {
           if (childModel.cst) {
-            this.engine.removeNode(parentModel, childModel, {
-              origin: "schema-view",
-            });
+            this.engine.removeNode(parentModel, childModel, this.currentMeta);
           }
         }
       },
@@ -106,28 +106,20 @@ export class SchemaView {
         const newModel = newChild.getModel();
         const oldModel = oldChild.getModel();
         if (oldModel.cst) {
-          this.engine.replaceNode(oldModel, newModel, {
-            origin: "schema-view",
-          });
+          this.engine.replaceNode(oldModel, newModel, this.currentMeta);
         }
       },
       onTextChange: (node: CharacterData, text: string) => {
         const modelNode = node.getModel();
         if (modelNode instanceof ModelText && modelNode.cst) {
           const newTextNode = new ModelText(text);
-          this.engine.replaceNode(modelNode, newTextNode, {
-            origin: "schema-view",
-          });
+          this.engine.replaceNode(modelNode, newTextNode, this.currentMeta);
         } else if (modelNode instanceof ModelComment && modelNode.cst) {
           const newComment = new ModelComment(text);
-          this.engine.replaceNode(modelNode, newComment, {
-            origin: "schema-view",
-          });
+          this.engine.replaceNode(modelNode, newComment, this.currentMeta);
         } else if (modelNode instanceof ModelCDATA && modelNode.cst) {
           const newCDATA = new ModelCDATA(text);
-          this.engine.replaceNode(modelNode, newCDATA, {
-            origin: "schema-view",
-          });
+          this.engine.replaceNode(modelNode, newCDATA, this.currentMeta);
         } else {
           console.warn(
             "Direct text node update not supported for this node or missing CST",
@@ -137,7 +129,7 @@ export class SchemaView {
       onElementTextChange: (element: Element, text: string) => {
         const model = element.getModel();
         if (model instanceof ModelElement && model.cst) {
-          this.engine.updateText(model, text, { origin: "schema-view" });
+          this.engine.updateText(model, text, this.currentMeta);
         }
       },
     });
@@ -224,9 +216,20 @@ export class SchemaView {
     return viewNode.getModel();
   }
 
-  public reconcile(externalDomNode: ExternalNode): void {
-    const binder = new ViewBinder(this.document);
-    // The external node corresponds to the root of the view
-    binder.reconcile(externalDomNode, this.getRoot());
+  public reconcile(
+    externalDomNode: ExternalNode,
+    meta?: Record<string, any>,
+  ): void {
+    const previousMeta = this.currentMeta;
+    if (meta) {
+      this.currentMeta = { ...this.currentMeta, ...meta };
+    }
+    try {
+      const binder = new ViewBinder(this.document);
+      // The external node corresponds to the root of the view
+      binder.reconcile(externalDomNode, this.getRoot());
+    } finally {
+      this.currentMeta = previousMeta;
+    }
   }
 }

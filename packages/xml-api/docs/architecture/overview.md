@@ -16,6 +16,11 @@ The core logic unit that orchestrates the Parser, Binder, and History management
 ### DOM Interface (Document, Element, Node)
 A DOM-compatible API layer that wraps the internal Model. It allows developers to interact with the XML as if it were a standard web DOM. When operations (like `setAttribute`) are performed on these objects, they trigger the Engine to calculate patches for the source code.
 
+### Schema Projection (SchemaView & ViewBinder)
+A specialized view layer that projects the raw Model into a schema-specific representation (e.g., XHTML).
+- **SchemaView**: Provides a filtered DOM tree that hides irrelevant nodes (like comments or non-schema tags) while maintaining full fidelity of the underlying source.
+- **ViewBinder**: Reconciles changes from an external DOM (like a browser's `contentEditable`) back to the Model, handling the complexity of mapping filtered views to the complete document structure.
+
 ### XMLBinder
 The logic component used by the SyncEngine to handle data synchronization and transformation. It performs:
 - **Hydration**: Converting CST nodes to Model nodes.
@@ -34,6 +39,6 @@ Used when generating new XML fragments or performing major structural changes. I
 ## Data Flow
 
 1. **Source -> Application**:
-   `Input String` -> `SyncEngine` -> `Parser` -> `CST` -> `Binder (Hydrate)` -> `Model` -> `DOM Interface`
+   `Input String` -> `SyncEngine` -> `Parser` -> `CST` -> `Binder (Hydrate)` -> `Model` -> `SchemaView (Project)` -> `Filtered DOM`
 2. **Application -> Source**:
-   `DOM Operation` -> `SyncEngine` -> `Binder (Patch)` -> `Text Change` -> `Update Source` -> `Incremental Parse` -> `Model Reconciliation`
+   `Filtered DOM Operation` -> `SchemaView` -> `ViewBinder` -> `SyncEngine` -> `Binder (Patch)` -> `Text Change` -> `Update Source` -> `Incremental Parse` -> `Model Reconciliation`

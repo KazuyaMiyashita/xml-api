@@ -1,5 +1,5 @@
 import { XMLBinder } from "../../src/model/xml-binder";
-import { ModelText, ModelElement } from "../../src/model/xml-api-model";
+import type { ModelText, ModelElement } from "../../src/model/xml-api-model";
 import { Parser } from "../../src/cst/parser";
 import { grammar } from "../../src/cst/xml-grammar";
 
