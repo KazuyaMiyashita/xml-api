@@ -183,19 +183,19 @@
 * [ ] **[Transaction Metadata & Origin Filtering]**:
     * **Goal**: Prevent infinite loops and unnecessary processing during sync.
     * **Task**:
-        * Ensure `SchemaView` operations attach distinct metadata (e.g., `{ origin: 'schema-view' }`).
+        * Wrap the initial hydration and `SchemaView` initialization in a `Transaction` with `{ initial: true }` metadata.
         * Update `SyncEngine` and Event Emitters to respect this metadata, allowing the editor to ignore its own reflected changes.
-        * **Fix**: Ensure initial load acts as a transaction with metadata (e.g., `{ initial: true }`) to suppress "structure changed" logs.
+        * **Fix**: Ensure the "Event Log" remains empty during the first render in `xml-api-editor`.
 
 ## Phase 7: Integration & Verification
 
 **Goal**: Publicly expose the new capabilities and ensure end-to-end stability.
 
 * [ ] **[Public API Exposure]**:
-    * **Goal**: Make SchemaView accessible.
+    * **Goal**: Make SchemaView accessible via the main entry point.
     * **Task**:
-        * Add `xmlApi.createView(config)` method.
-        * Export necessary types.
+        * Add `createView(config)` method to `XMLAPI` class (delegating to `SyncEngine`).
+        * Export `SchemaView`, `ViewBinder`, and `ExternalNode` types from the package index.
 
 * [ ] **[Reproduction Scenario Verification]**:
     * **Goal**: Verify the "Manual Sync Fragility" fix.
