@@ -16,6 +16,7 @@ import {
   ModelText,
 } from "../model/xml-api-model";
 import { type ChangeEvent, EventEmitter } from "../xml-api-events";
+import { type ExternalNode, ViewBinder } from "./view-binder";
 
 export interface SchemaViewConfig {
   filter?: (node: ModelNode) => boolean;
@@ -221,5 +222,11 @@ export class SchemaView {
 
   public getModelNode(viewNode: Node): ModelNode {
     return viewNode.getModel();
+  }
+
+  public reconcile(externalDomNode: ExternalNode): void {
+    const binder = new ViewBinder(this.document);
+    // The external node corresponds to the root of the view
+    binder.reconcile(externalDomNode, this.getRoot());
   }
 }

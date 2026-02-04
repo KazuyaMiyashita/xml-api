@@ -167,7 +167,7 @@
 
 **Goal**: Implement the missing features identified in the `xml-api-editor` investigation to enable full format preservation and robust syncing.
 
-* [ ] **[SchemaView Reconciliation]**:
+* [x] **[SchemaView Reconciliation]**:
     * **Goal**: Provide a built-in method to sync an external DOM tree to the SchemaView.
     * **Task**:
         * Implement `SchemaView.reconcile(externalDomNode: Node)`.

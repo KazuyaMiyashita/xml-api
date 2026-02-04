@@ -99,3 +99,19 @@
 ##### Returns
 
 `void`
+
+***
+
+### reconcile()
+
+> **reconcile**(`externalDomNode`): `void`
+
+#### Parameters
+
+##### externalDomNode
+
+[`ExternalNode`](../../view-binder/interfaces/ExternalNode.md)
+
+#### Returns
+
+`void`
