@@ -3,6 +3,7 @@ import type {
   Node as ApiNode,
   ModelElement,
   ModelNode,
+  SchemaView,
   XMLAPI,
 } from "@miy2/xml-api";
 import type { ViewChangeEvent } from "@miy2/xml-api/view/schema-view";
@@ -10,9 +11,9 @@ import { baseKeymap, toggleMark } from "prosemirror-commands";
 import { keymap } from "prosemirror-keymap";
 import {
   DOMSerializer,
+  Fragment,
   DOMParser as PMDOMParser,
   type Node as PMNode,
-  Fragment,
 } from "prosemirror-model";
 import { EditorState, type Transaction } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
@@ -95,7 +96,7 @@ const parseBrowserDOM = (dom: Node): PMNode | Fragment | null => {
 // --- Hooks ---
 
 // Hook for Sync: ProseMirror -> XML (Dispatcher)
-const useDispatcher = (api: XMLAPI, schemaView: any) => {
+const useDispatcher = (api: XMLAPI, schemaView: SchemaView | null) => {
   const syncToXml = useCallback(
     (tr: Transaction, _oldState: EditorState, newState: EditorState) => {
       if (!api.cst || !api.cst.wellFormed || !schemaView) return;
@@ -167,7 +168,11 @@ const useDispatcher = (api: XMLAPI, schemaView: any) => {
         try {
           externalNode = serializer.serializeNode(targetPmNode);
         } catch (e) {
-          console.error("Serialization failed for node:", targetPmNode.type.name, e);
+          console.error(
+            "Serialization failed for node:",
+            targetPmNode.type.name,
+            e,
+          );
           // Fallback to full doc sync
           const contentFragment = serializer.serializeFragment(
             newState.doc.content,
@@ -194,22 +199,18 @@ const useDispatcher = (api: XMLAPI, schemaView: any) => {
         // Reconcile this specific node
         // If targetPmNode was doc, externalNode is div[content], targetViewNode might be body/html.
         // Reconcile body children with div children.
-        
+
         let body = targetViewNode as ApiElement;
         if (targetPmNode.type.name === "doc") {
-            const root = schemaView.getRoot();
-            body = root;
-            if (root.tagName === "html") {
-              const found = root.querySelector("body");
-              if (found) body = found;
-            }
+          const root = schemaView.getRoot();
+          body = root;
+          if (root.tagName === "html") {
+            const found = root.querySelector("body");
+            if (found) body = found;
+          }
         }
 
-        schemaView.reconcile(
-          externalNode,
-          { origin: "wysiwyg-editor" },
-          body,
-        );
+        schemaView.reconcile(externalNode, { origin: "wysiwyg-editor" }, body);
       } else {
         // Fallback: Full Sync if mapping fails
         const root = schemaView.getRoot();
@@ -234,7 +235,7 @@ const useDispatcher = (api: XMLAPI, schemaView: any) => {
 
 // Hook for Reflection: XML -> ProseMirror (Reflector)
 const useReflector = (
-  schemaView: any,
+  schemaView: SchemaView | null,
   viewRef: React.MutableRefObject<EditorView | null>,
   isWellFormed: boolean,
 ) => {
@@ -274,7 +275,7 @@ const useReflector = (
             // Optimization: Use ID Plugin to find position O(1)
             const idMap = idPluginKey.getState(state);
             const pos = idMap?.get(modelId);
-            
+
             if (pos !== undefined) {
               const node = state.doc.nodeAt(pos);
               if (node && node.attrs.modelId === modelId) {
@@ -319,9 +320,8 @@ const useReflector = (
                   // Easier: wrap in div and parse
                   const div = document.createElement("div");
                   div.appendChild(browserDom.cloneNode(true));
-                  newPmContent = PMDOMParser.fromSchema(
-                    xhtmlSubsetSchema,
-                  ).parse(div);
+                  newPmContent =
+                    PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(div);
                 }
               } else {
                 // Element update
@@ -331,9 +331,8 @@ const useReflector = (
                 // Or if we parse with context?
                 const div = document.createElement("div");
                 div.appendChild(browserDom);
-                const doc = PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(
-                  div,
-                );
+                const doc =
+                  PMDOMParser.fromSchema(xhtmlSubsetSchema).parse(div);
                 newPmContent = doc.firstChild;
               }
 
