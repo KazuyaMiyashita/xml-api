@@ -16,14 +16,8 @@ interface LogEntry {
 function App() {
   const [api, setApi] = useState<XMLAPI | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState(0); // Add version state for manual syncing
   const [eventLogs, setEventLogs] = useState<LogEntry[]>([]);
   const logsEndRef = useRef<HTMLDivElement>(null);
-
-  const handleVersionUpdate = useCallback(() => {
-    setVersion((v) => v + 1);
-    // Logs are updated via api.on listener automatically
-  }, []);
 
   // Detect document type
   // Re-run detection whenever eventLogs change (implies model might have changed) or api changes
@@ -120,7 +114,6 @@ function App() {
               ) : (
                 <WYSIWYGEditor
                   api={api}
-                  onExternalChange={handleVersionUpdate}
                 />
               )
             ) : (
@@ -171,7 +164,6 @@ function App() {
             ) : api ? (
               <CodeEditor
                 api={api}
-                version={version}
                 onChange={handleCodeChange}
               />
             ) : (

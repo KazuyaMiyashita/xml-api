@@ -22,7 +22,6 @@ import "./WYSIWYGEditor.css";
 
 interface WYSIWYGEditorProps {
   api: XMLAPI;
-  onExternalChange?: () => void;
 }
 
 // Helper to convert xml-api view DOM to PM DOM (browser nodes)
@@ -64,7 +63,6 @@ const viewToBrowserDOM = (viewNode: ApiNode): Node | null => {
 
 const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
   api,
-  onExternalChange,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -184,7 +182,6 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
         if (tr.docChanged && !isInitializing.current) {
           try {
             syncToXml(newState.doc);
-            if (onExternalChange) onExternalChange();
           } catch (e) {
             console.error("Sync to XML API failed:", e);
           }
@@ -201,7 +198,7 @@ const WYSIWYGEditor: React.FC<WYSIWYGEditorProps> = ({
     return () => {
       view.destroy();
     };
-  }, [schemaView, onExternalChange, syncToXml]);
+  }, [schemaView, syncToXml]);
 
   useEffect(() => {
     if (!schemaView) return;

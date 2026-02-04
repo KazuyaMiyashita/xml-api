@@ -19,7 +19,6 @@ import "./CodeEditor.css";
 
 interface CodeEditorProps {
   api: XMLAPI;
-  version?: number;
   onChange?: (newSource: string) => void;
 }
 
