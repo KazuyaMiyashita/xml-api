@@ -144,12 +144,24 @@
         * Move the manual reconciliation logic (currently in `WYSIWYGEditor`) into `ViewBinder`.
         * Define a generic `Reconciler` interface (conceptually) that `ViewBinder` adheres to.
 
-* [ ] **[SyncEngine Cleanup]**:
-    * **Goal**: Reduce `SyncEngine`'s "God Object" nature and unify the transaction flow.
+* [x] **[SyncEngine Cleanup: Extract Logic]**:
+    * **Goal**: Decouple formatting and patch calculation from `SyncEngine`.
     * **Task**:
-        * Refactor `SyncEngine` to act primarily as a transaction coordinator.
-        * Ensure all modifications (from any layer) flow through a unified `Transaction` pipeline.
-        * Deprecate direct mutation methods on `SyncEngine` in favor of `dispatch(transaction)`.
+        * Create `src/engine/transaction-builder.ts`.
+        * Move the indentation detection and `Formatter` logic (currently in `SyncEngine.insertNode` and `replaceNode`) into this builder.
+        * Ensure it uses `XMLBinder` for the low-level patch generation.
+
+* [x] **[SyncEngine Cleanup: Refactor Mutations]**:
+    * **Goal**: Make `SyncEngine` methods thin wrappers around `dispatch`.
+    * **Task**:
+        * Refactor `setAttribute`, `updateText`, `insertNode`, `replaceNode`, `removeNode` to use `TransactionBuilder` to create a `Transaction`.
+        * Call `this.dispatch(tr)` directly.
+
+* [x] **[SyncEngine Cleanup: Deprecation]**:
+    * **Goal**: Signal the shift towards a Transaction-based API.
+    * **Task**:
+        * Add `@deprecated` annotations to the direct mutation methods in `SyncEngine`.
+        * Document the new pattern: `engine.dispatch(TransactionBuilder.insertNode(...))`.
 
 ## Phase 6: Functional Completeness for xml-api-editor
 

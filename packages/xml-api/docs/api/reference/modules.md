@@ -16,6 +16,7 @@
 - [engine/editor-state](engine/editor-state/README.md)
 - [engine/sync-engine](engine/sync-engine/README.md)
 - [engine/transaction](engine/transaction/README.md)
+- [engine/transaction-builder](engine/transaction-builder/README.md)
 - [history-manager](history-manager/README.md)
 - [model/formatter](model/formatter/README.md)
 - [model/xml-api-model](model/xml-api-model/README.md)

@@ -1,11 +1,9 @@
 import type { CollabBridge } from "../collab/bridge";
-import { detectIndent } from "../cst/cst-utils";
 import type { Grammar } from "../cst/grammar";
 import { Parser } from "../cst/parser";
 import type { CST } from "../cst/xml-cst";
 import { grammar as defaultGrammar } from "../cst/xml-grammar";
 import { HistoryManager } from "../history-manager";
-import { Formatter } from "../model/formatter";
 import {
   ModelElement,
   type ModelNode,
@@ -15,6 +13,7 @@ import { XMLBinder } from "../model/xml-binder";
 import { EventEmitter, type EventHandler } from "../xml-api-events";
 import { EditorState } from "./editor-state";
 import { Transaction } from "./transaction";
+import { TransactionBuilder } from "./transaction-builder";
 
 export class SyncEngine {
   private _state: EditorState;
@@ -159,6 +158,7 @@ export class SyncEngine {
   /**
    * Apply a programmatic change derived from Model operations.
    * This is the "Application -> Source" flow.
+   * @deprecated Use `dispatch(new Transaction(state).replace(...))` instead.
    */
   public applyPatch(
     start: number,
@@ -205,167 +205,96 @@ export class SyncEngine {
 
   // --- High-Level Model Operations (delegated to Binder) ---
 
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).setAttribute(...))` instead.
+   */
   public setAttribute(
     modelNode: ModelElement,
     key: string,
     value: string,
     meta?: Record<string, any>,
   ): void {
-    if (!modelNode.cst) throw new Error("Model node not linked to CST");
-    const patch = this.binder.calcSetAttributePatch(modelNode, key, value);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text, meta);
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.setAttribute(modelNode, key, value);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
+      }
     }
+    this.dispatch(tr);
   }
 
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).updateText(...))` instead.
+   */
   public updateText(
     modelNode: ModelElement,
     text: string,
     meta?: Record<string, any>,
   ): void {
-    if (!modelNode.cst) throw new Error("Model node not linked to CST");
-    const patch = this.binder.calcUpdateTextPatch(modelNode, text);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text, meta);
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.updateText(modelNode, text);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
+      }
     }
+    this.dispatch(tr);
   }
 
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).replaceNode(...))` instead.
+   */
   public replaceNode(
     target: ModelNode,
     content: ModelNode,
     meta?: Record<string, any>,
   ): void {
-    if (!target.cst) throw new Error("Model node not linked to CST");
-
-    // Formatting logic
-    let indentUnit = "  ";
-    let currentIndent = "";
-    if (target.cst) {
-      currentIndent = detectIndent(target.cst, this._state.source) || "";
-      if (target.parent?.cst) {
-        const parentIndent =
-          detectIndent(target.parent.cst, this._state.source) || "";
-        if (currentIndent.startsWith(parentIndent)) {
-          const diff = currentIndent.slice(parentIndent.length);
-          if (diff.length > 0 && !diff.includes("\n")) {
-            indentUnit = diff;
-          }
-        }
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.replaceNode(target, content);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
       }
     }
-
-    const formatter = new Formatter({ indent: indentUnit });
-    let newXml = formatter.format(content);
-
-    if (currentIndent && newXml.includes("\n")) {
-      newXml = newXml
-        .split("\n")
-        .map((line, index) => (index === 0 ? line : currentIndent + line))
-        .join("\n");
-    }
-
-    const patch = this.binder.calcReplaceNodePatch(target, newXml);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text, meta);
-    }
+    this.dispatch(tr);
   }
 
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).insertNode(...))` instead.
+   */
   public insertNode(
     parent: ModelElement,
     child: ModelNode,
     index: number,
     meta?: Record<string, any>,
   ): void {
-    if (!parent.cst) throw new Error("Parent node not linked to CST");
-
-    // Determine basic indentation
-    const indentUnit = "  ";
-    if (parent.cst) {
-      const parentIndent = detectIndent(parent.cst, this._state.source) || "";
-      // Try to find a child to detect indent step if needed
-      if (parentIndent.length > 0) {
-        // Naive assumption: unit is 2 spaces or tab
-        // Ideally analyze existing children.
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.insertNode(parent, child, index);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
       }
     }
-
-    // Smart Formatting: Determine baseIndent and prefix/suffix
-    let baseIndent = "";
-    let prefix = "";
-    let suffix = "";
-
-    // Check if child is already in model (DOM usage)
-    const isAlreadyInModel = parent.children[index] === child;
-
-    // Scan backwards for significant node
-    let probe = isAlreadyInModel ? index - 1 : index - 1;
-    let refNode: ModelNode | null = null;
-    let newlineFound = false;
-
-    while (probe >= 0) {
-      const node = parent.children[probe];
-      if (node instanceof ModelText && node.text.trim().length === 0) {
-        if (node.text.includes("\n")) newlineFound = true;
-        probe--;
-      } else {
-        refNode = node;
-        break;
-      }
-    }
-
-    if (refNode && refNode.formatting.indent !== null) {
-      baseIndent = refNode.formatting.indent;
-      prefix = newlineFound ? baseIndent : "\n" + baseIndent;
-    } else if (!refNode) {
-      // Empty or first significant child
-      // Check next sibling to decide mode
-      const nextNode = isAlreadyInModel
-        ? index + 1 < parent.children.length
-          ? parent.children[index + 1]
-          : null
-        : index < parent.children.length
-          ? parent.children[index]
-          : null;
-
-      if (nextNode && nextNode.formatting.indent === null) {
-        // Next is inline. Stay inline.
-      } else {
-        // Next is block (or doesn't exist).
-        // If parent has indent, assume block.
-        if (parent.formatting.indent !== null) {
-          baseIndent = parent.formatting.indent + indentUnit;
-          prefix = "\n" + baseIndent;
-        }
-      }
-    }
-
-    // Suffix logic: ensure closing tag is on new line if block mode
-    // If we are appending at the end, or next is end-tag
-    // Simple heuristic: if we added a newline prefix (block mode), add a newline suffix
-    if (prefix.includes("\n") || newlineFound) {
-      // Use parent's indent for the closing tag
-      suffix = "\n" + (parent.formatting.indent || "");
-    }
-
-    const formatter = new Formatter({ indent: indentUnit, baseIndent });
-    const insertText = prefix + formatter.format(child) + suffix;
-
-    const patch = this.binder.calcInsertNodePatch(parent, index, insertText);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text, meta);
-    }
+    this.dispatch(tr);
   }
 
+  /**
+   * @deprecated Use `dispatch(new TransactionBuilder(engine.state, engine.binder).removeNode(...))` instead.
+   */
   public removeNode(
     parent: ModelElement,
     child: ModelNode,
     meta?: Record<string, any>,
   ): void {
-    if (!parent.cst) throw new Error("Parent node not linked to CST");
-    const patch = this.binder.calcRemoveNodePatch(child);
-    if (patch) {
-      this.applyPatch(patch.start, patch.end, patch.text, meta);
+    const builder = new TransactionBuilder(this._state, this.binder);
+    const tr = builder.removeNode(parent, child);
+    if (meta) {
+      for (const [k, v] of Object.entries(meta)) {
+        tr.setMeta(k, v);
+      }
     }
+    this.dispatch(tr);
   }
 
   // --- Internal Logic ---

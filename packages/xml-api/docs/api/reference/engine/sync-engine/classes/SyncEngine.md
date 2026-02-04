@@ -86,7 +86,7 @@
 
 ## Methods
 
-### applyPatch()
+### ~~applyPatch()~~
 
 > **applyPatch**(`start`, `end`, `text`, `meta?`): `void`
 
@@ -115,6 +115,10 @@ This is the "Application -> Source" flow.
 
 `void`
 
+#### Deprecated
+
+Use `dispatch(new Transaction(state).replace(...))` instead.
+
 ***
 
 ### dispatch()
@@ -135,7 +139,7 @@ Applies a transaction to the engine, updating the state and notifying listeners.
 
 ***
 
-### insertNode()
+### ~~insertNode()~~
 
 > **insertNode**(`parent`, `child`, `index`, `meta?`): `void`
 
@@ -160,6 +164,10 @@ Applies a transaction to the engine, updating the state and notifying listeners.
 #### Returns
 
 `void`
+
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).insertNode(...))` instead.
 
 ***
 
@@ -195,7 +203,7 @@ Subscribe to model changes.
 
 ***
 
-### removeNode()
+### ~~removeNode()~~
 
 > **removeNode**(`parent`, `child`, `meta?`): `void`
 
@@ -217,9 +225,13 @@ Subscribe to model changes.
 
 `void`
 
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).removeNode(...))` instead.
+
 ***
 
-### replaceNode()
+### ~~replaceNode()~~
 
 > **replaceNode**(`target`, `content`, `meta?`): `void`
 
@@ -241,9 +253,13 @@ Subscribe to model changes.
 
 `void`
 
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).replaceNode(...))` instead.
+
 ***
 
-### setAttribute()
+### ~~setAttribute()~~
 
 > **setAttribute**(`modelNode`, `key`, `value`, `meta?`): `void`
 
@@ -268,6 +284,10 @@ Subscribe to model changes.
 #### Returns
 
 `void`
+
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).setAttribute(...))` instead.
 
 ***
 
@@ -324,7 +344,7 @@ Handles history recording and incremental parsing.
 
 ***
 
-### updateText()
+### ~~updateText()~~
 
 > **updateText**(`modelNode`, `text`, `meta?`): `void`
 
@@ -345,3 +365,7 @@ Handles history recording and incremental parsing.
 #### Returns
 
 `void`
+
+#### Deprecated
+
+Use `dispatch(new TransactionBuilder(engine.state, engine.binder).updateText(...))` instead.

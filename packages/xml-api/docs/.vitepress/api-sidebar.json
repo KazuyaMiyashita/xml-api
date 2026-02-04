@@ -220,6 +220,16 @@
             "link": "/api/reference/engine/transaction/classes/Transaction"
           }
         ]
+      },
+      {
+        "text": "transaction-builder",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "TransactionBuilder",
+            "link": "/api/reference/engine/transaction-builder/classes/TransactionBuilder"
+          }
+        ]
       }
     ]
   },
