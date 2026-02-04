@@ -1,6 +1,5 @@
-import { ModelElement, ModelText } from "@/model/xml-api-model";
-import { GrammarBuilder, lit, opt, plus, ref, reg, seq } from "@/cst/grammar";
 import type { CST } from "@/cst/xml-cst";
+import { ModelElement } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI", () => {

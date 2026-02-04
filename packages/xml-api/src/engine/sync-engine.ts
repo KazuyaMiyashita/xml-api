@@ -1,14 +1,18 @@
+import type { CollabBridge } from "../collab/bridge";
+import { detectIndent } from "../cst/cst-utils";
 import type { Grammar } from "../cst/grammar";
 import { Parser } from "../cst/parser";
 import type { CST } from "../cst/xml-cst";
-import { detectIndent } from "../cst/cst-utils";
 import { grammar as defaultGrammar } from "../cst/xml-grammar";
 import { HistoryManager } from "../history-manager";
 import { Formatter } from "../model/formatter";
-import { ModelElement, type ModelNode, ModelText } from "../model/xml-api-model";
+import {
+  ModelElement,
+  type ModelNode,
+  ModelText,
+} from "../model/xml-api-model";
 import { XMLBinder } from "../model/xml-binder";
 import { EventEmitter, type EventHandler } from "../xml-api-events";
-import type { CollabBridge } from "../collab/bridge";
 import { EditorState } from "./editor-state";
 import { Transaction } from "./transaction";
 
@@ -234,7 +238,8 @@ export class SyncEngine {
     if (target.cst) {
       currentIndent = detectIndent(target.cst, this._state.source) || "";
       if (target.parent?.cst) {
-        const parentIndent = detectIndent(target.parent.cst, this._state.source) || "";
+        const parentIndent =
+          detectIndent(target.parent.cst, this._state.source) || "";
         if (currentIndent.startsWith(parentIndent)) {
           const diff = currentIndent.slice(parentIndent.length);
           if (diff.length > 0 && !diff.includes("\n")) {
@@ -269,13 +274,13 @@ export class SyncEngine {
     if (!parent.cst) throw new Error("Parent node not linked to CST");
 
     // Determine basic indentation
-    let indentUnit = "  ";
+    const indentUnit = "  ";
     if (parent.cst) {
       const parentIndent = detectIndent(parent.cst, this._state.source) || "";
       // Try to find a child to detect indent step if needed
       if (parentIndent.length > 0) {
-         // Naive assumption: unit is 2 spaces or tab
-         // Ideally analyze existing children.
+        // Naive assumption: unit is 2 spaces or tab
+        // Ideally analyze existing children.
       }
     }
 
@@ -283,54 +288,58 @@ export class SyncEngine {
     let baseIndent = "";
     let prefix = "";
     let suffix = "";
-    
+
     // Check if child is already in model (DOM usage)
     const isAlreadyInModel = parent.children[index] === child;
-    
+
     // Scan backwards for significant node
     let probe = isAlreadyInModel ? index - 1 : index - 1;
     let refNode: ModelNode | null = null;
     let newlineFound = false;
-    
+
     while (probe >= 0) {
-       const node = parent.children[probe];
-       if (node instanceof ModelText && node.text.trim().length === 0) {
-           if (node.text.includes("\n")) newlineFound = true;
-           probe--;
-       } else {
-           refNode = node;
-           break;
-       }
+      const node = parent.children[probe];
+      if (node instanceof ModelText && node.text.trim().length === 0) {
+        if (node.text.includes("\n")) newlineFound = true;
+        probe--;
+      } else {
+        refNode = node;
+        break;
+      }
     }
 
     if (refNode && refNode.formatting.indent !== null) {
       baseIndent = refNode.formatting.indent;
       prefix = newlineFound ? baseIndent : "\n" + baseIndent;
     } else if (!refNode) {
-       // Empty or first significant child
-       // Check next sibling to decide mode
-       const nextNode = isAlreadyInModel
-          ? (index + 1 < parent.children.length ? parent.children[index + 1] : null)
-          : (index < parent.children.length ? parent.children[index] : null);
+      // Empty or first significant child
+      // Check next sibling to decide mode
+      const nextNode = isAlreadyInModel
+        ? index + 1 < parent.children.length
+          ? parent.children[index + 1]
+          : null
+        : index < parent.children.length
+          ? parent.children[index]
+          : null;
 
-       if (nextNode && nextNode.formatting.indent === null) {
-           // Next is inline. Stay inline.
-       } else {
-           // Next is block (or doesn't exist).
-           // If parent has indent, assume block.
-           if (parent.formatting.indent !== null) {
-              baseIndent = parent.formatting.indent + indentUnit;
-              prefix = "\n" + baseIndent;
-           }
-       }
+      if (nextNode && nextNode.formatting.indent === null) {
+        // Next is inline. Stay inline.
+      } else {
+        // Next is block (or doesn't exist).
+        // If parent has indent, assume block.
+        if (parent.formatting.indent !== null) {
+          baseIndent = parent.formatting.indent + indentUnit;
+          prefix = "\n" + baseIndent;
+        }
+      }
     }
 
     // Suffix logic: ensure closing tag is on new line if block mode
     // If we are appending at the end, or next is end-tag
     // Simple heuristic: if we added a newline prefix (block mode), add a newline suffix
     if (prefix.includes("\n") || newlineFound) {
-        // Use parent's indent for the closing tag
-        suffix = "\n" + (parent.formatting.indent || "");
+      // Use parent's indent for the closing tag
+      suffix = "\n" + (parent.formatting.indent || "");
     }
 
     const formatter = new Formatter({ indent: indentUnit, baseIndent });
@@ -363,17 +372,17 @@ export class SyncEngine {
 
       if (cst?.wellFormed) {
         if (this._state.model) {
-           // Attempt to reconcile with existing model to preserve identity
-           const result = this.binder.reconcile(this._state.model, cst);
-           if (result instanceof ModelElement) {
-             model = result;
-           }
+          // Attempt to reconcile with existing model to preserve identity
+          const result = this.binder.reconcile(this._state.model, cst);
+          if (result instanceof ModelElement) {
+            model = result;
+          }
         } else {
-           // Initial hydration
-           const newModel = this.binder.hydrate(cst);
-           if (newModel instanceof ModelElement) {
-             model = newModel;
-           }
+          // Initial hydration
+          const newModel = this.binder.hydrate(cst);
+          if (newModel instanceof ModelElement) {
+            model = newModel;
+          }
         }
       }
 
@@ -444,7 +453,7 @@ export class SyncEngine {
       // Reconcile root to preserve identity
       const reconciled = this.binder.reconcile(currentModel, newNode);
       if (reconciled !== currentModel) {
-         this._state = this._state.update({ model: reconciled as ModelElement });
+        this._state = this._state.update({ model: reconciled as ModelElement });
       }
       this.events.emit({
         type: "full", // Or structure? Full implies root changed/updated

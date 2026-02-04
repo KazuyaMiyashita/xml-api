@@ -308,7 +308,7 @@ Returns the parent of this node.
 
 #### Inherited from
 
-[`Element`](Element.md).[`textContent`](Element.md#textcontent)
+[`CDATASection`](CDATASection.md).[`textContent`](CDATASection.md#textcontent)
 
 ## Methods
 

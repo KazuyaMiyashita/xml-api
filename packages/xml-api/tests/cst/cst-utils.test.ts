@@ -1,5 +1,5 @@
-import { CST } from "../../src/cst/xml-cst";
 import { detectIndent } from "../../src/cst/cst-utils";
+import { CST } from "../../src/cst/xml-cst";
 
 describe("CST Utils", () => {
   describe("detectIndent", () => {
@@ -38,7 +38,7 @@ describe("CST Utils", () => {
       const indent = detectIndent(node, source);
       expect(indent).toBe("  ");
     });
-    
+
     it("handles mixed indent", () => {
       const source = "<div>\n  \t<span></span></div>";
       const node = new CST("element", "element", 9, 22);

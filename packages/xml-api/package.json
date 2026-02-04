@@ -30,8 +30,9 @@
     "test:all": "jest",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:gen-api": "typedoc && ts-node scripts/generate-sidebar.ts",
+    "docs:gen-api": "typedoc && pnpm exec esbuild scripts/generate-sidebar.ts --bundle --platform=node --format=esm --outfile=scripts/generate-sidebar.mjs && pnpm exec node scripts/generate-sidebar.mjs && rm scripts/generate-sidebar.mjs",
     "docs:preview": "vitepress preview docs",
+    "lint": "biome lint .",
     "format": "biome format --write ."
   },
   "keywords": [

@@ -15,7 +15,13 @@
 
 ### Constructor
 
-> **new ModelNode**(): `ModelNode`
+> **new ModelNode**(`id?`): `ModelNode`
+
+#### Parameters
+
+##### id?
+
+`string`
 
 #### Returns
 
@@ -65,7 +71,7 @@
 
 ### cloneBase()
 
-> `protected` **cloneBase**(`target`, `preserveId`): `void`
+> `protected` **cloneBase**(`target`, `_preserveId`): `void`
 
 #### Parameters
 
@@ -73,7 +79,7 @@
 
 `ModelNode`
 
-##### preserveId
+##### \_preserveId
 
 `boolean`
 

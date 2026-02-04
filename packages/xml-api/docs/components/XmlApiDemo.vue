@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { ref, shallowRef, onMounted, computed } from "vue";
-import { XMLAPI } from "@/xml-api";
+import { onMounted, ref, shallowRef } from "vue";
 import {
-  Document,
-  Element,
-  CharacterData,
-  Node,
   createWrapper,
   type DOMObserver,
+  Document,
+  type Element,
+  type Node,
 } from "@/dom";
-import { XMLBinder } from "@/model/xml-binder";
-import XmlTreeNode from "./XmlTreeNode.vue";
-import InspectorPanel from "./InspectorPanel.vue";
+import type { XMLBinder } from "@/model/xml-binder";
+import { XMLAPI } from "@/xml-api";
 
 // --- State ---
 const inputXml = ref(`<root>

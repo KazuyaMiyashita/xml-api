@@ -1,4 +1,4 @@
-import { ModelElement, ModelText, ModelNode } from "@/model/xml-api-model";
+import { ModelElement, type ModelNode, ModelText } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
 
 function h(

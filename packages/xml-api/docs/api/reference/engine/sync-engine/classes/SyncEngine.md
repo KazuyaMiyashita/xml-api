@@ -88,7 +88,7 @@
 
 ### applyPatch()
 
-> **applyPatch**(`start`, `end`, `text`): `void`
+> **applyPatch**(`start`, `end`, `text`, `meta?`): `void`
 
 Apply a programmatic change derived from Model operations.
 This is the "Application -> Source" flow.
@@ -106,6 +106,10 @@ This is the "Application -> Source" flow.
 ##### text
 
 `string`
+
+##### meta?
+
+`Record`\<`string`, `any`\>
 
 #### Returns
 
@@ -133,7 +137,7 @@ Applies a transaction to the engine, updating the state and notifying listeners.
 
 ### insertNode()
 
-> **insertNode**(`parent`, `child`, `index`): `void`
+> **insertNode**(`parent`, `child`, `index`, `meta?`): `void`
 
 #### Parameters
 
@@ -148,6 +152,10 @@ Applies a transaction to the engine, updating the state and notifying listeners.
 ##### index
 
 `number`
+
+##### meta?
+
+`Record`\<`string`, `any`\>
 
 #### Returns
 
@@ -189,7 +197,7 @@ Subscribe to model changes.
 
 ### removeNode()
 
-> **removeNode**(`parent`, `child`): `void`
+> **removeNode**(`parent`, `child`, `meta?`): `void`
 
 #### Parameters
 
@@ -201,6 +209,10 @@ Subscribe to model changes.
 
 [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
 
+##### meta?
+
+`Record`\<`string`, `any`\>
+
 #### Returns
 
 `void`
@@ -209,7 +221,7 @@ Subscribe to model changes.
 
 ### replaceNode()
 
-> **replaceNode**(`target`, `content`): `void`
+> **replaceNode**(`target`, `content`, `meta?`): `void`
 
 #### Parameters
 
@@ -221,6 +233,10 @@ Subscribe to model changes.
 
 [`ModelNode`](../../../model/xml-api-model/classes/ModelNode.md)
 
+##### meta?
+
+`Record`\<`string`, `any`\>
+
 #### Returns
 
 `void`
@@ -229,7 +245,7 @@ Subscribe to model changes.
 
 ### setAttribute()
 
-> **setAttribute**(`modelNode`, `key`, `value`): `void`
+> **setAttribute**(`modelNode`, `key`, `value`, `meta?`): `void`
 
 #### Parameters
 
@@ -244,6 +260,10 @@ Subscribe to model changes.
 ##### value
 
 `string`
+
+##### meta?
+
+`Record`\<`string`, `any`\>
 
 #### Returns
 
@@ -306,7 +326,7 @@ Handles history recording and incremental parsing.
 
 ### updateText()
 
-> **updateText**(`modelNode`, `text`): `void`
+> **updateText**(`modelNode`, `text`, `meta?`): `void`
 
 #### Parameters
 
@@ -317,6 +337,10 @@ Handles history recording and incremental parsing.
 ##### text
 
 `string`
+
+##### meta?
+
+`Record`\<`string`, `any`\>
 
 #### Returns
 

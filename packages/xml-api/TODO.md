@@ -117,11 +117,11 @@
     - Standardize code quality tools and remove legacy API surface. 
     - Align the codebase with the "Triple-Layer Reconciliation" architecture (Source-CST, CST-Model, Model-View) by unifying reconciliation patterns and clarifying responsibilities.
 
-* [ ] **[Linting] Establish Static Analysis**
+* [x] **[Linting] Establish Static Analysis**
     * Add a `lint` script to `package.json` using Biome.
     * Run `pnpm lint` across the workspace to identify and fix code smell or logic inconsistencies.
 
-* [ ] **[Formatting] Global Code Style Unification**
+* [x] **[Formatting] Global Code Style Unification**
     * Execute `pnpm format` across the entire workspace to ensure consistent styling (indentation, quotes, etc.).
     * Ensure the formatting baseline is established before proceeding with heavy refactoring.
 

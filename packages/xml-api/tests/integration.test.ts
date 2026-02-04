@@ -1,13 +1,13 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { Formatter } from "@/model/formatter";
 import {
   ModelCDATA,
   ModelComment,
   ModelElement,
-  ModelText,
   type ModelNode,
+  ModelText,
 } from "@/model/xml-api-model";
-import { Formatter } from "@/model/formatter";
 import { XMLAPI } from "@/xml-api";
 
 function h(

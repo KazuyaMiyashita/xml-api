@@ -57,7 +57,10 @@ export class ModelElement extends ModelNode {
   }
 
   clone(preserveId = false): ModelElement {
-    const clone = new ModelElement(this.tagName, preserveId ? this.id : undefined);
+    const clone = new ModelElement(
+      this.tagName,
+      preserveId ? this.id : undefined,
+    );
     this.cloneBase(clone, preserveId);
     clone.attributes = new Map(this.attributes);
     clone.children = this.children.map((c) => {
@@ -143,7 +146,10 @@ export class ModelComment extends ModelNode {
   }
 
   clone(preserveId = false): ModelComment {
-    const clone = new ModelComment(this.content, preserveId ? this.id : undefined);
+    const clone = new ModelComment(
+      this.content,
+      preserveId ? this.id : undefined,
+    );
     this.cloneBase(clone, preserveId);
     return clone;
   }
@@ -162,7 +168,10 @@ export class ModelCDATA extends ModelNode {
   }
 
   clone(preserveId = false): ModelCDATA {
-    const clone = new ModelCDATA(this.content, preserveId ? this.id : undefined);
+    const clone = new ModelCDATA(
+      this.content,
+      preserveId ? this.id : undefined,
+    );
     this.cloneBase(clone, preserveId);
     return clone;
   }

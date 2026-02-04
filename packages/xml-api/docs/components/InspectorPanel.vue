@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from "vue";
-import type { Element, CharacterData } from "@/dom";
+import { computed, nextTick, ref } from "vue";
+import type { CharacterData, Element } from "@/dom";
 
 const props = defineProps<{
   node: Element | CharacterData | null;

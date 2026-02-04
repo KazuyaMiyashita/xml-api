@@ -1,5 +1,5 @@
-import { XMLAPI } from "@/xml-api";
 import { ModelText } from "@/model/xml-api-model";
+import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI Transaction Management", () => {
   it("should undo and redo updates", () => {

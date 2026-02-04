@@ -12,11 +12,15 @@
 
 ### Constructor
 
-> **new ModelElement**(`tagName`): `ModelElement`
+> **new ModelElement**(`tagName`, `id?`): `ModelElement`
 
 #### Parameters
 
 ##### tagName
+
+`string`
+
+##### id?
 
 `string`
 
@@ -126,7 +130,7 @@
 
 ### cloneBase()
 
-> `protected` **cloneBase**(`target`, `preserveId`): `void`
+> `protected` **cloneBase**(`target`, `_preserveId`): `void`
 
 #### Parameters
 
@@ -134,7 +138,7 @@
 
 [`ModelNode`](ModelNode.md)
 
-##### preserveId
+##### \_preserveId
 
 `boolean`
 

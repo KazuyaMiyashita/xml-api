@@ -1,14 +1,14 @@
 import {
-  Document,
-  createWrapper,
-  DOMObserver,
-  Element,
   CharacterData,
+  createWrapper,
+  type DOMObserver,
+  Document,
+  type Element,
   Node,
 } from "@/dom";
-import { XMLAPI } from "@/xml-api";
 import { ModelElement, ModelText } from "@/model/xml-api-model";
-import { XMLBinder } from "@/model/xml-binder";
+import type { XMLBinder } from "@/model/xml-binder";
+import { XMLAPI } from "@/xml-api";
 
 describe("DOM Fidelity Verification", () => {
   const xmlInput = `<root>

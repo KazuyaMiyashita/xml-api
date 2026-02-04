@@ -1,10 +1,10 @@
 import {
   CDATASection,
   Comment,
+  createWrapper,
   Document,
   Element,
   Text,
-  createWrapper,
 } from "@/dom";
 import { ModelElement, ModelText } from "@/model/xml-api-model";
 

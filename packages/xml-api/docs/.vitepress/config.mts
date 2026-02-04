@@ -1,7 +1,7 @@
+import fs from "node:fs";
+import path from "node:path";
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
-import path from "path";
-import fs from "fs";
 
 const sidebarPath = path.resolve(__dirname, "api-sidebar.json");
 const apiSidebar = JSON.parse(fs.readFileSync(sidebarPath, "utf-8"));

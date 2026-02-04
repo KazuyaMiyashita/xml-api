@@ -1,17 +1,16 @@
-import {
-  type CharacterData,
-  Document,
-  type DOMObserver,
-  Element,
-  type Node,
-  createWrapper,
-} from "./dom";
 import type { Grammar } from "./cst/grammar";
 import type { CST } from "./cst/xml-cst";
+import {
+  type CharacterData,
+  createWrapper,
+  Document,
+  Element,
+  type Node,
+} from "./dom";
 import { SyncEngine } from "./engine/sync-engine";
 import { ModelElement, type ModelNode } from "./model/xml-api-model";
-import { type EventHandler } from "./xml-api-events";
 import { SchemaView, type SchemaViewConfig } from "./view/schema-view";
+import type { EventHandler } from "./xml-api-events";
 
 /**
  * The primary entry point for the XML API.
@@ -126,7 +125,7 @@ export class XMLAPI {
           }
         }
       },
-      onTextChange: (node: CharacterData, text: string) => {
+      onTextChange: (_node: CharacterData, _text: string) => {
         // Direct text update on CharacterData
         // Need to find parent element to update properly or support direct node replacement
         // For now, simple text node update via parent if available
@@ -150,7 +149,7 @@ export class XMLAPI {
           this.engine.insertNode(parentModel, childModel, index);
         }
       },
-      onChildRemoved: (parent: Node, child: Node, index: number) => {
+      onChildRemoved: (parent: Node, child: Node, _index: number) => {
         const parentModel = parent.getModel();
         const childModel = child.getModel();
         if (parentModel instanceof ModelElement) {
@@ -204,24 +203,28 @@ export class XMLAPI {
 }
 
 export { SchemaView, type SchemaViewConfig };
+export { CST } from "./cst/xml-cst";
 export {
-  ModelNode,
-  ModelElement,
-  ModelText,
-  ModelComment,
+  CDATASection,
+  Comment,
+  Document,
+  Element,
+  Node,
+  NodeList,
+  Text,
+} from "./dom";
+export { EditorState } from "./engine/editor-state";
+export { type TextPatch, Transaction } from "./engine/transaction";
+export {
   ModelCDATA,
+  ModelComment,
+  ModelElement,
+  ModelNode,
   ModelNodeType,
+  ModelText,
 } from "./model/xml-api-model";
 export {
-  Node,
-  Element,
-  Text,
-  Comment,
-  CDATASection,
-  Document,
-  NodeList,
-} from "./dom";
-export { type ChangeEvent, EventEmitter, type EventHandler } from "./xml-api-events";
-export { Transaction, type TextPatch } from "./engine/transaction";
-export { EditorState } from "./engine/editor-state";
-export { CST } from "./cst/xml-cst";
+  type ChangeEvent,
+  EventEmitter,
+  type EventHandler,
+} from "./xml-api-events";

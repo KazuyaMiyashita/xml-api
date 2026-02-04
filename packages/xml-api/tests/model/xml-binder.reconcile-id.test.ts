@@ -1,5 +1,5 @@
+import type { ModelElement } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
-import { ModelElement } from "@/model/xml-api-model";
 
 describe("XMLBinder Reconciliation ID Persistence", () => {
   it("should preserve node ID when attribute is updated", () => {

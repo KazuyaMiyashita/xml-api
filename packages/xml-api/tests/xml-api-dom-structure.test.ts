@@ -1,5 +1,5 @@
-import { XMLAPI } from "@/xml-api";
 import { Element } from "@/dom";
+import { XMLAPI } from "@/xml-api";
 
 describe("XMLAPI DOM Structure Sync", () => {
   it("should sync appendChild to source", () => {

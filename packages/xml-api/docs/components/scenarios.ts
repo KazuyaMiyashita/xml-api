@@ -1,6 +1,6 @@
-import { XMLAPI } from "@/xml-api";
-import { ModelElement } from "@/model/xml-api-model";
+import type { ModelElement } from "@/model/xml-api-model";
 import { XMLBinder } from "@/model/xml-binder";
+import { XMLAPI } from "@/xml-api";
 
 export interface Scenario {
   title: string;
@@ -194,7 +194,7 @@ console.log(\`Updated Model Attribute: class="\${newClass}"\`);`,
       const binder = new XMLBinder(input);
       const model = api.model as ModelElement;
 
-      log("Initial Source: " + api.input);
+      log(`Initial Source: ${api.input}`);
 
       const newValue = "btn btn-primary";
       log(`
@@ -207,7 +207,7 @@ console.log(\`Updated Model Attribute: class="\${newClass}"\`);`,
         api.updateInput(patch.start, patch.end, patch.text);
       }
 
-      log("Updated Source: " + api.input);
+      log(`Updated Source: ${api.input}`);
 
       const newClass = api.model?.attributes.get("class");
       log(`Updated Model Attribute: class="${newClass}"`);

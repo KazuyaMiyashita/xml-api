@@ -1,5 +1,5 @@
-import { ModelElement } from "@/model/xml-api-model";
 import { CST } from "@/cst/xml-cst";
+import { ModelElement } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
 
 describe("Model-CST Mapping", () => {

@@ -12,11 +12,15 @@
 
 ### Constructor
 
-> **new ModelCDATA**(`content`): `ModelCDATA`
+> **new ModelCDATA**(`content`, `id?`): `ModelCDATA`
 
 #### Parameters
 
 ##### content
+
+`string`
+
+##### id?
 
 `string`
 
@@ -98,7 +102,7 @@
 
 ### cloneBase()
 
-> `protected` **cloneBase**(`target`, `preserveId`): `void`
+> `protected` **cloneBase**(`target`, `_preserveId`): `void`
 
 #### Parameters
 
@@ -106,7 +110,7 @@
 
 [`ModelNode`](ModelNode.md)
 
-##### preserveId
+##### \_preserveId
 
 `boolean`
 

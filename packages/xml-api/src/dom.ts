@@ -122,7 +122,7 @@ export abstract class Node {
     const parent = this.model.parent;
     if (!parent) return null;
     let index = parent.children.indexOf(this.model);
-    
+
     while (index < parent.children.length - 1) {
       index++;
       const sibling = parent.children[index];
@@ -137,7 +137,7 @@ export abstract class Node {
     const parent = this.model.parent;
     if (!parent) return null;
     let index = parent.children.indexOf(this.model);
-    
+
     while (index > 0) {
       index--;
       const sibling = parent.children[index];

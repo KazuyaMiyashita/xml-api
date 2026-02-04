@@ -1,5 +1,5 @@
-import type { CST } from "../cst/xml-cst";
 import { detectIndent } from "../cst/cst-utils";
+import type { CST } from "../cst/xml-cst";
 import {
   ModelCDATA,
   ModelComment,

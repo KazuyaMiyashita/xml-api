@@ -1,6 +1,6 @@
 import DefaultTheme from "vitepress/theme";
-import XmlApiDemo from "../../components/XmlApiDemo.vue";
 import CodeRunner from "../../components/CodeRunner.vue";
+import XmlApiDemo from "../../components/XmlApiDemo.vue";
 
 export default {
   extends: DefaultTheme,

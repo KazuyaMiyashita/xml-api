@@ -1,12 +1,12 @@
+import { Formatter } from "@/model/formatter";
 import {
-  ModelElement,
-  ModelText,
-  ModelComment,
   ModelCDATA,
+  ModelComment,
+  ModelElement,
   type ModelNode,
+  ModelText,
 } from "@/model/xml-api-model";
 import { XMLAPI } from "@/xml-api";
-import { Formatter } from "@/model/formatter";
 
 function h(
   tagName: string,
