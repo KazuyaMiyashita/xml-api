@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("WYSIWYG Recovery from Invalid XML", () => {
   test("should restore content after Invalid XML state", async ({ page }) => {

@@ -14,7 +14,7 @@ test.describe("ID Persistence & Purity", () => {
     // 1. Initial State Check
     // WYSIWYG should have h1
     await expect(wysiwyg.locator("h1")).toBeVisible();
-    
+
     // Verify WYSIWYG DOM has data-model-id (Internal verification)
     // We expect the editor to use IDs for partial updates
     const h1Id = await wysiwyg.locator("h1").getAttribute("data-model-id");
@@ -39,10 +39,10 @@ test.describe("ID Persistence & Purity", () => {
 
     // The critical check: Source should remain clean
     expect(updatedSource).not.toContain("data-model-id");
-    
+
     // Ensure the ID itself didn't leak (e.g. as a random attribute value)
     if (h1Id) {
-        expect(updatedSource).not.toContain(h1Id);
+      expect(updatedSource).not.toContain(h1Id);
     }
   });
 });

@@ -1,4 +1,4 @@
-import { Document, Element, Text } from "../../src/dom";
+import { Document, type Element } from "../../src/dom";
 import { ViewBinder } from "../../src/view/view-binder";
 
 describe("ViewBinder Ignored Attributes", () => {
