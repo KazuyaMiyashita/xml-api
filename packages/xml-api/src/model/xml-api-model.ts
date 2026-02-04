@@ -116,10 +116,12 @@ export class ModelElement extends ModelNode {
 
 export class ModelText extends ModelNode {
   public text: string;
+  public kind: "text" | "whitespace";
 
-  constructor(text: string, id?: NodeId) {
+  constructor(text: string, id?: NodeId, kind: "text" | "whitespace" = "text") {
     super(id);
     this.text = text;
+    this.kind = kind;
   }
 
   getType(): ModelNodeType {
@@ -127,7 +129,11 @@ export class ModelText extends ModelNode {
   }
 
   clone(preserveId = false): ModelText {
-    const clone = new ModelText(this.text, preserveId ? this.id : undefined);
+    const clone = new ModelText(
+      this.text,
+      preserveId ? this.id : undefined,
+      this.kind,
+    );
     this.cloneBase(clone, preserveId);
     return clone;
   }

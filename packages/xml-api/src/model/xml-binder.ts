@@ -31,7 +31,9 @@ export class XMLBinder {
 
     // 1. Handle known rule names
     if (node.name === "CharData") {
-      result = new ModelText(node.getText(this.input));
+      const text = node.getText(this.input);
+      const kind = /^\s*$/.test(text) ? "whitespace" : "text";
+      result = new ModelText(text, undefined, kind);
     } else if (node.name === "Reference") {
       const text = node.getText(this.input);
       if (text.startsWith("&#")) {
@@ -188,7 +190,10 @@ export class XMLBinder {
     target.formatting = { ...source.formatting };
 
     if (target.getType() === ModelNodeType.Text) {
-      (target as ModelText).text = (source as ModelText).text;
+      const t = target as ModelText;
+      const s = source as ModelText;
+      t.text = s.text;
+      t.kind = s.kind;
     } else if (target.getType() === ModelNodeType.Comment) {
       (target as ModelComment).content = (source as ModelComment).content;
     } else if (target.getType() === ModelNodeType.CDATA) {

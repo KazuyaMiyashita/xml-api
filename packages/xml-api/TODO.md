@@ -130,7 +130,7 @@
     * **Targets**: `updateInput`, `input`, and legacy `setAttribute`/`updateText` shortcuts.
     * Ensure all call sites have been migrated to the new 3-layer reconciliation patterns.
 
-* [ ] **[Model Refactoring: Formatting Trivia]**:
+* [x] **[Model Refactoring: Formatting Trivia]**:
     * **Goal**: Explicitly distinguish between "content" and "formatting" in the Model layer.
     * **Task**:
         * Introduce `ModelTrivia` or update `ModelText` to support a `kind` property (e.g., `'text' | 'whitespace' | 'indent'`).

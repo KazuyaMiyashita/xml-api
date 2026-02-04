@@ -12,7 +12,7 @@
 
 ### Constructor
 
-> **new ModelText**(`text`, `id?`): `ModelText`
+> **new ModelText**(`text`, `id?`, `kind?`): `ModelText`
 
 #### Parameters
 
@@ -23,6 +23,10 @@
 ##### id?
 
 `string`
+
+##### kind?
+
+`"text"` | `"whitespace"`
 
 #### Returns
 
@@ -61,6 +65,12 @@
 #### Inherited from
 
 [`ModelNode`](ModelNode.md).[`id`](ModelNode.md#id)
+
+***
+
+### kind
+
+> **kind**: `"text"` \| `"whitespace"`
 
 ***
 
